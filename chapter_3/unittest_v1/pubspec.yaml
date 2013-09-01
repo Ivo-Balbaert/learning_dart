@@ -1,0 +1,6 @@
+name: unittest_v1
+description: A sample command-line application
+dependencies:
+  unittest: any
+  dartlero:
+    git: https://github.com/dzenanr/dartlero

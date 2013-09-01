@@ -1,0 +1,9 @@
+Audio Links
+
+http://html5doctor.com/html5-audio-the-state-of-play/
+http://www.html5rocks.com/en/tutorials/audio/quick/
+http://www.html5rocks.com/en/tutorials/webaudio/intro/
+
+https://www.scirra.com/blog/44/on-html5-audio-formats-aac-and-ogg
+http://www.html5audio.org/
+

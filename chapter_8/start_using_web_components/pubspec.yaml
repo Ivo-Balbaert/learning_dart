@@ -1,0 +1,5 @@
+name: start_using_web_components
+description: A sample web application
+dependencies:
+  browser: any
+  web_ui: any

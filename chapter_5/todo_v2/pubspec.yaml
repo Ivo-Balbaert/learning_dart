@@ -1,0 +1,4 @@
+name: todo_v1
+description: A sample web application
+dependencies:
+  browser: any

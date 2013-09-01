@@ -1,0 +1,5 @@
+name: dwt_bank
+description: A sample web application
+dependencies:
+  browser: any
+  dart_web_toolkit: '>=0.3.0'

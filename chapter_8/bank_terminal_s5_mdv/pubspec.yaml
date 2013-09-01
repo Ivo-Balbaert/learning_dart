@@ -1,0 +1,5 @@
+name: bank_terminal_s4
+description: A sample web application
+dependencies:
+  browser: any
+  web_ui: any

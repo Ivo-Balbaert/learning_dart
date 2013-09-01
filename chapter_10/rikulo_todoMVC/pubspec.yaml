@@ -1,0 +1,9 @@
+name: rikulo_todoMVC
+version: 0.5.1
+description: Rikulo's implementation of todoMVC.
+authors:
+- Simon Pai <simonpai@rikulo.org>
+homepage: http://rikulo.org
+dependencies:
+  rikulo_ui: any
+  rikulo_uxl: any

@@ -1,0 +1,697 @@
+---
+build.dart --machine --full
+[{"method":"error","params":{"file":"web\\xclickcounter.html","message":"unable to open file \"web\\xclickcounter.dart\"","line":12,"charStart":298,"charEnd":355}}]
+Total time spent on web/tabs.html                            -- 245 ms
+Total time                                                   -- 922 ms
+build.dart finished [1733 ms]
+
+---
+build.dart --machine --removed=web\xclickcounter.html
+[{"method":"error","params":{"file":"web/tabs.html","message":"unable to open file \"web\\xclickcounter.html\"","line":10,"charStart":181,"charEnd":226}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"custom element with tag name x-click-counter not found.","line":18,"charStart":349,"charEnd":420}}]
+Total time spent on web/tabs.html                            -- 201 ms
+Total time                                                   -- 846 ms
+build.dart finished [1141 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 251 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+Total time                                                   -- 931 ms
+build.dart finished [1350 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+Total time                                                   -- 656 ms
+build.dart finished [978 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"custom element with tag name x-tabs not found.","line":14,"charStart":220,"charEnd":228}}]
+Total time spent on web/tabs.html                            -- 263 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+Total time                                                   -- 902 ms
+build.dart finished [1358 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 978 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1623 ms
+build.dart finished [2135 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 965 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1608 ms
+build.dart finished [2184 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 986 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1641 ms
+build.dart finished [2194 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 998 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1649 ms
+build.dart finished [2622 ms]
+
+---
+build.dart --machine --full
+[{"method":"error","params":{"file":"web/tabs.html","message":"unable to open file \"web\\packages\\widget\\components\\tabs.html\"","line":12,"charStart":490,"charEnd":553}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"custom element with tag name x-tabs not found.","line":18,"charStart":639,"charEnd":647}}]
+Total time spent on web/tabs.html                            -- 301 ms
+Total time                                                   -- 1132 ms
+build.dart finished [1499 ms]
+
+---
+build.dart --machine --full
+Total time spent on web/tabs.html                            -- 1125 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1900 ms
+build.dart finished [2542 ms]
+
+---
+build.dart --machine --full
+Total time spent on web/tabs.html                            -- 1571 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 2497 ms
+build.dart finished [3181 ms]
+
+---
+build.dart --machine --changed=pubspec.lock
+Total time                                                   -- 749 ms
+build.dart finished [1151 ms]
+
+---
+build.dart --machine --changed=web\images\bootstrap-mdo-sfmoma-01 (1).jpg --changed=web\images\bootstrap-mdo-sf...
+Total time                                                   -- 669 ms
+build.dart finished [975 ms]
+
+---
+build.dart --machine --changed=web\images\bootstrap-mdo-sfmoma-02.jpg
+Total time                                                   -- 647 ms
+build.dart finished [946 ms]
+
+---
+build.dart --machine --removed=web\images\bootstrap-mdo-sfmoma-01 (1).jpg
+Total time                                                   -- 651 ms
+build.dart finished [950 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 986 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1640 ms
+build.dart finished [2150 ms]
+
+---
+build.dart --machine --changed=web\images\bootstrap-mdo-sfmoma-03.jpg
+Total time                                                   -- 649 ms
+build.dart finished [1003 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 990 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1644 ms
+build.dart finished [2240 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Trailing solidus not allowed on element p","line":34,"charStart":1062,"charEnd":1066}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Trailing solidus not allowed on element p","line":35,"charStart":1122,"charEnd":1126}}]
+Total time spent on web/tabs.html                            -- 957 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1619 ms
+build.dart finished [2186 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 984 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1642 ms
+build.dart finished [2208 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p). Ignored.","line":47,"charStart":1352,"charEnd":1356}}]
+Total time spent on web/tabs.html                            -- 971 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1626 ms
+build.dart finished [2488 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 978 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1637 ms
+build.dart finished [2207 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p). Ignored.","line":46,"charStart":1348,"charEnd":1352}}]
+Total time spent on web/tabs.html                            -- 971 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1621 ms
+build.dart finished [2191 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p). Ignored.","line":46,"charStart":1347,"charEnd":1351}}]
+Total time spent on web/tabs.html                            -- 962 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1615 ms
+build.dart finished [2181 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p). Ignored.","line":46,"charStart":1347,"charEnd":1351}}]
+Total time spent on web/tabs.html                            -- 1035 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1700 ms
+build.dart finished [2872 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 985 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1643 ms
+build.dart finished [2201 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected start tag (p) in table context caused voodoo mode.","line":61,"charStart":1558,"charEnd":1571}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p) in table context caused voodoo mode.","line":63,"charStart":1667,"charEnd":1671}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected start tag (p) in table context caused voodoo mode.","line":64,"charStart":1678,"charEnd":1691}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected start tag (img) in table context caused voodoo mode.","line":65,"charStart":1700,"charEnd":1747}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected start tag (img) in table context caused voodoo mode.","line":66,"charStart":1756,"charEnd":1803}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected start tag (img) in table context caused voodoo mode.","line":67,"charStart":1812,"charEnd":1859}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p) in table context caused voodoo mode.","line":68,"charStart":1865,"charEnd":1869}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (x-tabs) in table context caused voodoo mode.","line":69,"charStart":1874,"charEnd":1883}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (x-tabs). Ignored.","line":69,"charStart":1874,"charEnd":1883}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (body) in the table body phase. Ignored.","line":73,"charStart":2002,"charEnd":2009}}]
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (html) in the table body phase. Ignored.","line":74,"charStart":2010,"charEnd":2017}}]
+warning Unexpected end of file. Expected table content.
+Total time spent on web/tabs.html                            -- 1003 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1657 ms
+build.dart finished [2237 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 964 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1613 ms
+build.dart finished [2174 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 1019 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1666 ms
+build.dart finished [2270 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 1031 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1703 ms
+build.dart finished [2283 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p). Ignored.","line":93,"charStart":3073,"charEnd":3077}}]
+Total time spent on web/tabs.html                            -- 1053 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1707 ms
+build.dart finished [2310 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 972 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1636 ms
+build.dart finished [2206 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (input). Ignored.","line":29,"charStart":969,"charEnd":977}}]
+Total time spent on web/tabs.html                            -- 977 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1656 ms
+build.dart finished [2232 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (input). Ignored.","line":29,"charStart":974,"charEnd":982}}]
+Total time spent on web/tabs.html                            -- 969 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1618 ms
+build.dart finished [2188 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (input). Ignored.","line":29,"charStart":960,"charEnd":968}}]
+Total time spent on web/tabs.html                            -- 988 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1672 ms
+build.dart finished [2256 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 1000 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1649 ms
+build.dart finished [2229 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 989 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1647 ms
+build.dart finished [2229 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 992 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1659 ms
+build.dart finished [2248 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p). Ignored.","line":93,"charStart":3073,"charEnd":3077}}]
+Total time spent on web/tabs.html                            -- 1028 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1684 ms
+build.dart finished [2265 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 1035 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1676 ms
+build.dart finished [2272 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+[{"method":"warning","params":{"file":"web/tabs.html","message":"Unexpected end tag (p). Ignored.","line":115,"charStart":3672,"charEnd":3676}}]
+Total time spent on web/tabs.html                            -- 1035 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1700 ms
+build.dart finished [2278 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 978 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1613 ms
+build.dart finished [2183 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 996 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1654 ms
+build.dart finished [2249 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 975 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1624 ms
+build.dart finished [2207 ms]
+
+---
+build.dart --machine --changed=web\tabs.html
+Total time spent on web/tabs.html                            -- 967 ms
+[{"method":"generated","params":{"file":"web\\out\\tabs.html.css"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\_from_packages\\widget\\components\\swap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.css"}}]
+[{"method":"mapping","params":{"from":"web/tabs.html","to":"web\\out\\tabs.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\tabs.html"}}]
+Total time                                                   -- 1633 ms
+build.dart finished [2217 ms]
+

@@ -1,0 +1,31 @@
+---
+build.dart --machine --changed=web\out\start_using_web_components.css --changed=web\out\start_using_web_compone...
+Total time                                                   --  23 ms
+build.dart finished [504 ms]
+
+---
+build.dart --machine --full
+Unable to open file: F:/Dartiverse/ALearningDart/BOOK/code/chapter_8/start_using_web_components/packages/web_ui/component_build.dart'file:///F:/Dartiverse/ALearningDart/BOOK/code/chapter_8/start_using_web_components/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [86 ms]
+
+---
+build.dart --machine --full
+Unable to open file: F:/Dartiverse/ALearningDart/BOOK/code/chapter_8/start_using_web_components/packages/web_ui/component_build.dart'file:///F:/Dartiverse/ALearningDart/BOOK/code/chapter_8/start_using_web_components/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [60 ms]
+
+---
+build.dart --machine --full
+Total time spent on web/start_using_web_components.html      -- 424 ms
+[{"method":"generated","params":{"file":"web\\out\\start_using_web_components.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\start_using_web_components.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\start_using_web_components.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\start_using_web_components.css"}}]
+[{"method":"mapping","params":{"from":"web/start_using_web_components.html","to":"web\\out\\start_using_web_components.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\start_using_web_components.html"}}]
+Total time                                                   -- 474 ms
+build.dart finished [872 ms]
+

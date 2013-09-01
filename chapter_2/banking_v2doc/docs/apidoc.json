@@ -1,0 +1,202 @@
+[
+  {
+    "kind": "library",
+    "name": "banking_v2.dart",
+    "children": [
+      {
+        "returnType": {
+          "name": "dynamic",
+          "refId": "dynamic"
+        },
+        "kind": "method",
+        "name": "main",
+        "id": "main0()"
+      },
+      {
+        "superclass": {
+          "name": "Object",
+          "refId": "Object"
+        },
+        "kind": "class",
+        "comment": "\nA bank account has an [owner], is identified by a [number]\nand has an amount of money called [balance].\nThe balance is changed through methods [deposit] and [withdraw].\n",
+        "name": "BankAccount",
+        "children": [
+          {
+            "returnType": {
+              "name": "dynamic",
+              "refId": "dynamic"
+            },
+            "kind": "method",
+            "name": "BankAccount",
+            "children": [
+              {
+                "ref": {
+                  "name": "String",
+                  "refId": "String"
+                },
+                "kind": "param",
+                "name": "owner",
+                "id": "owner"
+              },
+              {
+                "ref": {
+                  "name": "String",
+                  "refId": "String"
+                },
+                "kind": "param",
+                "name": "number",
+                "id": "number"
+              },
+              {
+                "ref": {
+                  "name": "double",
+                  "refId": "double"
+                },
+                "kind": "param",
+                "name": "balance",
+                "id": "balance"
+              }
+            ],
+            "id": "BankAccount3()"
+          },
+          {
+            "returnType": {
+              "name": "dynamic",
+              "refId": "dynamic"
+            },
+            "kind": "method",
+            "comment": "An amount of money is added to the balance.",
+            "name": "deposit",
+            "children": [
+              {
+                "ref": {
+                  "name": "double",
+                  "refId": "double"
+                },
+                "kind": "param",
+                "name": "amount",
+                "id": "amount"
+              }
+            ],
+            "id": "deposit1()"
+          },
+          {
+            "returnType": {
+              "name": "dynamic",
+              "refId": "dynamic"
+            },
+            "kind": "method",
+            "comment": "An amount of money is subtracted from the balance.",
+            "name": "withdraw",
+            "children": [
+              {
+                "ref": {
+                  "name": "double",
+                  "refId": "double"
+                },
+                "kind": "param",
+                "name": "amount",
+                "id": "amount"
+              }
+            ],
+            "id": "withdraw1()"
+          },
+          {
+            "returnType": {
+              "name": "String",
+              "refId": "String"
+            },
+            "kind": "method",
+            "name": "toString",
+            "id": "toString0()"
+          },
+          {
+            "ref": {
+              "name": "String",
+              "refId": "String"
+            },
+            "kind": "property",
+            "name": "owner",
+            "id": "owner"
+          },
+          {
+            "ref": {
+              "name": "String",
+              "refId": "String"
+            },
+            "kind": "property",
+            "name": "number",
+            "id": "number"
+          },
+          {
+            "ref": {
+              "name": "double",
+              "refId": "double"
+            },
+            "kind": "property",
+            "name": "balance",
+            "id": "balance"
+          },
+          {
+            "ref": {
+              "name": "DateTime",
+              "refId": "DateTime"
+            },
+            "kind": "property",
+            "name": "dateCreated",
+            "id": "dateCreated"
+          },
+          {
+            "ref": {
+              "name": "DateTime",
+              "refId": "DateTime"
+            },
+            "kind": "property",
+            "name": "dateModified",
+            "id": "dateModified"
+          },
+          {
+            "returnType": {
+              "name": "dynamic",
+              "refId": "dynamic"
+            },
+            "kind": "constructor",
+            "name": "BankAccount",
+            "children": [
+              {
+                "ref": {
+                  "name": "String",
+                  "refId": "String"
+                },
+                "kind": "param",
+                "name": "owner",
+                "id": "owner"
+              },
+              {
+                "ref": {
+                  "name": "String",
+                  "refId": "String"
+                },
+                "kind": "param",
+                "name": "number",
+                "id": "number"
+              },
+              {
+                "ref": {
+                  "name": "double",
+                  "refId": "double"
+                },
+                "kind": "param",
+                "name": "balance",
+                "id": "balance"
+              }
+            ],
+            "id": "BankAccount3()"
+          }
+        ],
+        "id": "BankAccount"
+      }
+    ],
+    "id": "file:///E:/dart/Book  - Learning Dart by Projects/BOOK/code/chapter_2/banking_v2doc/banking_v2.dart"
+  }
+]

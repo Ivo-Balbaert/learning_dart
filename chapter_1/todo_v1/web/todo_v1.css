@@ -1,0 +1,35 @@
+
+body {
+  background-color: Silver;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10px;
+  font-weight: normal;
+  line-height: 1.2em;
+  margin: 15px;
+}
+
+h1, p {
+  color: #333;
+}
+
+#task {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  padding: 5px 0px 5px 5px;
+  width: 100%;
+  border: 1px solid Silver;
+  background-color: White;
+}
+
+#list {
+  padding:0px;
+  margin:0px;
+  list-style-position:inside;
+}
+
+#list li {
+  padding:5px 0px 5px 5px;
+  border-bottom: 1px dotted Gold;
+  font-size: 15px;
+}

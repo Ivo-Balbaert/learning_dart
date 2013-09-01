@@ -1,0 +1,4 @@
+name: return_types
+description: A sample command-line application
+#dependencies:
+#  unittest: any

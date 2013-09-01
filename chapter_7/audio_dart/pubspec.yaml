@@ -1,0 +1,4 @@
+name: audio_dart
+description: A sample web application
+dependencies:
+  browser: any

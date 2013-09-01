@@ -1,0 +1,4 @@
+name: video
+description: video
+dependencies:
+  browser: any

@@ -1,0 +1,4 @@
+name: bank_terminal_s6
+description: A sample web application
+dependencies:
+  browser: any

@@ -1,0 +1,6 @@
+name: dwt1
+description: A sample web application
+dependencies:
+  browser: any
+dev_dependencies:
+  dart_web_toolkit: '>=0.3.0'

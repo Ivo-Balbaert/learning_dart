@@ -1,0 +1,4 @@
+name: app_breeding
+description: A sample command-line application
+#dependencies:
+#  unittest: any

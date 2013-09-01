@@ -1,0 +1,299 @@
+Microsoft Windows [Version 6.2.9200]
+(c) 2012 Microsoft Corporation. All rights reserved.
+
+C:\Users\CVO>cd F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl1
+
+C:\Users\CVO>f:
+
+F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl1>pub --trace install
+Resolving dependencies.............
+Downloading stagexl 0.8.3+1 from hosted...
+Deletion failed
+#0      _Directory.deleteSync (directory_impl.dart:193:7)
+#1      deleteEntry (file:///e:/b/build/slave/dart-editor-win-trunk/build/dart/sd
+k/lib/_internal/pub/lib/src/io.dart:180:35)
+#2      SystemCache.deleteTempDir (file:///e:/b/build/slave/dart-editor-win-trunk
+/build/dart/sdk/lib/_internal/pub/lib/src/system_cache.dart:59:40)
+#3      PubCommand.run.<anonymous closure> (file:///e:/b/build/slave/dart-editor-
+win-trunk/build/dart/sdk/lib/_internal/pub/lib/src/command.dart:73:46)
+#4      _WhenFuture._zonedSendError (dart:async/future_impl.dart:458:27)
+#5      _TransformFuture._sendError.<anonymous closure> (dart:async/future_impl.d
+art:351:48)
+#6      _ZoneBase._runInZone (dart:async/zone.dart:74:15)
+#7      _ZoneBase._runUnguarded (dart:async/zone.dart:102:22)
+#8      _ZoneBase.executeCallback (dart:async/zone.dart:58:23)
+#9      _TransformFuture._sendError (dart:async/future_impl.dart:351:26)
+#10     _FutureImpl._setErrorUnchecked (dart:async/future_impl.dart:211:26)
+#11     _FutureImpl._setError (dart:async/future_impl.dart:189:23)
+#12     _ThenFuture._zonedSendError (dart:async/future_impl.dart:380:14)
+#13     _TransformFuture._sendError.<anonymous closure> (dart:async/future_impl.d
+art:351:48)
+#14     _ZoneBase._runInZone (dart:async/zone.dart:74:15)
+#15     _ZoneBase._runUnguarded (dart:async/zone.dart:102:22)
+#16     _ZoneBase.executeCallback (dart:async/zone.dart:58:23)
+#17     _TransformFuture._sendError (dart:async/future_impl.dart:351:26)
+#18     _FutureImpl._setErrorUnchecked (dart:async/future_impl.dart:211:26)
+#19     _FutureImpl._setError (dart:async/future_impl.dart:189:23)
+#20     _ThenFuture._zonedSendError (dart:async/future_impl.dart:380:14)
+#21     _TransformFuture._sendError.<anonymous closure> (dart:async/future_impl.d
+art:351:48)
+#22     _ZoneBase._runInZone (dart:async/zone.dart:82:17)
+#23     _ZoneBase._runUnguarded (dart:async/zone.dart:102:22)
+#24     _ZoneBase.executeCallback (dart:async/zone.dart:58:23)
+#25     _TransformFuture._sendError (dart:async/future_impl.dart:351:26)
+#26     _FutureImpl._setErrorUnchecked (dart:async/future_impl.dart:211:26)
+#27     _FutureImpl._asyncSetError.<anonymous closure> (dart:async/future_impl.da
+rt:225:25)
+#28     _asyncRunCallback (dart:async/event_loop.dart:9:15)
+#29     _createTimer.<anonymous closure> (dart:async-patch/timer_patch.dart:8:13)
+
+#30     _Timer._createTimerHandler._handleTimeout (timer_impl.dart:96:21)
+#31     _Timer._createTimerHandler.<anonymous closure> (timer_impl.dart:112:23)
+#32     _ReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:81
+:92)
+
+---- Log transcript ----
+FINE: Pub 0.6.5+0.r25017
+IO  : Spawning cmd /c ver
+IO  : Finished ver. Exit code 0.stdout:Microsoft Windows [Version 6.2.9200]Nothin
+g output on stderr.
+SLVR: Solving dependencies:
+    | - stagexl any from hosted (stagexl)
+    | - browser any from hosted (browser)
+IO  : Get versions from https://pub.dartlang.org/api/packages/stagexl.
+IO  : Get versions from https://pub.dartlang.org/api/packages/browser.
+FINE: HTTP GET https://pub.dartlang.org/api/packages/stagexl
+    | Accept: application/vnd.pub.v2+json
+FINE: HTTP GET https://pub.dartlang.org/api/packages/browser
+    | Accept: application/vnd.pub.v2+json
+FINE: HTTP response 200 OK for GET https://pub.dartlang.org/api/packages/stagexl
+    | took 0:00:00.587076
+    | content-type: application/json
+    | cache-control: private
+    | date: Thu, 18 Jul 2013 15:21:07 GMT
+    | vary: Accept-Encoding
+    | server: Google Frontend
+    | transfer-encoding: chunked
+FINE: HTTP response 200 OK for GET https://pub.dartlang.org/api/packages/browser
+    | took 0:00:00.972125
+    | content-type: application/json
+    | cache-control: private
+    | date: Thu, 18 Jul 2013 15:21:07 GMT
+    | vary: Accept-Encoding
+    | server: Google Frontend
+    | transfer-encoding: chunked
+SLVR: * select stagexl 0.8.3+1 from hosted (8 versions)
+SLVR: | * select browser 0.6.6 from hosted (34 versions)
+IO  : Describe package at https://pub.dartlang.org/api/packages/stagexl/versions/
+0.8.3%2B1.
+FINE: HTTP GET https://pub.dartlang.org/api/packages/stagexl/versions/0.8.3%2B1
+    | Accept: application/vnd.pub.v2+json
+FINE: HTTP response 200 OK for GET https://pub.dartlang.org/api/packages/stagexl/
+versions/0.8.3%2B1
+    | took 0:00:02.691345
+    | content-type: application/json
+    | cache-control: private
+    | date: Thu, 18 Jul 2013 15:21:10 GMT
+    | vary: Accept-Encoding
+    | server: Google Frontend
+    | transfer-encoding: chunked
+IO  : Get versions from https://pub.dartlang.org/api/packages/meta.
+FINE: HTTP GET https://pub.dartlang.org/api/packages/meta
+    | Accept: application/vnd.pub.v2+json
+FINE: HTTP response 200 OK for GET https://pub.dartlang.org/api/packages/meta
+    | took 0:00:00.808103
+    | content-type: application/json
+    | cache-control: private
+    | date: Thu, 18 Jul 2013 15:21:11 GMT
+    | vary: Accept-Encoding
+    | server: Google Frontend
+    | transfer-encoding: chunked
+SLVR: | | * select meta 0.6.6 from hosted (38 versions)
+IO  : Describe package at https://pub.dartlang.org/api/packages/browser/versions/
+0.6.6.
+FINE: HTTP GET https://pub.dartlang.org/api/packages/browser/versions/0.6.6
+    | Accept: application/vnd.pub.v2+json
+FINE: HTTP response 200 OK for GET https://pub.dartlang.org/api/packages/browser/
+versions/0.6.6
+    | took 0:00:00.173021
+    | content-type: application/json
+    | cache-control: private
+    | date: Thu, 18 Jul 2013 15:21:11 GMT
+    | vary: Accept-Encoding
+    | server: Google Frontend
+    | transfer-encoding: chunked
+SLVR: | | | backjump to failed package browser
+SLVR: | * select browser 0.6.5 from hosted (33 versions)
+SLVR: | | * select meta 0.6.6 from hosted (38 versions)
+IO  : Describe package at https://pub.dartlang.org/api/packages/meta/versions/0.6
+.6.
+FINE: HTTP GET https://pub.dartlang.org/api/packages/meta/versions/0.6.6
+    | Accept: application/vnd.pub.v2+json
+FINE: HTTP response 200 OK for GET https://pub.dartlang.org/api/packages/meta/ver
+sions/0.6.6
+    | took 0:00:00.179023
+    | content-type: application/json
+    | cache-control: private
+    | date: Thu, 18 Jul 2013 15:21:11 GMT
+    | vary: Accept-Encoding
+    | server: Google Frontend
+    | transfer-encoding: chunked
+SLVR: | | | backjump to failed package meta
+SLVR: | | * select meta 0.6.5 from hosted (37 versions)
+SLVR: BacktrackingSolver took 0:00:05.093653 seconds.
+    | - Requested 3 version lists
+    | - Looked up 13 cached version lists
+    | - Requested 5 pubspecs
+    | - Looked up 6 cached pubspecs
+    |
+MSG : Resolving dependencies.............
+IO  : Deleting directory F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl
+1\packages.
+FINE: Ensuring directory F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl
+1\packages exists.
+FINE: Ensuring directory F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl
+1\packages exists.
+FINE: Ensuring directory F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl
+1\packages exists.
+IO  : Listing directory C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlan
+g.org\meta-0.6.5\lib.
+FINE: Listed directory C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlang
+.org\meta-0.6.5\lib:
+    | C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlang.org\meta-0.6.5\l
+ib\meta.dart
+FINE: Creating link for package 'meta'.
+FINE: Creating F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl1\packages
+\meta pointing to C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlang.org\
+meta-0.6.5\lib
+FINE: Ensuring directory C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartla
+ng.org exists.
+IO  : Install package from https://pub.dartlang.org/packages/stagexl/versions/0.8
+.3%2B1.tar.gz.
+MSG : Downloading stagexl 0.8.3+1 from hosted...
+FINE: Ensuring directory C:\Users\CVO\AppData\Roaming\Pub\Cache\_temp exists.
+IO  : Created temp directory C:\Users\CVO\AppData\Roaming\Pub\Cache\_temp\dir-aa2
+621bd-efbd-11e2-bf63-50465d682b5c
+FINE: HTTP GET https://pub.dartlang.org/packages/stagexl/versions/0.8.3%2B1.tar.g
+z
+IO  : Listing directory C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlan
+g.org\browser-0.6.5\lib.
+FINE: Listed directory C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlang
+.org\browser-0.6.5\lib:
+    | C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlang.org\browser-0.6.
+5\lib\dart.js
+    | C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlang.org\browser-0.6.
+5\lib\interop.js
+FINE: Creating link for package 'browser'.
+FINE: Creating F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl1\packages
+\browser pointing to C:\Users\CVO\AppData\Roaming\Pub\Cache\hosted\pub.dartlang.o
+rg\browser-0.6.5\lib
+FINE: HTTP response 200 OK for GET https://pub.dartlang.org/packages/stagexl/vers
+ions/0.8.3%2B1.tar.gz
+    | took 0:00:00.742095
+    | cache-control: public, max-age=3600
+    | date: Thu, 18 Jul 2013 15:21:12 GMT
+    | accept-ranges: bytes
+    | last-modified: Thu, 18 Jul 2013 05:30:56 GMT
+    | content-length: 2252688
+    | x-goog-hash: crc32c=8Bk5Xg==,md5=mPagIZxF9zN/8Rc5zLIcYA==
+    | etag: "98f6a0219c45f7337ff11739ccb21c60"
+    | content-type: application/octet-stream
+    | x-goog-generation: 1374125456486000
+    | x-goog-metageneration: 1
+    | server: HTTP Upload Server Built on Jul 12 2013 17:12:36 (1373674356)
+    | expires: Thu, 18 Jul 2013 16:21:12 GMT
+FINE: Extracting .tar.gz stream to C:\Users\CVO\AppData\Roaming\Pub\Cache\_temp\d
+ir-aa2621bd-efbd-11e2-bf63-50465d682b5c.
+IO  : Created temp directory C:\Users\CVO\AppData\Local\Temp\tempdir-aa2621be-efb
+d-11e2-bf63-50465d682b5c
+IO  : Creating C:\Users\CVO\AppData\Local\Temp\tempdir-aa2621be-efbd-11e2-bf63-50
+465d682b5c\data.tar.gz from stream.
+FINE: Created C:\Users\CVO\AppData\Local\Temp\tempdir-aa2621be-efbd-11e2-bf63-504
+65d682b5c\data.tar.gz from stream.
+IO  : Spawning f:\dart\dart-sdk\lib\_internal\pub\resource\7zip\7za.exe e data.ta
+r.gz
+IO  : Finished f:\dart\dart-sdk\lib\_internal\pub\resource\7zip\7za.exe. Exit cod
+e 0.stdout:7-Zip (A) 9.20  Copyright (c) 1999-2010 Igor Pavlov  2010-11-18Process
+ing archive: data.tar.gzExtracting  intermediate.tarEverything is OkSize:       2
+819072Compressed: 2252688Nothing output on stderr.
+IO  : Listing directory C:\Users\CVO\AppData\Local\Temp\tempdir-aa2621be-efbd-11e
+2-bf63-50465d682b5c.
+FINE: Listed directory C:\Users\CVO\AppData\Local\Temp\tempdir-aa2621be-efbd-11e2
+-bf63-50465d682b5c:
+    | C:\Users\CVO\AppData\Local\Temp\tempdir-aa2621be-efbd-11e2-bf63-50465d682b5
+c\data.tar.gz
+    | C:\Users\CVO\AppData\Local\Temp\tempdir-aa2621be-efbd-11e2-bf63-50465d682b5
+c\intermediate.tar
+IO  : Spawning f:\dart\dart-sdk\lib\_internal\pub\resource\7zip\7za.exe x C:\User
+s\CVO\AppData\Local\Temp\tempdir-aa2621be-efbd-11e2-bf63-50465d682b5c\intermediat
+e.tar
+FINE: Clean up system cache temp directory C:\Users\CVO\AppData\Roaming\Pub\Cache
+\_temp.
+IO  : Deleting directory C:\Users\CVO\AppData\Roaming\Pub\Cache\_temp.
+ERR : Deletion failed
+ERR : #0      _Directory.deleteSync (directory_impl.dart:193:7)
+    | #1      deleteEntry (file:///e:/b/build/slave/dart-editor-win-trunk/build/d
+art/sdk/lib/_internal/pub/lib/src/io.dart:180:35)
+    | #2      SystemCache.deleteTempDir (file:///e:/b/build/slave/dart-editor-win
+-trunk/build/dart/sdk/lib/_internal/pub/lib/src/system_cache.dart:59:40)
+    | #3      PubCommand.run.<anonymous closure> (file:///e:/b/build/slave/dart-e
+ditor-win-trunk/build/dart/sdk/lib/_internal/pub/lib/src/command.dart:73:46)
+    | #4      _WhenFuture._zonedSendError (dart:async/future_impl.dart:458:27)
+    | #5      _TransformFuture._sendError.<anonymous closure> (dart:async/future_
+impl.dart:351:48)
+    | #6      _ZoneBase._runInZone (dart:async/zone.dart:74:15)
+    | #7      _ZoneBase._runUnguarded (dart:async/zone.dart:102:22)
+    | #8      _ZoneBase.executeCallback (dart:async/zone.dart:58:23)
+    | #9      _TransformFuture._sendError (dart:async/future_impl.dart:351:26)
+    | #10     _FutureImpl._setErrorUnchecked (dart:async/future_impl.dart:211:26)
+
+    | #11     _FutureImpl._setError (dart:async/future_impl.dart:189:23)
+    | #12     _ThenFuture._zonedSendError (dart:async/future_impl.dart:380:14)
+    | #13     _TransformFuture._sendError.<anonymous closure> (dart:async/future_
+impl.dart:351:48)
+    | #14     _ZoneBase._runInZone (dart:async/zone.dart:74:15)
+    | #15     _ZoneBase._runUnguarded (dart:async/zone.dart:102:22)
+    | #16     _ZoneBase.executeCallback (dart:async/zone.dart:58:23)
+    | #17     _TransformFuture._sendError (dart:async/future_impl.dart:351:26)
+    | #18     _FutureImpl._setErrorUnchecked (dart:async/future_impl.dart:211:26)
+
+    | #19     _FutureImpl._setError (dart:async/future_impl.dart:189:23)
+    | #20     _ThenFuture._zonedSendError (dart:async/future_impl.dart:380:14)
+    | #21     _TransformFuture._sendError.<anonymous closure> (dart:async/future_
+impl.dart:351:48)
+    | #22     _ZoneBase._runInZone (dart:async/zone.dart:82:17)
+    | #23     _ZoneBase._runUnguarded (dart:async/zone.dart:102:22)
+    | #24     _ZoneBase.executeCallback (dart:async/zone.dart:58:23)
+    | #25     _TransformFuture._sendError (dart:async/future_impl.dart:351:26)
+    | #26     _FutureImpl._setErrorUnchecked (dart:async/future_impl.dart:211:26)
+
+    | #27     _FutureImpl._asyncSetError.<anonymous closure> (dart:async/future_i
+mpl.dart:225:25)
+    | #28     _asyncRunCallback (dart:async/event_loop.dart:9:15)
+    | #29     _createTimer.<anonymous closure> (dart:async-patch/timer_patch.dart
+:8:13)
+    | #30     _Timer._createTimerHandler._handleTimeout (timer_impl.dart:96:21)
+    | #31     _Timer._createTimerHandler.<anonymous closure> (timer_impl.dart:112
+:23)
+    | #32     _ReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.d
+art:81:92)
+    |
+---- End log transcript ----
+
+F:\Dartiverse\ALearningDart\BOOK\code\chapter_10\stagexl1>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Bank terminal v2</title>
+    <link rel="stylesheet" href="bank_terminal_s2.css">
+  </head>
+  <body>
+    <header><h1>Bank terminal s2</h1></header>
+    <section><strong>Create bank account</strong></section>
+    <form name="account" autocomplete>
+      <table class="auto-style1">
+          <tr>
+              <td class="auto-style2"><strong>Owner</strong></td>
+              <td>&nbsp;</td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Name</td>
+              <td><input id="name" type="text" required autofocus /></td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Address</td>
+              <td><input id="address" type="text"/></td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Email</td>
+              <td>
+                  <input id="email" type="email" required/></td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Birth Date</td>
+              <td>
+                  <input id="birth_date" type="date" required/></td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Gender</td>
+              <td>
+                  <input type="text" id="gender" list="sex" required/><br/>
+                  <datalist id="sex">
+                    <option value="M">
+                    <option value="F">
+                  </datalist>
+              </td>
+          </tr>
+          <tr>
+              <td class="auto-style2"><strong>Account</strong></td>
+              <td>&nbsp;</td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Number</td>
+              <td>
+                  <input id="number" type="text" required placeholder="000-0000000-00"
+                   pattern="[0-9]{3}-[0-9]{7}-[0-9]{2}"/>
+              </td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Balance</td>
+              <td>
+                  <input id="balance" type="text" placeholder="0.0" value="0.0"/></td>
+          </tr>
+          <tr>
+              <td class="auto-style2">Pin code</td>
+              <td>
+                  <input id="pin_code" type="number" min="1" max="999999" required/></td>
+          </tr>
+           <tr>
+              <td>
+                  <button value="" id="btn_create" class="btns">Create account</button>
+              </td>
+           </tr>
+      </table>
+      </form>
+
+     <script type="application/dart" src="bank_terminal_s2.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

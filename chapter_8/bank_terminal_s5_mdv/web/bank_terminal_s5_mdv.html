@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Bank terminal s5</title>
+    <link rel="stylesheet" href="bank_terminal_s5_mdv.css">
+  </head>
+  <body>
+    <h1>Bank terminal s5</h1>
+   <form name="account" autocomplete>
+      <table class="auto-style1">
+           <tr>
+              <td class="auto-style2">Number</td>
+              <td> {{ bac.number }} </td>
+           </tr>
+           <tr>
+              <td class="auto-style2">Owner</td>
+              <td> {{ bac.owner.name.toUpperCase() }} </td>
+              <td></td>
+           </tr>
+           <tr>
+              <td template if="bac.hasAddress">
+                  <div> Address: {{ bac.owner.address }} </div>
+              </td>
+           </tr>
+           <tr>
+              <td class="auto-style2">Balance </td>
+              <td> {{ bac.balance }} </td>
+           </tr>
+           <tr>
+              <td class="auto-style2">Amount transaction</td>
+              <td><input id="amount" type="text" bind-value="in_amount" placeholder="50.0"/></td>
+              <td></td>
+           </tr>
+           <tr>
+              <td class="auto-style2">
+                  <button id="btn_deposit" on-click="deposit($event)" class="btns">Deposit - Withdrawal</button>
+               </td>
+              <td>
+                  <button id="btn_interest" on-click="interest($event)" class="btns">Add interest</button>
+              </td>
+          </tr>
+      </table>
+      <template if="bac.hasAddress">
+          <div> Address: {{ bac.owner.address }} </div>
+      </template>
+      <template instantiate="if bac.hasAddress">
+          <div> Address: {{ bac.owner.address }} </div>
+      </template>
+      <div template if="bac.hasAddress">Address: {{ bac.owner.address }}</div>
+      <hr border="5"/>
+      <template repeat="acc in accounts">
+        {{ acc }} <br/>
+      </template>
+     </form>
+    <script type="application/dart" src="bank_terminal_s5_mdv.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

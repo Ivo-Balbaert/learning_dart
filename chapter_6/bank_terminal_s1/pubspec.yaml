@@ -1,0 +1,4 @@
+name: banc_terminal_v1
+description: A sample web application
+dependencies:
+  browser: any

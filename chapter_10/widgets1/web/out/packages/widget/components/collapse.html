@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <element name="x-collapse" extends="div" constructor="Collapse">
+      <template>
+        <div class='accordion-group'>
+          <content select='.accordion-heading'></content>
+          <div class='collapse-body-x'>
+            <div class='accordion-inner'>
+              <content></content>
+            </div>
+          </div>
+        </div>
+      </template>
+      <script type="application/dart" src='collapse.dart'></script>
+    </element>
+  </body>
+</html>

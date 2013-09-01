@@ -1,0 +1,8 @@
+When importing the bee libraries the following warnings are given:
+The imported libraries 'loading.dart' and 'overlay.dart' should not have the same name ''
+The imported libraries 'loading.dart' and 'popover.dart' should not have the same name ''
+The imported libraries 'loading.dart' and 'secret.dart' should not have the same name '
+
+They probably should get differnt library names or
+else be synthesized in 1 library.
+The sample app runs but bee components are not showing.

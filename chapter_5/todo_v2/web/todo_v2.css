@@ -1,0 +1,61 @@
+
+body {
+  background-color: Silver;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10px;
+  font-weight: normal;
+  line-height: 1.2em;
+  margin: 15px;
+}
+
+h1, p {
+  color: #333;
+  font-size: 15px;
+}
+
+#task {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  padding: 5px 0px 5px 5px;
+  width: 100%;
+  border: 1px solid Silver;
+  background-color: White;
+}
+
+#list {
+  padding:0px;
+  margin:0px;
+  list-style-position:inside;
+}
+
+#list li {
+  padding:5px 0px 5px 5px;
+  border-bottom: 1px dotted Gold;
+  font-size: 15px;
+}
+
+#list li:hover {
+  color: aqua;
+  font-size:20 px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.header {
+  background-color: Red;
+}
+
+.header2 {
+  background-color: Aqua;
+}
+
+.backgr {
+  background-color: Lime;
+}
+
+.btns_backgr {
+  background-color: Gold;
+}
+  
+

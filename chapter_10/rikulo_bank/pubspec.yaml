@@ -1,0 +1,5 @@
+name: rikulo_bank
+description: A sample web application
+dependencies:
+  browser: any
+  rikulo_ui: any
