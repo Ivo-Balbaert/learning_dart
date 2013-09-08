@@ -5,6 +5,7 @@ main() {
   print(displayStrShort('Hello')); // Message: Hello.
   print(display(display("What's up?")));            // (3)
   print('${isOdd(13)}');    // true
+  [1,2,3,4,5].where(isOdd).toList(); //      [1, 3, 5] (4)
 }
 
 display(message) => print('Message: $message.');

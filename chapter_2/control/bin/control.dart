@@ -36,6 +36,16 @@ void main() {
     default:
       print('The bank account owner is not Jeff, nor Mary');
   }
+ // switch with decimal:
+  double x = 7.8;
+  switch (x) {
+    case 7.8:
+      print("Hit");
+      break;
+    default:
+      print("Miss");
+      break;
+  } //Prints Hit
 // for-loop:
   var langs = ["Java","Python","Ruby", "Dart"];
   for (int i = 0; i < langs.length; i++) {
