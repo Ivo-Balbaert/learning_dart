@@ -64,7 +64,7 @@ void main() {
   // minimum and maximum of a List
   var lstS = ['heg', 'wyf', 'abc'];
   var minS = lstS.reduce((s1,s2) => s1.compareTo(s2) < 0 ? s1 : s2);
-  print('minimumstring: $minS'); // abc
+  print('Minimum String: $minS'); // abc
   // sorting a List of Persons:
   var p1 = new Person('Peeters Kris');
   var p2 = new Person('Obama Barak');
@@ -75,9 +75,9 @@ void main() {
   // type 'Person' is not a subtype of type 'Comparable' of 'a'.
   // (1) Person implements interface Comparable:
   var minP = pList.reduce((s1,s2) => s1.compareTo(s2) < 0 ? s1 : s2);
-  print('minimum Person: ${minP.name}'); // Lincoln Abraham
+  print('Minimum Person: ${minP.name}'); // Lincoln Abraham
   var maxP = pList.reduce((s1,s2) => s1.compareTo(s2) < 0 ? s2 : s1);
-  print('maximum Person: ${maxP.name}'); // Poetin Vladimir
+  print('Maximum Person: ${maxP.name}'); // Poetin Vladimir
   pList.sort();
   pList.forEach((p) => print('${p.name}'));
   // prints on successive lines:
@@ -93,6 +93,7 @@ void main() {
   var langsQ = new Queue();
   langsQ.addFirst('Dart');
   langsQ.addFirst('JavaScript');
+  print('${langsQ.elementAt(1)}'); // Dart
   var lng = langsQ.removeFirst();
   assert(lng=='JavaScript');
   langsQ.addLast('C#');

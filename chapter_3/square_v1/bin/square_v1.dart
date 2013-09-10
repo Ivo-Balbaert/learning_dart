@@ -13,7 +13,7 @@ void main() {
   // immutable squares:
   var s4 = const ImmutableSquare(4);
   var s5 = const ImmutableSquare(4);
-  assert(identical(s4,s5));
+  assert(identical(s4,s5)); // s4 and s5 are identical
 }
 
 class Square {
@@ -30,6 +30,6 @@ class Square {
 
 class ImmutableSquare {
   final num length;
-  static final ImmutableSquare one = const ImmutableSquare(1);
+  static final ImmutableSquare ONE = const ImmutableSquare(1);
   const ImmutableSquare(this.length);
 }

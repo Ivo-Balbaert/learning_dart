@@ -41,10 +41,8 @@ Map analyzeWordFreq(List wordList) {
 }
 
 List sortWords(Map wordFreqMap) {
-  var temp = new Map<String, String>();
-  wordFreqMap.forEach((k, v) =>
-      temp[k] = '${k}: ${v.toString()}');
-  var out = temp.values.toList();
-  out.sort();
-  return out;
+  var temp = new List<String>();
+  wordFreqMap.forEach((k, v) => temp.add('${k}: ${v.toString()}'));
+  temp.sort();
+  return temp;
 }

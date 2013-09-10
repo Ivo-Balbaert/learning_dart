@@ -1,6 +1,6 @@
 void main() {
-// if you want to see line 25 (langs2.add(42);) in runtime mode, 
-// uncomment and uncheck Run in checked mode  
+// if you want to see line 25 (langs2.add(42);) in runtime mode,
+// uncomment and uncheck Run in checked mode
 // lists:
   var date = new DateTime.now();
   // untyped List:
@@ -39,9 +39,9 @@ void main() {
   var map = new Map<int, String>();
   map[1] = 'Dart';
   map[2] = 'JavaScript';
-  map[3] = "Java";
-  map[4] = "C#";
-  print("$map"); // {1: Dart, 2: JavaScript, 3: Java, 4: C#}
+  map[3] = 'Java';
+  map[4] = 'C#';
+  print('$map'); // {1: Dart, 2: JavaScript, 3: Java, 4: C#}
   // map['five'] = 'Perl'; // String is not assignable to int
 // reified generics:
   print('Generics');

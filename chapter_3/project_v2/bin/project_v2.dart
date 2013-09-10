@@ -13,7 +13,7 @@ class Project {
   String _name; // private variable
   String description;
 
-  String get name => _name.toUpperCase();
+  String get name => _name == null ? "" : _name.toUpperCase();
   set name(String prName) {
     if (prName.length > 20)
       throw 'Only 20 characters or less in project name';

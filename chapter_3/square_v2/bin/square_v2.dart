@@ -1,7 +1,7 @@
 main() {
   var s1 = new Square(2);
-  assert(s1.width == s1.length);
-  assert(s1.height == s1.length);
+  print(s1.width);  // 2
+  print(s1.height); // 2
   print('${s1.area()}'); // 4
   assert(s1 is Rectangle);
 }

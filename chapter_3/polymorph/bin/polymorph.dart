@@ -26,12 +26,12 @@ class Duck implements Quackable {
   String swimAway() => "I'm gone, quack!";
 }
 
-class Person implements Duck, Quackable {
+class Person implements Duck {
   var color;
   sayQuack() => 'human_quack';
   // swimAway() => 'I am a person swimming';
 
-  noSuchMethod(mirror) {
+  noSuchMethod(Invocation mirror) {
      if (mirror.memberName == 'swimAway') print("I'm not really a duck!");
   }
 }
