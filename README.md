@@ -1,4 +1,4 @@
-mastering_dart_by_projects
+learning_dart
 =========================
 
-Contains code of the book: Mastering Dart By Projects , by Dzenan Ridjanovic and Ivo Balbaert (Packt Publishing)
+Contains code of the book: Learning Dart, by Dzenan Ridjanovic and Ivo Balbaert (Packt Publishing)
