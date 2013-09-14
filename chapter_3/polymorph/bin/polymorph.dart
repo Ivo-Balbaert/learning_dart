@@ -27,12 +27,13 @@ class Duck implements Quackable {
 }
 
 class Person implements Duck {
-  var color;
   sayQuack() => 'human_quack';
   // swimAway() => 'I am a person swimming';
 
-  noSuchMethod(Invocation mirror) {
-     if (mirror.memberName == 'swimAway') print("I'm not really a duck!");
+  noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == new Symbol("swimAway")) {
+      print("I'm not really a duck!");
+    }
   }
 }
 

@@ -14,7 +14,7 @@ void main() {
       var wordsList = fromTextToWords(text);
       var wordsMap = analyzeWordFreq(wordsList);
       var sortedWordsList = sortWords(wordsMap);
-      sortedWordsList.forEach((word) =>
+      sortedWordsList.skip(1).forEach((word) =>
           wordsArea.value = '${wordsArea.value} \n${word}');
     }
   });
@@ -25,8 +25,8 @@ void main() {
 }
 
 List fromTextToWords(String text) {
-  var regexp = new RegExp('\W+');
-  var textWithout = text.replaceAll(regexp, '');
+  var regexp = new RegExp(r"(\W\s?)");
+  var textWithout = text.replaceAll(regexp, ' ');
   return textWithout.split(' ');
 }
 
