@@ -6,7 +6,8 @@ part '../model/bank_account.dart';
 part '../model/person.dart';
 
 InputElement name, address, email, birth_date, gender;
-InputElement number, balance, pin_code ;
+InputElement number, balance, pin_code;
+LabelElement lbl_error;
 ButtonElement btn_create;
 
 void main() {
@@ -20,6 +21,9 @@ void main() {
   balance = query('#balance');
   pin_code = query('#pin_code');
   btn_create = query('#btn_create');
+  lbl_error = query('#error');
+  lbl_error.text = "";
+  lbl_error.style..color = "red";
   // attach event handlers:
   // window.onLoad.listen((e) => name.focus());
   // checks for not empty in onBlur event:
@@ -41,8 +45,9 @@ notEmpty(Event e) {
   InputElement inel = e.currentTarget as InputElement;
   var input = inel.value;
   if (input == null || input.isEmpty) {
-    window.alert("You must fill in the field ${inel.id}!");
-   inel.focus();
+    // window.alert("You must fill in the field ${inel.id}!");
+    lbl_error.text = "You must fill in the field ${inel.id}!";
+    inel.focus();
   }
 }
 
@@ -51,13 +56,15 @@ notInFuture(Event e) {
   try {
     birthDate = DateTime.parse(birth_date.value);
   } on ArgumentError catch(e) {
-    window.alert("This is not a valid date!");
+    // window.alert("This is not a valid date!");
+    lbl_error.text = "This is not a valid date!";
     birth_date.focus();
     return;
   }
   DateTime now = new DateTime.now();
   if (!birthDate.isBefore(now)) {
-    window.alert("The birth date cannot be in the future!");
+    // window.alert("The birth date cannot be in the future!");
+    lbl_error.text = "The birth date cannot be in the future!";
     birth_date.focus();
   }
 }
@@ -65,7 +72,8 @@ notInFuture(Event e) {
 wrongGender(Event e) {
   var sex = gender.value;
   if (sex != 'M' && sex != 'F') {
-    window.alert("The gender must be either M (male) or F (female)!");
+    // window.alert("The gender must be either M (male) or F (female)!");
+    lbl_error.text = "The gender must be either M (male) or F (female)!";
     gender.focus();
   }
 }
@@ -75,12 +83,14 @@ nonNegative(Event e) {
   try {
     input = double.parse(balance.value);
   } on FormatException catch(e) {
-    window.alert("This is not a valid balance!");
+    // window.alert("This is not a valid balance!");
+    lbl_error.text = "This is not a valid balance!";
     balance.focus();
     return;
   }
   if (input < 0) {
-    window.alert("The balance cannot be negative!");
+    // window.alert("The balance cannot be negative!");
+    lbl_error.text = "The balance cannot be negative!";
     balance.focus();
   }
 }
@@ -89,8 +99,13 @@ storeData(Event e) {
   // creating the objects:
   Person p = new Person(name.value, address.value, email.value, gender.value,
       DateTime.parse(birth_date.value));
+  try {
   BankAccount bac = new BankAccount(p, number.value, double.parse(balance.value),
       int.parse(pin_code.value));
+  }
+  catch(e) {
+    window.alert(e.toString());
+  }
 }
 
 /* to check:

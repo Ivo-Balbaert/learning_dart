@@ -42,7 +42,7 @@ String constructSelect() {
   var sb = new StringBuffer();
   sb.write('<select id="accounts">');
   sb.write('<option selected>Select an account no:</option>');
-  account_nos.forEach( (acc) => sb.write('<option>$acc</option>') );
+  account_nos.forEach( (acc) => sb.write('<option>$acc</option>')  );
   sb.write('</select>');
   return sb.toString();
 }

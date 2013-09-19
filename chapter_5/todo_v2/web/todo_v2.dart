@@ -13,9 +13,9 @@ main() {
   window.onLoad.listen( (e) => window.alert("I am at your disposal") );
   // key event:
   window.onKeyPress.listen( (e) {
-    if (e.keyCode == ENTER) {
+    if (e.keyCode == KeyCode.ENTER) {
       window.alert("You pressed ENTER");
-      
+
     }
     if (e.ctrlKey && e.keyCode == CTRL_ENTER) {
       window.alert("You pressed CTRL + ENTER");
@@ -38,7 +38,7 @@ main() {
   });
   // find the h2 header element:
   header = query('.header');
-  // find the buttons: 
+  // find the buttons:
   btns = queryAll('button');
   // attach event handler to 1st and 2nd buttons:
   btns[0].onClick.listen( (e) => changeColorHeader() );
@@ -48,7 +48,7 @@ main() {
   btns2[2].onMouseOver.listen( (e) => changePlaceHolder() );
   btns2[2].onClick.listen((e) => changeBtnsBackColor() );
   // alternative:
-  // btns2[2].onClick.listen(changeBtnsBackColor);   
+  // btns2[2].onClick.listen(changeBtnsBackColor);
   addElements();
 }
 
@@ -85,7 +85,7 @@ addElements() {
 
 replacePar(Event e) {
   var el2 = new Element.html('<div><h4><b>I replaced this div!</b></h4></div>');
-  el.replaceWith(el2);  
+  el.replaceWith(el2);
 }
 
 changeColorHeader() => header.classes.toggle('header2');

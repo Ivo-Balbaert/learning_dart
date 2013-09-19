@@ -33,7 +33,7 @@ attach_event_handlers() {
   amount.onChange.listen(nonNegative);
   amount.onBlur.listen(nonNegative);
   btn_other.onClick.listen(clearData);
-  btn_deposit.onClick.listen(deposit);
+  btn_deposit.onClick.listen(changeBalance);
   btn_interest.onClick.listen(interest);
 }
 
@@ -82,7 +82,7 @@ nonNegative(Event e) {
   }
 }
 
-deposit(Event e) {
+changeBalance(Event e) {
   // read amount:
   double money_amount = double.parse(amount.value);
   // call deposit on BankAccount object:

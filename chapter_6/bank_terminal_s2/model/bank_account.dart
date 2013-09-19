@@ -10,9 +10,10 @@ class BankAccount {
 
   String get number => _number;
   set number(value) {
-    if (value == null || value.isEmpty) return;
+    if (value == null || value.isEmpty)
+        throw new ArgumentError("No number value is given");
     // test the format:
-    RegExp exp = new RegExp(r"[0-9]{3}-[0-9]{7}-[0-9]{2}");
+    var exp = new RegExp(r"[0-9]{3}-[0-9]{7}-[0-9]{2}");
     if (exp.hasMatch(value)) _number = value;
   }
 

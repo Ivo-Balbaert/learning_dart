@@ -58,7 +58,7 @@ class BankAccount {
     acc["pin_code"] = pin_code;
     acc["creation_date"] = date_created.toString();
     acc["modified_date"] = date_modified.toString();
-    var accs = stringify(acc); // use only once for the root object (here a bank account)
+    var accs = JSON.encode(acc); // use only once for the root object (here a bank account)
     return accs;
   }
 }
