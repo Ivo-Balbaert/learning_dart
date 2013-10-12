@@ -23,7 +23,7 @@ BankAccount bac;
 List accounts;
 
 void main() {
-  Person jw = new Person("John Witgenstein", "Session street 675, 9000 Gent, Belgium",
+  var jw = new Person("John Witgenstein", "Session street 675, 9000 Gent, Belgium",
       "johnw@aho.be", "M", DateTime.parse("1963-02-17 00:00:00.000"));
   bac = new BankAccount(jw, "456-0692322-12", 1500.0, 1234);
   accounts = toObservable(["052-0692562-12", "235-4523915-98", "456-0692322-12",

@@ -894,3 +894,51 @@ Total time spent on web/bank_terminal_s5_mdv.html            -- 455 ms
 Total time                                                   -- 496 ms
 build.dart finished [832 ms]
 
+---
+build.dart --machine --full
+Total time spent on web/bank_terminal_s5_mdv.html            -- 501 ms
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.css"}}]
+[{"method":"mapping","params":{"from":"web/bank_terminal_s5_mdv.html","to":"web\\out\\bank_terminal_s5_mdv.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html"}}]
+Total time                                                   -- 558 ms
+build.dart finished [1360 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal_s5_mdv.dart
+Total time spent on web/bank_terminal_s5_mdv.html            -- 446 ms
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.css"}}]
+[{"method":"mapping","params":{"from":"web/bank_terminal_s5_mdv.html","to":"web\\out\\bank_terminal_s5_mdv.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html"}}]
+Total time                                                   -- 497 ms
+build.dart finished [7360 ms]
+
+---
+build.dart --machine --full
+Total time spent on web/bank_terminal_s5_mdv.html            -- 612 ms
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.css"}}]
+[{"method":"mapping","params":{"from":"web/bank_terminal_s5_mdv.html","to":"web\\out\\bank_terminal_s5_mdv.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html"}}]
+Total time                                                   -- 666 ms
+build.dart finished [1760 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal_s5_mdv.html
+Total time spent on web/bank_terminal_s5_mdv.html            -- 431 ms
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.css"}}]
+[{"method":"mapping","params":{"from":"web/bank_terminal_s5_mdv.html","to":"web\\out\\bank_terminal_s5_mdv.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\bank_terminal_s5_mdv.html"}}]
+Total time                                                   -- 479 ms
+build.dart finished [975 ms]
+

@@ -1,0 +1,4 @@
+name: polymer1
+description: A sample Polymer application
+dependencies:
+    polymer: any

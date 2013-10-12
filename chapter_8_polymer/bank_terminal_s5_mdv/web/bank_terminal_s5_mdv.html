@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Bank terminal s5</title>
+    <link rel="stylesheet" href="bank_terminal_s5_mdv.css">
+  </head>
+  <body>
+    <h1>Bank terminal s5</h1>
+   <form name="account">
+     <template id="account" bind>
+      <table>
+           <tr><td>Number: {{ number }}    </td></tr>
+           <tr><td>Owner: {{ owner.name }} </td></tr>
+           <tr><td>Balance: {{ balance }}  </td></tr>
+           <tr><template if="hasAddress">
+                <div> Address: {{ owner.address }} </div>
+              </template></tr>
+      </table>
+     </template>
+     </form>
+    <script type="application/dart" src="bank_terminal_s5_mdv.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>
