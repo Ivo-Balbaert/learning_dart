@@ -1,7 +1,6 @@
 library java.core;
 
 import "dart:math" as math;
-import "dart:collection" show ListBase;
 
 class JavaSystem {
   static int currentTimeMillis() {
@@ -31,10 +30,10 @@ bool isInstanceOf(o, Type t) {
   if (oTypeName == tTypeName) {
     return true;
   }
-  if (oTypeName.startsWith("HashMap") && tTypeName == "Map") {
+  if (oTypeName.startsWith("List") && tTypeName == "List") {
     return true;
   }
-  if (oTypeName.startsWith("List") && tTypeName == "List") {
+  if (tTypeName == "Map" && o is Map) {
     return true;
   }
   // Dart Analysis Engine specific
@@ -47,7 +46,26 @@ bool isInstanceOf(o, Type t) {
     }
   }
   if (tTypeName == "ExecutableElement") {
-    if (oTypeName == "MethodElementImpl" || oTypeName == "FunctionElementImpl") {
+    if (oTypeName == "MethodElementImpl" ||
+        oTypeName == "FunctionElementImpl" ||
+        oTypeName == "PropertyAccessorElementImpl") {
+      return true;
+    }
+  }
+  if (tTypeName == "ParameterElement") {
+    if (oTypeName == "FieldFormalParameterElementImpl" ||
+        oTypeName == "DefaultFieldFormalParameterElementImpl" ||
+        oTypeName == "DefaultParameterElementImpl") {
+      return true;
+    }
+  }
+  if (tTypeName == "VariableElement") {
+    if (oTypeName == "LocalVariableElementImpl" ||
+        oTypeName == "ConstLocalVariableElementImpl" ||
+        oTypeName == "FieldElementImpl" ||
+        oTypeName == "ConstFieldElementImpl" ||
+        oTypeName == "TopLevelVariableElementImpl" ||
+        oTypeName == "ConstTopLevelVariableElementImpl") {
       return true;
     }
   }
@@ -145,6 +163,7 @@ class JavaString {
     return fmt.replaceAllMapped(new RegExp(r'%(.)'), (match) {
       switch (match.group(1)) {
         case '%': return '%';
+        case 'd':
         case 's':
           if (index >= args.length) {
             throw new MissingFormatArgumentException(match.group(0));
@@ -252,8 +271,9 @@ class Math {
   static num min(num a, num b) => math.min(a, b);
 }
 
-class RuntimeException implements Exception {
-  String toString() => "RuntimeException";
+class RuntimeException extends JavaException {
+  RuntimeException([String message = "", Exception cause = null]) :
+    super(message, cause);
 }
 
 class JavaException implements Exception {
@@ -261,36 +281,30 @@ class JavaException implements Exception {
   final Exception cause;
   JavaException([this.message = "", this.cause = null]);
   JavaException.withCause(this.cause) : message = null;
-  String toString() => "JavaException: $message $cause";
+  String toString() => "${runtimeType}: $message $cause";
 }
 
 class JavaIOException extends JavaException {
   JavaIOException([message = "", cause = null]) : super(message, cause);
 }
 
-class IllegalArgumentException implements Exception {
-  final String message;
-  const IllegalArgumentException([this.message = "", Exception e = null]);
-  String toString() => "IllegalStateException: $message";
+class IllegalArgumentException extends JavaException {
+  IllegalArgumentException([message = "", cause = null]) : super(message, cause);
 }
 
-class StringIndexOutOfBoundsException implements Exception {
-  final int index;
-  const StringIndexOutOfBoundsException(this.index);
-  String toString() => "StringIndexOutOfBoundsException: $index";
+class StringIndexOutOfBoundsException extends JavaException {
+  StringIndexOutOfBoundsException(int index) : super('$index');
 }
 
-class IllegalStateException implements Exception {
-  final String message;
-  const IllegalStateException([this.message = ""]);
-  String toString() => "IllegalStateException: $message";
+class IllegalStateException extends JavaException {
+  IllegalStateException([message = ""]) : super(message);
 }
 
-class UnsupportedOperationException implements Exception {
+class UnsupportedOperationException extends JavaException {
   String toString() => "UnsupportedOperationException";
 }
 
-class NumberFormatException implements Exception {
+class NumberFormatException extends JavaException {
   String toString() => "NumberFormatException";
 }
 
@@ -313,106 +327,6 @@ class MissingFormatArgumentException implements Exception {
   String toString() => "MissingFormatArgumentException: $s";
 
   MissingFormatArgumentException(this.s);
-}
-
-class ListWrapper<E> extends ListBase<E> implements List<E> {
-  List<E> elements = new List<E>();
-
-  Iterator<E> get iterator {
-    return elements.iterator;
-  }
-
-  E operator [](int index) {
-    return elements[index];
-  }
-
-  void operator []=(int index, E value) {
-    elements[index] = value;
-  }
-
-  void set length(int newLength) {
-    elements.length = newLength;
-  }
-
-  int get length => elements.length;
-
-  void add(E value) {
-    elements.add(value);
-  }
-
-  void addLast(E value) {
-    elements.add(value);
-  }
-
-  void addAll(Iterable<E> iterable) {
-    elements.addAll(iterable);
-  }
-
-  void setAll(int index, Iterable<E> iterable) {
-    elements.setAll(index, iterable);
-  }
-
-  void sort([int compare(E a, E b)]) {
-    elements.sort(compare);
-  }
-
-  int indexOf(E element, [int start = 0]) {
-    return elements.indexOf(element, start);
-  }
-
-  void insert(int index, E element) {
-    elements.insert(index, element);
-  }
-
-  void insertAll(int index, Iterable<E> iterable) {
-    elements.insertAll(index, iterable);
-  }
-
-  int lastIndexOf(E element, [int start]) {
-    return elements.lastIndexOf(element, start);
-  }
-
-  void clear() {
-    elements.clear();
-  }
-
-  bool remove(Object element) {
-    return elements.remove(element);
-  }
-
-  E removeAt(int index) {
-    return elements.removeAt(index);
-  }
-
-  E removeLast() {
-    return elements.removeLast();
-  }
-
-  Iterable<E> get reversed => elements.reversed;
-
-  List<E> sublist(int start, [int end]) => elements.sublist(start, end);
-
-  List<E> getRange(int start, int length) => sublist(start, start + length);
-
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    elements.setRange(start, end, iterable, skipCount);
-  }
-
-  void removeRange(int start, int end) {
-    elements.removeRange(start, end);
-  }
-
-  void replaceRange(int start, int end, Iterable<E> iterable) {
-    elements.replaceRange(start, end, iterable);
-  }
-
-  void fillRange(int start, int end, [E fillValue]) {
-    elements.fillRange(start, end, fillValue);
-  }
-
-  Map<int, E> asMap() {
-    return elements.asMap();
-  }
 }
 
 class JavaIterator<E> {
@@ -474,12 +388,22 @@ Iterable<MapEntry> getMapEntrySet(Map m) {
   return result;
 }
 
+javaListSet(List list, int index, newValue) {
+  var oldValue = list[index];
+  list[index] = newValue;
+  return oldValue;
+}
+
 bool javaSetAdd(Set s, o) {
   if (!s.contains(o)) {
     s.add(o);
     return true;
   }
   return false;
+}
+
+bool javaCollectionContainsAll(Iterable list, Iterable c) {
+  return c.fold(true, (bool prev, e) => prev && list.contains(e));
 }
 
 javaMapPut(Map target, key, value) {
@@ -532,7 +456,31 @@ class JavaStringBuilder {
   }
 }
 
-abstract class Enum<E> implements Comparable<E> {
-  int get ordinal;
-  String get name;
+abstract class Enum<E extends Enum> implements Comparable<E> {
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  /// The position in the enum declaration.
+  final int ordinal;
+  Enum(this.name, this.ordinal);
+  int get hashCode => ordinal;
+  String toString() => name;
+  int compareTo(E other) => ordinal - other.ordinal;
+}
+
+class JavaPatternMatcher {
+  Iterator<Match> _matches;
+  Match _match;
+  JavaPatternMatcher(RegExp re, String input) {
+    _matches = re.allMatches(input).iterator;
+  }
+  bool find() {
+    if (!_matches.moveNext()) {
+      return false;
+    }
+    _match = _matches.current;
+    return true;
+  }
+  String group(int i) => _match[i];
+  int start() => _match.start;
+  int end() => _match.end;
 }

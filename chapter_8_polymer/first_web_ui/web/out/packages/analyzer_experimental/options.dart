@@ -26,8 +26,14 @@ class CommandLineOptions {
   /** Whether to display version information */
   final bool displayVersion;
 
+  /** Whether to report hints */
+  final bool disableHints;
+
   /** Whether to ignore unrecognized flags */
   final bool ignoreUnrecognizedFlags;
+
+  /** Whether to show performance statistics */
+  final bool perf;
 
   /** Whether to show package: warnings */
   final bool showPackageWarnings;
@@ -52,11 +58,13 @@ class CommandLineOptions {
    */
   CommandLineOptions._fromArgs(ArgResults args)
     : shouldBatch = args['batch'],
-      machineFormat = args['machine'],
+      machineFormat = args['machine'] || args['format'] == 'machine',
       displayVersion = args['version'],
+      disableHints = args['no-hints'],
       ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
-      showPackageWarnings = args['show-package-warnings'],
-      showSdkWarnings = args['show-sdk-warnings'],
+      perf = args['perf'],
+      showPackageWarnings = args['show-package-warnings'] || args['package-warnings'],
+      showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
       warningsAreFatal = args['fatal-warnings'],
       dartSdkPath = args['dart-sdk'],
       packageRootPath = args['package-root'],
@@ -92,21 +100,34 @@ class CommandLineOptions {
       ..addFlag('batch', abbr: 'b', help: 'Run in batch mode',
           defaultsTo: false, negatable: false)
       ..addOption('dart-sdk', help: 'The path to the Dart SDK')
-      ..addOption('package-root', help: 'The path to the package root')
+      ..addOption('package-root', abbr: 'p',
+          help: 'The path to the package root')
+      ..addOption('format',
+          help: 'Specifies the format in which errors are displayed')
       ..addFlag('machine',
-          help: 'Print errors in a format suitable for parsing',
+          help: 'Print errors in a format suitable for parsing (deprecated)',
           defaultsTo: false, negatable: false)
       ..addFlag('version', help: 'Print the analyzer version',
+          defaultsTo: false, negatable: false)
+      ..addFlag('no-hints', help: 'Do not show hint results',
           defaultsTo: false, negatable: false)
       ..addFlag('ignore-unrecognized-flags',
           help: 'Ignore unrecognized command line flags',
           defaultsTo: false, negatable: false)
       ..addFlag('fatal-warnings', help: 'Treat non-type warnings as fatal',
           defaultsTo: false, negatable: false)
-      ..addFlag('show-package-warnings',
+      ..addFlag('package-warnings',
           help: 'Show warnings from package: imports',
           defaultsTo: false, negatable: false)
-      ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports',
+      ..addFlag('show-package-warnings',
+          help: 'Show warnings from package: imports (deprecated)',
+          defaultsTo: false, negatable: false)
+      ..addFlag('perf',
+          help: 'Show performance statistics',
+          defaultsTo: false, negatable: false)
+      ..addFlag('warnings', help: 'Show warnings from SDK imports',
+          defaultsTo: false, negatable: false)
+      ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports (deprecated)',
           defaultsTo: false, negatable: false)
       ..addFlag('help', abbr: 'h', help: 'Display this help message',
           defaultsTo: false, negatable: false);

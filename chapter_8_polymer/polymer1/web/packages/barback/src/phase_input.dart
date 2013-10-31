@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'asset.dart';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
+import 'barback_logger.dart';
 import 'errors.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
@@ -78,6 +79,11 @@ class PhaseInput {
   bool get isDirty => _adjustTransformersFuture != null ||
       _newPassThrough || _transforms.any((transform) => transform.isDirty);
 
+  /// A stream that emits an event whenever any transforms that use [input] as
+  /// their primary input log an entry.
+  Stream<LogEntry> get onLog => _onLogPool.stream;
+  final _onLogPool = new StreamPool<LogEntry>.broadcast();
+
   PhaseInput(this._phase, AssetNode input, Iterable<Transformer> transformers)
       : _transformers = transformers.toSet(),
         _inputForwarder = new AssetForwarder(input) {
@@ -100,6 +106,7 @@ class PhaseInput {
   void remove() {
     _onDirtyController.add(null);
     _onDirtyPool.close();
+    _onLogPool.close();
     _inputForwarder.close();
     if (_passThroughController != null) {
       _passThroughController.setRemoved();
@@ -108,7 +115,8 @@ class PhaseInput {
   }
 
   /// Set this input's transformers to [transformers].
-  void updateTransformers(Set<Transformer> newTransformers) {
+  void updateTransformers(Iterable<Transformer> newTransformers) {
+    newTransformers = newTransformers.toSet();
     var oldTransformers = _transformers.toSet();
     for (var removedTransformer in
          oldTransformers.difference(newTransformers)) {
@@ -127,8 +135,7 @@ class PhaseInput {
 
     if (_transforms.isEmpty && _adjustTransformersFuture == null &&
         _passThroughController == null) {
-      _passThroughController =
-          new AssetNodeController.available(input.asset, input.transform);
+      _passThroughController = new AssetNodeController.from(input);
       _newPassThrough = true;
     }
 
@@ -224,6 +231,7 @@ class PhaseInput {
         var transform = new TransformNode(_phase, transformer, input);
         _transforms.add(transform);
         _onDirtyPool.add(transform.onDirty);
+        _onLogPool.add(transform.onLog);
       });
     }));
   }
@@ -240,8 +248,7 @@ class PhaseInput {
       if (_passThroughController != null) {
         _passThroughController.setAvailable(input.asset);
       } else {
-        _passThroughController =
-            new AssetNodeController.available(input.asset, input.transform);
+        _passThroughController = new AssetNodeController.from(input);
         _newPassThrough = true;
       }
     } else if (_passThroughController != null) {
@@ -266,16 +273,27 @@ class PhaseInput {
   }
 
   /// Processes the transforms for this input.
+  ///
+  /// Returns the set of newly-created asset nodes that transforms have emitted
+  /// for this input. The assets returned this way are guaranteed not to be
+  /// [AssetState.REMOVED].
   Future<Set<AssetNode>> process() {
-    if (_adjustTransformersFuture == null) return _processTransforms();
-    return _waitForInputs().then((_) => _processTransforms());
+    return _waitForTransformers(() => _processTransforms()).then((outputs) {
+      if (input.state.isRemoved) return new Set();
+      return outputs;
+    });
   }
 
-  Future _waitForInputs() {
-    // Return a synchronous future so we can be sure [_adjustTransformers] isn't
-    // called between now and when the Future completes.
-    if (_adjustTransformersFuture == null) return new Future.sync(() {});
-    return _adjustTransformersFuture.then((_) => _waitForInputs());
+  /// Runs [callback] once all the transformers are adjusted correctly and the
+  /// input is ready to be processed.
+  ///
+  /// If the transformers are already properly adjusted, [callback] is called
+  /// synchronously to ensure that [_adjustTransformers] isn't called before the
+  /// callback.
+  Future _waitForTransformers(callback()) {
+    if (_adjustTransformersFuture == null) return new Future.sync(callback);
+    return _adjustTransformersFuture.then(
+        (_) => _waitForTransformers(callback));
   }
 
   /// Applies all currently wired up and dirty transforms.

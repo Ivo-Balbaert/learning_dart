@@ -1,0 +1,311 @@
+---
+build.dart --machine --full
+
+build.dart finished [1176 ms]
+
+---
+build.dart --machine --changed=web\bank_account_form.dart
+
+build.dart finished [1270 ms]
+
+---
+build.dart --machine --changed=web\bank_account_form.dart
+
+build.dart finished [1105 ms]
+
+---
+build.dart --machine --changed=web\bank_account_form.dart
+
+build.dart finished [1014 ms]
+
+---
+build.dart --machine --changed=web\bank_account_form.dart
+
+build.dart finished [1140 ms]
+
+---
+build.dart --machine --changed=web\bank_account_form.html
+
+build.dart finished [1037 ms]
+
+---
+build.dart --machine --changed=web\bank_account_form.dart
+
+build.dart finished [1106 ms]
+
+---
+build.dart --machine --changed=web\bank_account_form.dart
+
+build.dart finished [1091 ms]
+
+---
+build.dart --machine --changed=lib\bank_account.dart --changed=lib\bank_terminal.dart --changed=web\bank_accoun...
+
+build.dart finished [1138 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1042 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1027 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1028 ms]
+
+---
+build.dart --machine --changed=lib\bank_account.dart --changed=lib\bank_terminal.dart --changed=web\bank_accoun...
+
+build.dart finished [1349 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1772 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart --changed=web\bank_account.html
+[{"method":"warning","params":{"file":"web/bank_account.html","message":"Event handler \"onkeypress\" will be interpreted as an inline JavaScript event handler. Use the form on-event-name=\"handlerName\" if you want a Dart handler that will automatically update the UI based on model changes.","line":22,"charStart":480,"charEnd":498}}]
+build.dart finished [1274 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1157 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1249 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1141 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1148 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1231 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1154 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1298 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1176 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1522 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [6098 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [2558 ms]
+
+---
+build.dart --machine --full
+'package:utf/utf_stream.dart': Error: line 8 pos 13: cannot resolve class 'StreamEventTransformer' from '_StringDecoder@0x37596c23'
+    extends StreamEventTransformer<List<int>, String> {
+            ^
+build.dart finished [974 ms]
+
+---
+build.dart --machine --full
+[{"method":"warning","params":{"file":"web/bank_terminal.html","message":"\"boot.js\" is now deprecated. Instead, you can initialize your polymer application by calling \"initPolymer()\" in your main. If you don't have a main, then you can include our generic main by adding the following script tag to your page: '<script type=\"application/dart\">import \"package:polymer/init.dart\";</script>'. Additionally you need to include: '<script src=\"packages/browser/dart.js\"></script>' in the page too. Make sure these script tags come after all HTML imports.","line":8,"charStart":142,"charEnd":181}}]
+[{"method":"error","params":{"file":"web/bank_terminal.html","message":"To run a polymer applications, you need to call \"initPolymer\". You can either include a generic script tag that does this for you:'<script type=\"application/dart\">import \"package:polymer/init.dart\";</script>' or add your own script tag and call that function. Make sure the script tag is placed after all HTML imports.","line":10,"charStart":203,"charEnd":209}}]
+[{"method":"error","params":{"file":"web/bank_terminal.html","message":"To run a polymer applications in Dartium, make sure to include'<script src=\"packages/browser/dart.js\"></script>' in your page","line":10,"charStart":203,"charEnd":209}}]
+build.dart finished [1404 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal.html
+
+build.dart finished [1075 ms]
+
+---
+build.dart --machine --changed=web\bank_app.dart
+
+build.dart finished [1069 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart --changed=web\bank_account.html --changed=web\bank_app.dar...
+
+build.dart finished [2239 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1175 ms]
+
+---
+build.dart --machine --changed=web\bank_app.dart
+
+build.dart finished [1075 ms]
+
+---
+build.dart --machine --changed=web\bank_app.dart
+
+build.dart finished [1062 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal.html
+
+build.dart finished [1059 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal_s5_pol.css
+
+build.dart finished [1046 ms]
+
+---
+build.dart --machine --changed=web\bank_app.css --removed=web\bank_terminal_s5_pol.css
+
+build.dart finished [1102 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart --changed=web\bank_account.html
+
+build.dart finished [1075 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1065 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1049 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1085 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1061 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1123 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1178 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal.html
+[{"method":"warning","params":{"file":"web/bank_terminal.html","message":"Unexpected start tag (body).","line":13,"charStart":341,"charEnd":347}}]
+[{"method":"warning","params":{"file":"web/bank_terminal.html","message":"Unexpected end tag (form). Missing end tag (body).","line":16,"charStart":403,"charEnd":410}}]
+[{"method":"warning","params":{"file":"web/bank_terminal.html","message":"Unexpected end tag token (form) in the after body phase.","line":17,"charStart":413,"charEnd":420}}]
+build.dart finished [1263 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal.html
+
+build.dart finished [1105 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1109 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1141 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1135 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1092 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1096 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1109 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1059 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1058 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1120 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1269 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1238 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart --changed=web\bank_account.html
+
+build.dart finished [1081 ms]
+
+---
+build.dart --machine --changed=web\bank_account.dart
+
+build.dart finished [1159 ms]
+
+---
+build.dart --machine --changed=web\bank_account.html
+
+build.dart finished [1900 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1213 ms]
+

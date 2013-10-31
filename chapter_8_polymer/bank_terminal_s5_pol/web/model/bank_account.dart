@@ -9,7 +9,7 @@ class BankAccount {
   DateTime date_modified;
   static const double INTEREST = 5.0;
 
-  @observable String get number => _number;
+  String get number => _number;
   set number(value) {
     if (value == null || value.isEmpty) return;
     // test the format:
@@ -17,7 +17,7 @@ class BankAccount {
     if (exp.hasMatch(value)) _number = value;
   }
 
-  @observable double get balance => _balance;
+  double get balance => _balance;
   set balance(value) {
     if (value >= 0) _balance = value;
   }

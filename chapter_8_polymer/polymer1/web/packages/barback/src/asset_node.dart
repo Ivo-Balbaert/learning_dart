@@ -21,6 +21,16 @@ class AssetNode {
   /// The id of the asset that this node represents.
   final AssetId id;
 
+  /// The [AssetNode] from which [this] is forwarded.
+  ///
+  /// For nodes that aren't forwarded, this will return [this]. Otherwise, it
+  /// will return the first node in the forwarding chain.
+  ///
+  /// This is used to determine whether two nodes are forwarded from the same
+  /// source.
+  AssetNode get origin => _origin == null ? this : _origin;
+  AssetNode _origin;
+
   /// The transform that created this asset node.
   ///
   /// This is `null` for source assets. It can change if the upstream transform
@@ -52,26 +62,30 @@ class AssetNode {
   final _stateChangeController =
       new StreamController<AssetState>.broadcast(sync: true);
 
-  /// Returns a Future that completes when the node's asset is available.
+  /// Calls [callback] when the node's asset is available.
   ///
-  /// If the asset is currently available, this completes synchronously to
-  /// ensure that the asset is still available in the [Future.then] callback.
+  /// If the asset is currently available, this calls [callback] synchronously
+  /// to ensure that the asset is still available.
   ///
-  /// If the asset is removed before becoming available, this will throw an
-  /// [AssetNotFoundException].
-  Future<Asset> get whenAvailable {
-    return _waitForState((state) => state.isAvailable || state.isRemoved)
-        .then((state) {
+  /// The return value of [callback] is piped to the returned Future. If the
+  /// asset is removed before becoming available, the returned future will throw
+  /// an [AssetNotFoundException].
+  Future whenAvailable(callback(Asset asset)) {
+    return _waitForState((state) => state.isAvailable || state.isRemoved,
+        (state) {
       if (state.isRemoved) throw new AssetNotFoundException(id);
-      return asset;
+      return callback(asset);
     });
   }
 
-  /// Returns a Future that completes when the node's asset is removed.
+  /// Calls [callback] when the node's asset is removed.
   ///
-  /// If the asset is already removed when this is called, it completes
+  /// If the asset is already removed when this is called, it calls [callback]
   /// synchronously.
-  Future get whenRemoved => _waitForState((state) => state.isRemoved);
+  ///
+  /// The return value of [callback] is piped to the returned Future.
+  Future whenRemoved(callback()) =>
+    _waitForState((state) => state.isRemoved, (_) => callback());
 
   /// Runs [callback] repeatedly until the node's asset has maintained the same
   /// value for the duration.
@@ -85,7 +99,7 @@ class AssetNode {
   /// If this asset is removed, this will throw an [AssetNotFoundException] as
   /// soon as [callback]'s Future is finished running.
   Future tryUntilStable(Future callback(Asset asset)) {
-    return whenAvailable.then((asset) {
+    return whenAvailable((asset) {
       var modifiedDuringCallback = false;
       var subscription;
       subscription = onStateChange.listen((_) {
@@ -104,19 +118,21 @@ class AssetNode {
     });
   }
 
-  /// Returns a Future that completes as soon as the node is in a state that
-  /// matches [test].
+  /// Calls [callback] as soon as the node is in a state that matches [test].
   ///
-  /// The Future completes synchronously if this is already in such a state.
-  Future<AssetState> _waitForState(bool test(AssetState state)) {
-    if (test(state)) return new Future.sync(() => state);
-    return onStateChange.firstWhere(test);
+  /// [callback] is called synchronously if this is already in such a state.
+  ///
+  /// The return value of [callback] is piped to the returned Future.
+  Future _waitForState(bool test(AssetState state),
+      callback(AssetState state)) {
+    if (test(state)) return new Future.sync(() => callback(state));
+    return onStateChange.firstWhere(test).then((_) => callback(state));
   }
 
-  AssetNode._(this.id, this._transform)
+  AssetNode._(this.id, this._transform, this._origin)
       : _state = AssetState.DIRTY;
 
-  AssetNode._available(Asset asset, this._transform)
+  AssetNode._available(Asset asset, this._transform, this._origin)
       : id = asset.id,
         _asset = asset,
         _state = AssetState.AVAILABLE;
@@ -130,17 +146,20 @@ class AssetNodeController {
 
   /// Creates a controller for a dirty node.
   AssetNodeController(AssetId id, [TransformNode transform])
-      : node = new AssetNode._(id, transform);
+      : node = new AssetNode._(id, transform, null);
 
   /// Creates a controller for an available node with the given concrete
   /// [asset].
   AssetNodeController.available(Asset asset, [TransformNode transform])
-      : node = new AssetNode._available(asset, transform);
+      : node = new AssetNode._available(asset, transform, null);
 
   /// Creates a controller for a node whose initial state matches the current
   /// state of [node].
+  ///
+  /// [AssetNode.origin] of the returned node will automatically be set to
+  /// `node.origin`.
   AssetNodeController.from(AssetNode node)
-      : node = new AssetNode._(node.id, node.transform) {
+      : node = new AssetNode._(node.id, node.transform, node.origin) {
     if (node.state.isAvailable) {
       setAvailable(node.asset);
     } else if (node.state.isRemoved) {
@@ -178,14 +197,6 @@ class AssetNodeController {
     node._state = AssetState.AVAILABLE;
     node._asset = asset;
     node._stateChangeController.add(AssetState.AVAILABLE);
-  }
-
-  /// Sets the node's [AssetNode.transform] property.
-  ///
-  /// This is used when resolving collisions, where a node will stick around but
-  /// a different transform will have created it.
-  void setTransform(TransformNode transform) {
-    node._transform = transform;
   }
 }
 

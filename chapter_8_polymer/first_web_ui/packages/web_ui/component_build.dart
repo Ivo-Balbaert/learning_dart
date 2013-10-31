@@ -20,7 +20,7 @@ library build_utils;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:json' as json;
+import 'dart:convert';
 import 'package:args/args.dart';
 
 import 'dwc.dart' as dwc;
@@ -84,7 +84,7 @@ Future<List<dwc.CompilerResult>> build(List<String> arguments,
         if (machineFormat) {
           lastTask = lastTask.then((res) {
             appendMessage(Map jsonMessage) {
-              var message = json.stringify([jsonMessage]);
+              var message = JSON.encode([jsonMessage]);
               if (shouldPrint) print(message);
               res.messages.add(message);
             }

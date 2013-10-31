@@ -48,7 +48,8 @@ class AnalyzerImpl {
       throw new ArgumentError("sourcePath cannot be null");
     }
     var sourceFile = new JavaFile(sourcePath);
-    var librarySource = new FileBasedSource.con1(contentCache, sourceFile);
+    var uriKind = getUriKind(sourceFile);
+    var librarySource = new FileBasedSource.con2(contentCache, sourceFile, uriKind);
     // resolve library
     prepareAnalysisContext(sourceFile);
     var libraryElement = context.computeLibraryElement(librarySource);
@@ -86,6 +87,12 @@ class AnalyzerImpl {
     sourceFactory = new SourceFactory.con1(contentCache, resolvers);
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = sourceFactory;
+
+    // set options for context
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.cacheSize = 256;
+    contextOptions.hint = !options.disableHints;
+    context.analysisOptions = contextOptions;
   }
 
   /// Fills [sources].
@@ -139,6 +146,7 @@ class AnalyzerImpl {
   /// Fills [errorInfos].
   void prepareErrors() {
     for (Source source in sources) {
+      context.computeErrors(source);
       var sourceErrors = context.getErrors(source);
       errorInfos.add(sourceErrors);
     }
@@ -158,5 +166,23 @@ class AnalyzerImpl {
     }
     // not found
     return null;
+  }
+
+  /**
+   * Returns the [UriKind] for the given input file. Usually {@link UriKind#FILE_URI}, but if
+   * the given file is located in the "lib" directory of the [sdk], then returns
+   * {@link UriKind#DART_URI}.
+   */
+  static UriKind getUriKind(JavaFile file) {
+    // may be file in SDK
+    if (sdk is DirectoryBasedDartSdk) {
+      DirectoryBasedDartSdk directoryBasedSdk = sdk;
+      String sdkLibPath = directoryBasedSdk.libraryDirectory.getPath() + JavaFile.separator;
+      if (file.getPath().startsWith(sdkLibPath)) {
+        return UriKind.DART_URI;
+      }
+    }
+    // some generic file
+    return UriKind.FILE_URI;
   }
 }

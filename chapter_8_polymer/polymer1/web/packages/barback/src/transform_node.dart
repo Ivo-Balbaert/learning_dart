@@ -6,10 +6,13 @@ library barback.transform_node;
 
 import 'dart:async';
 
+import 'package:source_maps/span.dart';
+
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
+import 'barback_logger.dart';
 import 'errors.dart';
 import 'phase.dart';
 import 'transform.dart';
@@ -52,6 +55,14 @@ class TransformNode {
   /// dirty state is thoroughly propagated as soon as any assets are changed.
   Stream get onDirty => _onDirtyController.stream;
   final _onDirtyController = new StreamController.broadcast(sync: true);
+
+  /// A stream that emits an event whenever this transform logs an entry.
+  ///
+  /// This is synchronous because error logs can cause the transform to fail, so
+  /// we need to ensure that their processing isn't delayed until after the
+  /// transform or build has finished.
+  Stream<LogEntry> get onLog => _onLogController.stream;
+  final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
 
   TransformNode(this.phase, this.transformer, this.primary) {
     _primarySubscription = primary.onStateChange.listen((state) {
@@ -106,7 +117,7 @@ class TransformNode {
     assert(!_onDirtyController.isClosed);
 
     var newOutputs = new AssetSet();
-    var transform = createTransform(this, newOutputs);
+    var transform = createTransform(this, newOutputs, _log);
 
     // Clear all the old input subscriptions. If an input is re-used, we'll
     // re-subscribe.
@@ -116,7 +127,10 @@ class TransformNode {
     _inputSubscriptions.clear();
 
     _isDirty = false;
-    return transformer.apply(transform).catchError((error) {
+
+    return phase.cascade.graph.transformPool
+        .withResource(() => transformer.apply(transform))
+        .catchError((error) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
       if (_isDirty) return;
@@ -151,7 +165,7 @@ class TransformNode {
 
       // If the asset node is found, wait until its contents are actually
       // available before we return them.
-      return node.whenAvailable.then((asset) {
+      return node.whenAvailable((asset) {
         _inputSubscriptions.putIfAbsent(node.id,
             () => node.onStateChange.listen((_) => _dirty()));
 
@@ -199,5 +213,13 @@ class TransformNode {
     }
 
     return brandNewOutputs;
+  }
+
+  void _log(AssetId asset, LogLevel level, String message, Span span) {
+    // If the log isn't already associated with an asset, use the primary.
+    if (asset == null) asset = primary.id;
+    var info = new TransformInfo(transformer, primary.id);
+    var entry = new LogEntry(info, asset, level, message, span);
+    _onLogController.add(entry);
   }
 }

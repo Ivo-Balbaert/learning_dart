@@ -4,7 +4,7 @@
 
 library html_css_fixup;
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:csslib/parser.dart' as css;
 import 'package:csslib/visitor.dart';
@@ -104,7 +104,7 @@ String createCssSelectorsExpression(ComponentInfo info, bool mangled) {
     cssVisited..visitTree(styleSheet);
   }
 
-  return json.stringify(_createCssSimpleSelectors(cssVisited, info, mangled));
+  return JSON.encode(_createCssSimpleSelectors(cssVisited, info, mangled));
 }
 
 // TODO(terry): Need to handle other selectors than IDs/classes like tag name

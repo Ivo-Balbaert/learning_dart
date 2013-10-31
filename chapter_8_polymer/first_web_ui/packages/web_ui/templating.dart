@@ -8,27 +8,58 @@ library templating;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
+import 'dart:svg' as svg;
 import 'package:web_ui/safe_html.dart';
 import 'package:web_ui/observe.dart';
 import 'package:web_ui/watcher.dart';
 import 'package:web_ui/web_ui.dart' show WebComponent;
 
 /**
- * Take the value of a bound expression and creates an HTML node with its value.
- * Normally bindings are associated with text nodes, unless [binding] has the
- * [SafeHtml] type, in which case an html element is created for it.
+ * Empty sanitizer used to create HTML content that was already sanitized during
+ * compilation.
  */
-Node nodeForBinding(binding) => binding is SafeHtml
-    ? new Element.html(binding.toString()) : new Text(binding.toString());
+NodeTreeSanitizer nullTreeSanitizer = new _NullTreeSanitizer();
+class _NullTreeSanitizer implements NodeTreeSanitizer {
+  void sanitizeTree(Node node) {}
+}
 
 /**
- * Updates a data-bound [node] to a new [value]. If the new value is not
- * [SafeHtml] and the node is a [Text] node, then we update the node in place.
- * Otherwise, the node is replaced in the DOM tree and the new node is returned.
+ * Helper function to create a tag without it's context. Used to workaround the
+ * change that removed support for `new Element.html('<td attr=foo></td>')`.
+ */
+Node createSafeNode(String tag, Map<String, String> attributes, String body) {
+  var node = new Element.tag(tag);
+  for (var key in attributes.keys) {
+    node.attributes[key] = attributes[key];
+  }
+  if (body != '') node.setInnerHtml(body, treeSanitizer: nullTreeSanitizer);
+  return node;
+}
+
+/**
+ * Take the value of a bound expression and creates an HTML node with its value.
+ * Normally bindings are associated with text nodes, unless [binding] is a
+ * [Node] (in which case the Node it self is used as the binding) or has the
+ * [SafeHtml] type (in which case an html element is created for it).
+ */
+Node nodeForBinding(binding) => binding is Node ? binding
+    : (binding is SafeHtml ? new Element.html(binding.toString())
+        : new Text(binding.toString()));
+
+/**
+ * Updates a data-bound [node] to a new [value]. If the new value is a [Node],
+ * then the new node will replace the old node. If value is not [SafeHtml] and
+ * the node is a [Text] node, we try to update the node in place.  Otherwise,
+ * the node is replaced in the DOM tree and the new node is returned.
  * [stringValue] should be equivalent to `value.toString()` and can be passed
  * here if it has already been computed.
  */
 Node updateBinding(value, Node node, [String stringValue]) {
+  if (value is Node) {
+    node.replaceWith(value);
+    return value;
+  }
+
   var isSafeHtml = value is SafeHtml;
   if (stringValue == null) {
     stringValue = value.toString();
@@ -38,7 +69,8 @@ Node updateBinding(value, Node node, [String stringValue]) {
     node.text = stringValue;
   } else {
     var old = node;
-    node = isSafeHtml ? new Element.html(stringValue) : new Text(stringValue);
+    node = !isSafeHtml ?  new Text(stringValue)
+        : new Element.html(stringValue, treeSanitizer: nullTreeSanitizer);
     old.replaceWith(node);
   }
   return node;

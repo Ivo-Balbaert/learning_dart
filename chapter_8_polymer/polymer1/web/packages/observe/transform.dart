@@ -10,10 +10,11 @@ library observe.transform;
 
 import 'dart:async';
 
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile;
@@ -68,7 +69,7 @@ TextEditTransaction _transformCompilationUnit(
     if (directive is LibraryDirective && _hasObservable(directive)) {
       logger.warning('@observable on a library no longer has any effect. '
           'It should be placed on individual fields.',
-          _getSpan(sourceFile, directive));
+          span: _getSpan(sourceFile, directive));
       break;
     }
   }
@@ -80,17 +81,18 @@ TextEditTransaction _transformCompilationUnit(
       if (_hasObservable(declaration)) {
         logger.warning('Top-level fields can no longer be observable. '
             'Observable fields should be put in an observable objects.',
-            _getSpan(sourceFile, declaration));
+            span: _getSpan(sourceFile, declaration));
       }
     }
   }
   return code;
 }
 
-/** Parse [code] using analyzer_experimental. */
+/** Parse [code] using analyzer. */
 CompilationUnit _parseCompilationUnit(String code) {
   var errorListener = new _ErrorCollector();
-  var scanner = new StringScanner(null, code, errorListener);
+  var reader = new CharSequenceReader(new CharSequence(code));
+  var scanner = new Scanner(null, reader, errorListener);
   var token = scanner.tokenize();
   var parser = new Parser(null, errorListener);
   return parser.parseCompilationUnit(token);
@@ -104,19 +106,23 @@ class _ErrorCollector extends AnalysisErrorListener {
 _getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
 
 /** True if the node has the `@observable` or `@published` annotation. */
-// TODO(jmesserly): it is not good to be hard coding these. We should do a
-// resolve and do a proper ObservableProperty subtype check. However resolve
-// is very expensive in analyzer_experimental, so it isn't feasible yet.
+// TODO(jmesserly): it is not good to be hard coding Polymer support here.
 bool _hasObservable(AnnotatedNode node) =>
-    _hasAnnotation(node, 'observable') || _hasAnnotation(node, 'published');
+    node.metadata.any(_isObservableAnnotation);
 
-bool _hasAnnotation(AnnotatedNode node, String name) {
-  // TODO(jmesserly): this isn't correct if the annotation has been imported
-  // with a prefix, or cases like that. We should technically be resolving, but
-  // that is expensive.
-  return node.metadata.any((m) => m.name.name == name &&
-      m.constructorName == null && m.arguments == null);
-}
+// TODO(jmesserly): this isn't correct if the annotation has been imported
+// with a prefix, or cases like that. We should technically be resolving, but
+// that is expensive in analyzer, so it isn't feasible yet.
+bool _isObservableAnnotation(Annotation node) =>
+    _isAnnotationContant(node, 'observable') ||
+    _isAnnotationContant(node, 'published') ||
+    _isAnnotationType(node, 'ObservableProperty') ||
+    _isAnnotationType(node, 'PublishedProperty');
+
+bool _isAnnotationContant(Annotation m, String name) =>
+    m.name.name == name && m.constructorName == null && m.arguments == null;
+
+bool _isAnnotationType(Annotation m, String name) => m.name == name;
 
 void _transformClass(ClassDeclaration cls, TextEditTransaction code,
     SourceFile file, TransformLogger logger) {
@@ -124,52 +130,55 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   if (_hasObservable(cls)) {
     logger.warning('@observable on a class no longer has any effect. '
         'It should be placed on individual fields.',
-        _getSpan(file, cls));
+        span: _getSpan(file, cls));
   }
 
   // We'd like to track whether observable was declared explicitly, otherwise
   // report a warning later below. Because we don't have type analysis (only
   // syntactic understanding of the code), we only report warnings that are
   // known to be true.
-  var declaresObservable = false;
+  var explicitObservable = false;
+  var implicitObservable = false;
   if (cls.extendsClause != null) {
     var id = _getSimpleIdentifier(cls.extendsClause.superclass.name);
-    if (id.name == 'ObservableBase') {
-      code.edit(id.offset, id.end, 'ChangeNotifierBase');
-      declaresObservable = true;
-    } else if (id.name == 'ChangeNotifierBase') {
-      declaresObservable = true;
+    if (id.name == 'Observable') {
+      code.edit(id.offset, id.end, 'ChangeNotifier');
+      explicitObservable = true;
+    } else if (id.name == 'ChangeNotifier') {
+      explicitObservable = true;
     } else if (id.name != 'HtmlElement' && id.name != 'CustomElement'
         && id.name != 'Object') {
       // TODO(sigmund): this is conservative, consider using type-resolution to
       // improve this check.
-      declaresObservable = true;
+      implicitObservable = true;
     }
   }
 
   if (cls.withClause != null) {
     for (var type in cls.withClause.mixinTypes) {
       var id = _getSimpleIdentifier(type.name);
-      if (id.name == 'ObservableMixin') {
-        code.edit(id.offset, id.end, 'ChangeNotifierMixin');
-        declaresObservable = true;
+      if (id.name == 'Observable') {
+        code.edit(id.offset, id.end, 'ChangeNotifier');
+        explicitObservable = true;
         break;
-      } else if (id.name == 'ChangeNotifierMixin') {
-        declaresObservable = true;
+      } else if (id.name == 'ChangeNotifier') {
+        explicitObservable = true;
         break;
       } else {
         // TODO(sigmund): this is conservative, consider using type-resolution
         // to improve this check.
-        declaresObservable = true;
+        implicitObservable = true;
       }
     }
   }
 
-  if (!declaresObservable && cls.implementsClause != null) {
+  if (cls.implementsClause != null) {
     // TODO(sigmund): consider adding type-resolution to give a more precise
     // answer.
-    declaresObservable = true;
+    implicitObservable = true;
   }
+
+  var declaresObservable = explicitObservable || implicitObservable;
 
   // Track fields that were transformed.
   var instanceFields = new Set<String>();
@@ -182,7 +191,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
         if (_hasObservable(member)){
           logger.warning('Static fields can no longer be observable. '
               'Observable fields should be put in an observable objects.',
-              _getSpan(file, member));
+              span: _getSpan(file, member));
         }
         continue;
       }
@@ -190,9 +199,9 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
         if (!declaresObservable) {
           logger.warning('Observable fields should be put in an observable '
               'objects. Please declare that this class extends from '
-              'ObservableBase, includes ObservableMixin, or implements '
+              'Observable, includes Observable, or implements '
               'Observable.',
-              _getSpan(file, member));
+              span: _getSpan(file, member));
         }
         _transformFields(file, member, code, logger);
 
@@ -219,11 +228,30 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   // If nothing was @observable, bail.
   if (instanceFields.length == 0) return;
 
+  if (!explicitObservable) _mixinObservable(cls, code);
+
   // Fix initializers, because they aren't allowed to call the setter.
   for (var member in cls.members) {
     if (member is ConstructorDeclaration) {
       _fixConstructor(member, code, instanceFields);
     }
+  }
+}
+
+/** Adds "with ChangeNotifier" and associated implementation. */
+void _mixinObservable(ClassDeclaration cls, TextEditTransaction code) {
+  // Note: we need to be careful to put the with clause after extends, but
+  // before implements clause.
+  if (cls.withClause != null) {
+    var pos = cls.withClause.end;
+    code.edit(pos, pos, ', ChangeNotifier');
+  } else if (cls.extendsClause != null) {
+    var pos = cls.extendsClause.end;
+    code.edit(pos, pos, ' with ChangeNotifier ');
+  } else {
+    var params = cls.typeParameters;
+    var pos =  params != null ? params.end : cls.name.end;
+    code.edit(pos, pos, ' extends ChangeNotifier ');
   }
 }
 
@@ -304,7 +332,7 @@ void _transformFields(SourceFile file, FieldDeclaration member,
     final name = field.name.name;
     if (Identifier.isPrivateName(name)) {
       logger.warning('Cannot make private field $name observable.',
-          _getSpan(file, field));
+          span: _getSpan(file, field));
       return;
     }
   }
@@ -334,10 +362,10 @@ void _transformFields(SourceFile file, FieldDeclaration member,
   //
   // Will be transformed into something like:
   //
-  //     @observable
+  //     @reflectable @observable
   //     @OtherMetaData()
   //         Foo
-  //             get foo => __foo; Foo __foo = 1; set foo ...; ... bar ...
+  //             get foo => __foo; Foo __foo = 1; @reflectable set foo ...; ...
   //             @observable @OtherMetaData() Foo get baz => __baz; Foo baz; ...
   //
   // Metadata is moved to the getter.
@@ -347,6 +375,7 @@ void _transformFields(SourceFile file, FieldDeclaration member,
     metadata = member.metadata
       .map((m) => _getOriginalCode(code, m))
       .join(' ');
+    metadata = '@reflectable $metadata';
   }
 
   for (int i = 0; i < fields.variables.length; i++) {
@@ -357,7 +386,12 @@ void _transformFields(SourceFile file, FieldDeclaration member,
 
     // The first field is expanded differently from subsequent fields, because
     // we can reuse the metadata and type annotation.
-    if (i > 0) beforeInit = '$metadata $type $beforeInit';
+    if (i == 0) {
+      final begin = member.metadata.first.offset;
+      code.edit(begin, begin, '@reflectable ');
+    } else {
+      beforeInit = '$metadata $type $beforeInit';
+    }
 
     code.edit(field.name.offset, field.name.end, beforeInit);
 
@@ -365,7 +399,7 @@ void _transformFields(SourceFile file, FieldDeclaration member,
     final end = _findFieldSeperator(field.endToken.next);
     if (end.type == TokenType.COMMA) code.edit(end.offset, end.end, ';');
 
-    code.edit(end.end, end.end, ' set $name($type value) { '
+    code.edit(end.end, end.end, ' @reflectable set $name($type value) { '
         '__\$$name = notifyPropertyChange(#$name, __\$$name, value); }');
   }
 }

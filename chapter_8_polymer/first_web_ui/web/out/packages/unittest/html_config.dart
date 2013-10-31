@@ -8,7 +8,9 @@
 library unittest_html_config;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
+import 'dart:js' as js;
 import 'unittest.dart';
 
 /** Creates a table showing tests results in HTML. */
@@ -76,23 +78,16 @@ String _toHtml(TestCase test_) {
       <tr>
         <td>${test_.id}</td>
         <td class="unittest-${test_.result}">${test_.result.toUpperCase()}</td>
-        <td>Expectation: <a href="#testFilter=${test_.description}">${test_.description}</a>. ${_htmlEscape(test_.message)}</td>
+        <td>Expectation: <a href="#testFilter=${test_.description}">${test_.description}</a>. ${HTML_ESCAPE.convert(test_.message)}</td>
       </tr>''';
 
   if (test_.stackTrace != null) {
     html = '$html<tr><td></td><td colspan="2"><pre>' +
-        _htmlEscape(test_.stackTrace.toString()) +
+        HTML_ESCAPE.convert(test_.stackTrace.toString()) +
         '</pre></td></tr>';
   }
 
   return html;
-}
-
-//TODO(pquitslund): Move to a common lib
-String _htmlEscape(String string) {
-  return string.replaceAll('&', '&amp;')
-               .replaceAll('<','&lt;')
-               .replaceAll('>','&gt;');
 }
 
 class HtmlConfiguration extends SimpleConfiguration {
@@ -106,7 +101,12 @@ class HtmlConfiguration extends SimpleConfiguration {
   void _installHandlers() {
     if (_onErrorSubscription == null) {
       _onErrorSubscription = window.onError.listen(
-        (e) => handleExternalError(e, '(DOM callback has errors)'));
+        (e) {
+          // Some tests may expect this and have no way to suppress the error.
+          if (js.context['testExpectsGlobalError'] != true) {
+            handleExternalError(e, '(DOM callback has errors)');
+          }
+        });
     }
     if (_onMessageSubscription == null) {
       _onMessageSubscription = window.onMessage.listen(

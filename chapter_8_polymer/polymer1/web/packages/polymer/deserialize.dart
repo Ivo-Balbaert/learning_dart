@@ -5,36 +5,36 @@
 library polymer.deserialize;
 
 import 'dart:convert' show JSON;
-import 'dart:mirrors' show reflect, TypeMirror;
+import 'dart:mirrors' show TypeMirror;
 
 final _typeHandlers = () {
   // TODO(jmesserly): switch to map and symbol literal form when supported.
   var m = new Map();
-  m[const Symbol('dart.core.String')] = (x, _) => x;
-  m[const Symbol('dart.core.Null')] = (x, _) => x;
-  m[const Symbol('dart.core.DateTime')] = (x, _) {
+  m[#dart.core.String] = (x, _) => x;
+  m[#dart.core.Null] = (x, _) => x;
+  m[#dart.core.DateTime] = (x, def) {
     // TODO(jmesserly): shouldn't need to try-catch here
     // See: https://code.google.com/p/dart/issues/detail?id=1878
     try {
       return DateTime.parse(x);
     } catch (e) {
-      return new DateTime.now();
+      return def;
     }
   };
-  m[const Symbol('dart.core.bool')] = (x, _) => x != 'false';
-  m[const Symbol('dart.core.int')] =
+  m[#dart.core.bool] = (x, _) => x != 'false';
+  m[#dart.core.int] =
       (x, def) => int.parse(x, onError: (_) => def);
-  m[const Symbol('dart.core.double')] =
+  m[#dart.core.double] =
       (x, def) => double.parse(x, (_) => def);
   return m;
 }();
 
 /**
- * Convert representation of [value] based on type of [defaultValue].
+ * Convert representation of [value] based on type of [currentValue].
  */
-Object deserializeValue(String value, Object defaultValue, TypeMirror type) {
+Object deserializeValue(String value, Object currentValue, TypeMirror type) {
   var handler = _typeHandlers[type.qualifiedName];
-  if (handler != null) return handler(value, defaultValue);
+  if (handler != null) return handler(value, currentValue);
 
   try {
     // If the string is an object, we can parse is with the JSON library.

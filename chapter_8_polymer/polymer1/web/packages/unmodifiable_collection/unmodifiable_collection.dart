@@ -13,6 +13,7 @@
  */
 library unmodifiable_collection;
 
+import "dart:math" show Random;
 export "dart:collection" show UnmodifiableListView;
 
 /**
@@ -58,7 +59,7 @@ class NonGrowableListView<E> extends _IterableView<E>
 
   void sort([int compare(E a, E b)]) { _source.sort(compare); }
 
-  void shuffle() { _source.shuffle(); }
+  void shuffle([Random random]) { _source.shuffle(random); }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _source.setRange(start, end, iterable, skipCount);
@@ -83,7 +84,9 @@ class NonGrowableListView<E> extends _IterableView<E>
    * Throws an [UnsupportedError];
    * operations that change the length of the list are disallowed.
    */
-  void add(E value) => _throw();
+  bool add(E value) {
+    _throw();
+  }
 
   /**
    * Throws an [UnsupportedError];
@@ -178,12 +181,15 @@ class UnmodifiableSetView<E> extends _IterableView<E>
 
   Set<E> difference(Set<E> other) => _source.difference(other);
 
+  E lookup(Object object) => _source.lookup(object);
 
   /**
    * Throws an [UnsupportedError];
    * operations that change the set are disallowed.
    */
-  void add(E value) => _throw();
+  bool add(E value) {
+    _throw();
+  }
 
   /**
    * Throws an [UnsupportedError];

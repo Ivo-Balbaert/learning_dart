@@ -3,38 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * A library for writing dart unit tests.
+ * Support for writing Dart unit tests.
  *
- * ## Installing ##
+ * For information on installing and importing this library, see the
+ * [unittest package on pub.dartlang.org]
+ * (http://pub.dartlang.org/packages/unittest).
  *
- * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
- * file.
+ * **See also:**
+ * [Unit Testing with Dart]
+ * (http://www.dartlang.org/articles/dart-unit-tests/)
  *
- *     dependencies:
- *       unittest: any
- *
- * Then run `pub install`.
- *
- * For more information, see the
- * [unittest package on pub.dartlang.org][pkg].
- *
- * See the [Getting Started](http://pub.dartlang.org/doc)
- * guide for more details.
- *
- * ##Concepts##
+ * ##Concepts
  *
  *  * __Tests__: Tests are specified via the top-level function [test], they can be
  *    organized together using [group].
+ *
  *  * __Checks__: Test expectations can be specified via [expect]
+ *
  *  * __Matchers__: [expect] assertions are written declaratively using the
  *    [Matcher] class.
+ *
  *  * __Configuration__: The framework can be adapted by setting
  *    [unittestConfiguration] with a [Configuration]. See the other libraries
  *    in the `unittest` package for alternative implementations of
  *    [Configuration] including `compact_vm_config.dart`, `html_config.dart` and
  *    `html_enhanced_config.dart`.
  *
- * ##Examples##
+ * ##Examples
  *
  * A trivial test:
  *
@@ -131,15 +126,12 @@
  * Timer.run()], as the Future exception handler may not capture exceptions
  * in such code.
  *
- * Note: due to some language limitations we have to use different functions
+ * Note: Due to some language limitations we have to use different functions
  * depending on the number of positional arguments of the callback. In the
  * future, we plan to expose a single `expectAsync` function that can be used
  * regardless of the number of positional arguments. This requires new langauge
  * features or fixes to the current spec (e.g. see
  * [Issue 2706](http://dartbug.com/2706)).
- *
- * [pub]: http://pub.dartlang.org
- * [pkg]: http://pub.dartlang.org/packages/unittest
  */
 library unittest;
 
@@ -311,15 +303,6 @@ var _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 const PASS  = 'pass';
 const FAIL  = 'fail';
 const ERROR = 'error';
-
-/**
- * A map that can be used to communicate state between a test driver
- * or main() function and the tests, particularly when these two
- * are otherwise independent. For example, a test driver that starts
- * an HTTP server and then runs tests that access that server could use
- * this as a way of communicating the server port to the tests.
- */
-Map testState = {};
 
 /**
  * Creates a new test case with the given description and body. The
@@ -752,13 +735,27 @@ void _runTest() {
   } else {
     final testCase = testCases[_currentTestCaseIndex];
     var f = _guardAsync(testCase._run, null, testCase);
+    Timer timer;
+    final Duration timeout = unittestConfiguration.timeout;
+    if (timeout != null) {
+      try {
+        timer = new Timer(timeout, () {
+          testCase.error("Test timed out after ${timeout.inSeconds} seconds.");
+          _nextTestCase();
+        });
+      } on UnsupportedError catch (e) {
+        if (e.message != "Timer greater than 0.") rethrow;
+        // Support running on d8 and jsshell which don't support timers.
+      }
+    }
     f.whenComplete(() {
+      if (timer != null) timer.cancel();
       var now = new DateTime.now().millisecondsSinceEpoch;
       if ((now - _lastBreath) >= BREATH_INTERVAL) {
         _lastBreath = now;
         Timer.run(_nextTestCase);
       } else {
-        runAsync(_nextTestCase); // Schedule the next test.
+        scheduleMicrotask(_nextTestCase); // Schedule the next test.
       }
     });
   }
@@ -812,7 +809,7 @@ void _ensureInitialized(bool configAutoStart) {
   if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
-    runAsync(runTests);
+    scheduleMicrotask(runTests);
   }
 }
 
@@ -853,13 +850,13 @@ typedef dynamic TestFunction();
 bool formatStacks = true;
 
 /**
- * A flag that controls whether we try to filter out irrelevant frames from 
+ * A flag that controls whether we try to filter out irrelevant frames from
  * the stack trace. Requires formatStacks to be set.
  */
 bool filterStacks = true;
 
 /**
- * Returns a Trace object from a StackTrace object or a String, or the 
+ * Returns a Trace object from a StackTrace object or a String, or the
  * unchanged input if formatStacks is false;
  */
 Trace _getTrace(stack) {

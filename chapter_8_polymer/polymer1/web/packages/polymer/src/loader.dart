@@ -19,44 +19,130 @@ const initMethod = const _InitMethodAnnotation();
 /**
  * Initializes a polymer application as follows:
  *   * set up up polling for observable changes
- *   *  initialize MDV
- *   *  for each library in [libraries], register custom elements labeled with
- *      [CustomTag] and invoke the initialization method on it.
+ *   * initialize Model-Driven Views
+ *   * Include some style to prevent flash of unstyled content (FOUC)
+ *   * for each library in [libraries], register custom elements labeled with
+ *      [CustomTag] and invoke the initialization method on it. If [libraries]
+ *      is null, first find all libraries that need to be loaded by scanning for
+ *      HTML imports in the main document.
  *
- * The initialization on each library is either a method named `main` or
- * a top-level function and annotated with [initMethod].
+ * The initialization on each library is a top-level function and annotated with
+ * [initMethod].
  *
- * The urls in [libraries] can be absolute or relative to [srcUrl].
+ * The urls in [libraries] can be absolute or relative to
+ * `currentMirrorSystem().isolate.rootLibrary.uri`.
  */
-void initPolymer(List<String> libraries, [String srcUrl]) {
-  runMicrotask(() {
-    // DOM events don't yet go through microtasks, so we catch those here.
-    new Timer.periodic(new Duration(milliseconds: 125),
-        (_) => performMicrotaskCheckpoint());
+void initPolymer() {
+  if (_useDirtyChecking) {
+    dirtyCheckZone().run(_initPolymerOptimized);
+  } else {
+    _initPolymerOptimized();
+  }
+}
 
-    // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
-    mdv.initialize();
-    registerCustomElement('polymer-element', () => new PolymerDeclaration());
+/**
+ * Same as [initPolymer], but runs the version that is optimized for deployment
+ * to the internet. The biggest difference is it omits the [Zone] that
+ * automatically invokes [Observable.dirtyCheck], and the list of libraries must
+ * be supplied instead of being dynamically searched for at runtime.
+ */
+// TODO(jmesserly): change the Polymer build step to call this directly.
+void _initPolymerOptimized() {
+  document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
-    for (var lib in libraries) {
-      _loadLibrary(lib, srcUrl);
+  _loadLibraries();
+
+  // Run this after user code so they can add to Polymer.veiledElements
+  _preventFlashOfUnstyledContent();
+
+  customElementsReady.then((_) => Polymer._ready.complete());
+}
+
+/**
+ * Configures [initPolymer] making it optimized for deployment to the internet.
+ * With this setup the list of libraries to initialize is supplied instead of
+ * being dynamically searched for at runtime. Additionally, after this method is
+ * called, [initPolymer] omits the [Zone] that automatically invokes
+ * [Observable.dirtyCheck].
+ */
+void configureForDeployment(List<String> libraries) {
+  _librariesToLoad = libraries;
+  _useDirtyChecking = false;
+}
+
+/**
+ * Libraries that will be initialized. For each library, the intialization
+ * registers any type tagged with a [CustomTag] annotation and calls any
+ * top-level method annotated with [initMethod]. The value of this field is
+ * assigned programatically by the code generated from the polymer deploy
+ * scripts. During development, the libraries are inferred by crawling HTML
+ * imports and searching for script tags.
+ */
+List<String> _librariesToLoad =
+    _discoverScripts(document, window.location.href);
+bool _useDirtyChecking = true;
+
+void _loadLibraries() {
+  for (var lib in _librariesToLoad) {
+    try {
+      _loadLibrary(lib);
+    } catch (e, s) {
+      // Deliver errors async, so if a single library fails it doesn't prevent
+      // other things from loading.
+      new Completer().completeError(e, s);
     }
+  }
+}
 
-    // TODO(jmesserly): this should be in the custom_element polyfill, not here.
-    // notify the system that we are bootstrapped
-    document.body.dispatchEvent(
-        new CustomEvent('WebComponentsReady', canBubble: true));
-  });
+/**
+ * Walks the HTML import structure to discover all script tags that are
+ * implicitly loaded. This code is only used in Dartium and should only be
+ * called after all HTML imports are resolved. Polymer ensures this by asking
+ * users to put their Dart script tags after all HTML imports (this is checked
+ * by the linter, and Dartium will otherwise show an error message).
+ */
+List<String> _discoverScripts(Document doc, String baseUri,
+    [Set<Document> seen, List<String> scripts]) {
+  if (seen == null) seen = new Set<Document>();
+  if (scripts == null) scripts = <String>[];
+  if (doc == null) {
+    print('warning: $baseUri not found.');
+    return scripts;
+  }
+  if (seen.contains(doc)) return scripts;
+  seen.add(doc);
+
+  bool scriptSeen = false;
+  for (var node in doc.queryAll('script,link[rel="import"]')) {
+    if (node is LinkElement) {
+      _discoverScripts(node.import, node.href, seen, scripts);
+    } else if (node is ScriptElement && node.type == 'application/dart') {
+      if (!scriptSeen) {
+        var url = node.src;
+        scripts.add(url == '' ? baseUri : url);
+        scriptSeen = true;
+      } else {
+        print('warning: more than one Dart script tag in $baseUri. Dartium '
+            'currently only allows a single Dart script tag per document.');
+      }
+    }
+  }
+  return scripts;
 }
 
 /** All libraries in the current isolate. */
 final _libs = currentMirrorSystem().libraries;
 
+// TODO(sigmund): explore other (cheaper) ways to resolve URIs relative to the
+// root library (see dartbug.com/12612)
+final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
+
+final String _packageRoot =
+    '${path.dirname(Uri.parse(window.location.href).path)}/packages/';
+
 /**
  * Reads the library at [uriString] (which can be an absolute URI or a relative
- * URI from [srcUrl]), and:
- *
- *   * If present, invokes `main`.
+ * URI from the root library), and:
  *
  *   * If present, invokes any top-level and static functions marked
  *     with the [initMethod] annotation (in the order they appear).
@@ -64,20 +150,21 @@ final _libs = currentMirrorSystem().libraries;
  *   * Registers any [PolymerElement] that is marked with the [CustomTag]
  *     annotation.
  */
-void _loadLibrary(String uriString, [String srcUrl]) {
-  var uri = Uri.parse(uriString);
-  if (uri.scheme == '' && srcUrl != null) {
-    uri = Uri.parse(path.normalize(path.join(path.dirname(srcUrl), uriString)));
-  }
+void _loadLibrary(String uriString) {
+  var uri = _rootUri.resolve(uriString);
   var lib = _libs[uri];
+  if (uri.path.startsWith(_packageRoot) && uri.path.endsWith('.dart')) {
+    var packageUri =
+        Uri.parse('package:${uri.path.substring(_packageRoot.length)}');
+    var canonicalLib = _libs[packageUri];
+    if (canonicalLib != null) {
+      lib = canonicalLib;
+    }
+  }
+
   if (lib == null) {
     print('warning: $uri library not found');
     return;
-  }
-
-  // Invoke `main`, if present.
-  if (lib.functions[const Symbol('main')] != null) {
-    lib.invoke(const Symbol('main'), const []);
   }
 
   // Search top-level functions marked with @initMethod
@@ -90,7 +177,7 @@ void _loadLibrary(String uriString, [String srcUrl]) {
     for (var m in c.metadata) {
       var meta = m.reflectee;
       if (meta is CustomTag) {
-        Polymer._registerClassMirror(meta.tagName, c);
+        Polymer.register(meta.tagName, getReflectedTypeWorkaround(c));
       }
     }
 

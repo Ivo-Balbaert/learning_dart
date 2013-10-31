@@ -1,6 +1,5 @@
-import 'dart:io';
-import 'package:polymer/component_build.dart';     
+import 'package:polymer/builder.dart';
         
 main() {     
-  build(new Options().arguments, ['web/polymer1.html']);
+  build(entryPoints: ['web/polymer1.html']);
 }

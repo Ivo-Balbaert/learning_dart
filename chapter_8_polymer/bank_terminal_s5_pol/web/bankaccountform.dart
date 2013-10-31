@@ -19,6 +19,9 @@ class BankAccountForm extends PolymerElement {
   // balance = onPropertyChange(this, #bac, () => notifyProperty(this, #balance));
 
   // @published int get balance => bac.balance;
+//  bacChanged(bac) {
+//    notifyProperty(this, #bac.balance); // method not defined for class BAF
+//  }
 
   deposit(Event e, var detail, Node target) {
     errormessage = "";

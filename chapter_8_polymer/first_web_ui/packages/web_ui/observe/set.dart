@@ -53,13 +53,15 @@ class ObservableSet<E> extends IterableWorkaround with Observable
    * Adds [value] into the set. The method has no effect if
    * [value] was already in the set.
    */
-  void add(E value) {
+  bool add(E value) {
     int len = _map.length;
     _map[value] = const Object();
     if (len != _map.length) {
       notifyChange(this, ChangeRecord.FIELD, 'length', len, _map.length);
       notifyChange(this, ChangeRecord.INSERT, value, null, value);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -109,6 +111,8 @@ class ObservableSet<E> extends IterableWorkaround with Observable
    * Adds all the elements of the given collection to the set.
    */
   void addAll(Iterable<E> collection) => collection.forEach(add);
+
+  E lookup(Object object) { throw new UnimplementedError(); }
 
   /**
    * Removes all the elements of the given collection from the set.

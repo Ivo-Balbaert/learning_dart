@@ -11,9 +11,20 @@
 if (typeof console == "object" && typeof console.clear == "function") {
   console.clear();
 }
+
+// Some tests may expect and have no way to suppress global errors.
+var testExpectsGlobalError = false;
+var testSuppressedGlobalErrors = [];
+
 // Set window onerror to make sure that we catch test harness errors across all
 // browsers.
 window.onerror = function (message, url, lineNumber) {
+  if (testExpectsGlobalError) {
+    testSuppressedGlobalErrors.push({
+      message: message
+    });
+    return;
+  }
   if (url) {
     showErrorAndExit(
         "\n\n" + url + ":" + lineNumber + ":\n" + message + "\n\n");
@@ -23,7 +34,15 @@ window.onerror = function (message, url, lineNumber) {
   window.postMessage('unittest-suite-external-error', '*');
 };
 
-if (navigator.webkitStartDart) {
+// Start Dartium/content_shell, unless we are waiting for HTML Imports to load.
+// HTML Imports allows a document to link to other HTMLs documents via
+// <link rel=import>. It also allows for those other documents to contain
+// <script> tags, which must be run before scripts on the main page.
+// We have package:html_import to polyfill this feature, and it will handle
+// starting Dartium/content_shell in that case. HTML Imports is used by Polymer,
+// but it could be used by itself too. See the specification:
+// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/imports/index.html
+if (navigator.webkitStartDart && !window.HTMLImports) {
   navigator.webkitStartDart();
 }
 
@@ -56,6 +75,11 @@ notifyStart();
 
 function notifyDone() {
   if (testRunner) testRunner.notifyDone();
+
+  // TODO(ricow): REMOVE, debug info, see issue 13292
+  if (!testRunner) {
+    printMessage('Calling notifyDone()');
+  }
   // To support in browser launching of tests we post back start and result
   // messages to the window.opener.
   var driver = getDriverWindow();
@@ -66,19 +90,31 @@ function notifyDone() {
 
 function processMessage(msg) {
   if (typeof msg != 'string') return;
+  // TODO(ricow): REMOVE, debug info, see issue 13292
+  if (!testRunner) {
+    // Filter out ShadowDOM polyfill messages which are random floats.
+    if (msg != parseFloat(msg)) {
+      printMessage('processMessage(): ' + msg);
+    }
+  }
   if (msg == 'unittest-suite-done') {
     notifyDone();
   } else if (msg == 'unittest-suite-wait-for-done') {
     waitForDone = true;
-    if (testRunner) testRunner.startedDartTest = true;
+    if (testRunner) {
+      testRunner.startedDartTest = true;
+    }
   } else if (msg == 'dart-calling-main') {
-    if (testRunner) testRunner.startedDartTest = true;
+    if (testRunner) {
+      testRunner.startedDartTest = true;
+    }
   } else if (msg == 'dart-main-done') {
     if (!waitForDone) {
-      window.postMessage('unittest-suite-success', '*');
+      printMessage('PASS');
+      notifyDone();
     }
   } else if (msg == 'unittest-suite-success') {
-    dartPrint('PASS');
+    printMessage('PASS');
     notifyDone();
   } else if (msg == 'unittest-suite-fail') {
     showErrorAndExit('Some tests failed.');
@@ -97,11 +133,11 @@ window.addEventListener("message", onReceive, false);
 
 function showErrorAndExit(message) {
   if (message) {
-    dartPrint('Error: ' + String(message));
+    printMessage('Error: ' + String(message));
   }
   // dart/tools/testing/run_selenium.py is looking for either PASS or
   // FAIL and will continue polling until one of these words show up.
-  dartPrint('FAIL');
+  printMessage('FAIL');
   notifyDone();
 }
 
@@ -141,26 +177,50 @@ document.addEventListener('readystatechange', function () {
 });
 
 // dart2js will generate code to call this function to handle the Dart
-// [print] method. The base [Configuration] (config.html) calls
-// [print] with the secret messages "unittest-suite-success" and
-// "unittest-suite-wait-for-done". These messages are then posted so
-// processMessage above will see them.
+// [print] method.
+//
+// dartium will invoke this method for [print] calls if the environment variable
+// "DART_FORWARDING_PRINT" was set when launching dartium.
+//
+// Our tests will be wrapped, so we can detect when [main] is called and when
+// it has ended.
+// The wrapping happens either via "dartMainRunner" (for dart2js) or wrapped
+// tests for dartium.
+//
+// The following messages are handled specially:
+//   dart-calling-main:  signals that the dart [main] function will be invoked
+//   dart-main-done:  signals that the dart [main] function has finished
+//   unittest-suite-wait-for-done:  signals the start of an asynchronous test
+//   unittest-suite-success:  signals the end of an asynchrounous test
+//
+// These messages are used to communicate with the test and will be posted so
+// [processMessage] above can see it.
 function dartPrint(msg) {
   if ((msg === 'unittest-suite-success')
       || (msg === 'unittest-suite-done')
-      || (msg === 'unittest-suite-wait-for-done')) {
+      || (msg === 'unittest-suite-wait-for-done')
+      || (msg === 'dart-calling-main')
+      || (msg === 'dart-main-done')) {
     window.postMessage(msg, '*');
     return;
   }
-  var pre = document.createElement("pre");
+  printMessage(msg);
+}
+
+// Prints 'msg' to the console (if available) and to the body of the html
+// document.
+function printMessage(msg) {
+  if (typeof console === 'object') console.warn(msg);
+  var pre = document.createElement('pre');
   pre.appendChild(document.createTextNode(String(msg)));
   document.body.appendChild(pre);
+  document.body.appendChild(document.createTextNode('\n'));
 }
 
 // dart2js will generate code to call this function instead of calling
 // Dart [main] directly. The argument is a closure that invokes main.
 function dartMainRunner(main) {
-  window.postMessage('dart-calling-main', '*');
+  dartPrint('dart-calling-main');
   try {
     main();
   } catch (e) {
@@ -169,5 +229,5 @@ function dartMainRunner(main) {
     window.postMessage('unittest-suite-fail', '*');
     return;
   }
-  window.postMessage('dart-main-done', '*');
+  dartPrint('dart-main-done');
 }

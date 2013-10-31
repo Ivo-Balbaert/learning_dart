@@ -11,23 +11,24 @@ import 'trace.dart';
 
 // #1      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)
 final _vmFrame = new RegExp(
-    r'^#\d+\s+([^\s].*) \((.+):(\d+):(\d+)\)$');
+    r'^#\d+\s+([^\s].*) \((.+?):(\d+)(?::(\d+))?\)$');
 
 //     at VW.call$0 (http://pub.dartlang.org/stuff.dart.js:560:28)
 //     at http://pub.dartlang.org/stuff.dart.js:560:28
 final _v8Frame = new RegExp(
-    r'^\s*at (?:([^\s].*) \((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
+    r'^\s*at (?:([^\s].*?)(?: \[as [^\]]+\])? '
+    r'\((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
 
 // .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0/name<@http://pub.dartlang.org/stuff.dart.js:560
 final _firefoxFrame = new RegExp(
-    r'^([^@(/]*)(?:\(.*\))?(/[^<]*<?)?(?:\(.*\))?@(.*):(\d+)$');
+    r'^([^@(/]*)(?:\(.*\))?((?:/[^/]*)*)(?:\(.*\))?@(.*):(\d+)$');
 
 // foo/bar.dart 10:11 in Foo._bar
 // http://dartlang.org/foo/bar.dart in Foo._bar
 final _friendlyFrame = new RegExp(
-    r'^([^\s]+)(?: (\d+):(\d+))?\s+([^\d][^\s]*)$');
+    r'^([^\s]+)(?: (\d+)(?::(\d+))?)?\s+([^\d][^\s]*)$');
 
 final _initialDot = new RegExp(r"^\.");
 
@@ -77,7 +78,8 @@ class Frame {
 
   /// A human-friendly description of the code location.
   String get location {
-    if (line == null || column == null) return library;
+    if (line == null) return library;
+    if (column == null) return '$library $line';
     return '$library $line:$column';
   }
 
@@ -108,9 +110,17 @@ class Frame {
       throw new FormatException("Couldn't parse VM stack trace line '$frame'.");
     }
 
-    var uri = Uri.parse(match[2]);
+    // Get the pieces out of the regexp match. Function, URI and line should
+    // always be found. The column is optional.
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
-    return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
+    var uri = Uri.parse(match[2]);
+    var line = int.parse(match[3]);
+    var column = null;
+    var columnMatch = match[4];
+    if (columnMatch != null) {
+      column = int.parse(columnMatch);
+    }
+    return new Frame(uri, line, column, member);
   }
 
   /// Parses a string representation of a Chrome/V8 stack frame.
@@ -150,11 +160,9 @@ class Frame {
 
     var uri = Uri.parse(match[3]);
     var member = match[1];
-    if (member == "") {
-      member = "<fn>";
-    } else if (match[2] != null) {
-      member = "$member.<fn>";
-    }
+    member += new List.filled('/'.allMatches(match[2]).length, ".<fn>").join();
+    if (member == '') member = '<fn>';
+
     // Some Firefox members have initial dots. We remove them for consistency
     // with other platforms.
     member = member.replaceFirst(_initialDot, '');

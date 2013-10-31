@@ -1063,7 +1063,7 @@ if (useNative) {
     // force our .constructor to be our actual constructor
     definition.prototype.constructor = definition.ctor;
     // if initial parsing is complete
-    if (scope.ready) {
+    if (scope.ready || scope.performedInitialDocumentUpgrade) {
       // upgrade any pre-existing nodes of this type
       scope.upgradeAll(document);
     }
@@ -1176,7 +1176,7 @@ if (useNative) {
     // HTMLElement.prototype, so we add a test
     // the idea is to avoid mixing in native prototypes, so adding
     // the second test is WLOG
-    while (p !== inNative && p !== HTMLUnknownElement.prototype) {
+    while (p && p !== inNative && p !== HTMLUnknownElement.prototype) {
       var keys = Object.getOwnPropertyNames(p);
       for (var i=0, k; k=keys[i]; i++) {
         if (!used[k]) {
@@ -1385,6 +1385,7 @@ function bootstrap() {
   CustomElements.parser.parse(document);
   // one more pass before register is 'live'
   CustomElements.upgradeDocument(document);
+  CustomElements.performedInitialDocumentUpgrade = true;
   // choose async
   var async = window.Platform && Platform.endOfMicrotask ?
     Platform.endOfMicrotask :
@@ -1436,4 +1437,33 @@ if (HTMLElement.prototype.createShadowRoot) {
     return root;
   }
 }
+
+
+// Patch to allow custom elements and shadow dom to work together, from:
+// https://github.com/Polymer/platform/blob/master/src/patches-custom-elements.js
+if (window.ShadowDOMPolyfill) {
+  function nop() {};
+
+  // disable shadow dom watching
+  CustomElements.watchShadow = nop;
+  CustomElements.watchAllShadows = nop;
+
+  // ensure wrapped inputs for these functions
+  var fns = ['upgradeAll', 'upgradeSubtree', 'observeDocument',
+      'upgradeDocument'];
+
+  // cache originals
+  var original = {};
+  fns.forEach(function(fn) {
+    original[fn] = CustomElements[fn];
+  });
+
+  // override
+  fns.forEach(function(fn) {
+    CustomElements[fn] = function(inNode) {
+      return original[fn](ShadowDOMPolyfill.wrapIfNeeded(inNode));
+    };
+  });
+}
+
 })();

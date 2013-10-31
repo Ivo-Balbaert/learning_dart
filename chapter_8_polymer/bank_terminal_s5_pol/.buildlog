@@ -836,3 +836,53 @@ build.dart --machine --changed=web\bankaccountform.dart --changed=web\bankaccoun
 
 build.dart finished [1201 ms]
 
+---
+build.dart --machine --changed=web\bankaccountform.html
+
+build.dart finished [1888 ms]
+
+---
+build.dart --machine --changed=web\bankaccountform.dart
+
+build.dart finished [2089 ms]
+
+---
+build.dart --machine --changed=web\bankaccountform.dart
+
+build.dart finished [1298 ms]
+
+---
+build.dart --machine --changed=web\bankaccountform.dart
+
+build.dart finished [1841 ms]
+
+---
+build.dart --machine --changed=web\bankaccountform.dart
+
+build.dart finished [1150 ms]
+
+---
+build.dart --machine --changed=web\bankaccountform.dart
+
+build.dart finished [1221 ms]
+
+---
+build.dart --machine --changed=web\bankaccountform.dart
+
+build.dart finished [1143 ms]
+
+---
+build.dart --machine --changed=web\model\bank_account.dart --changed=web\model\person.dart
+
+build.dart finished [1210 ms]
+
+---
+build.dart --machine --changed=web\bankaccountform.dart
+
+build.dart finished [1675 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1387 ms]
+

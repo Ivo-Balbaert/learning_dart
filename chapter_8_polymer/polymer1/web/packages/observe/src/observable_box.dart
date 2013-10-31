@@ -10,17 +10,17 @@ part of observe;
  * An observable box that holds a value. Use this if you want to store a single
  * value. For other cases, it is better to use [ObservableList],
  * [ObservableMap], or a custom [Observable] implementation based on
- * [ObservableMixin]. The property name for changes is "value".
+ * [Observable]. The property name for changes is "value".
  */
-class ObservableBox<T> extends ChangeNotifierBase {
+class ObservableBox<T> extends ChangeNotifier {
   T _value;
 
   ObservableBox([T initialValue]) : _value = initialValue;
 
-  T get value => _value;
+  @reflectable T get value => _value;
 
-  void set value(T newValue) {
-    _value = notifyPropertyChange(const Symbol('value'), _value, newValue);
+  @reflectable void set value(T newValue) {
+    _value = notifyPropertyChange(#value, _value, newValue);
   }
 
   String toString() => '#<$runtimeType value: $value>';

@@ -345,3 +345,123 @@ Total time spent on web/first_web_ui.html                    -- 372 ms
 Total time                                                   -- 419 ms
 build.dart finished [807 ms]
 
+---
+build.dart --machine --full
+Total time spent on web/first_web_ui.html                    -- 532 ms
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.css"}}]
+[{"method":"mapping","params":{"from":"web/first_web_ui.html","to":"web\\out\\first_web_ui.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html"}}]
+Total time                                                   -- 596 ms
+build.dart finished [1832 ms]
+
+---
+build.dart --machine --full
+Total time spent on web/first_web_ui.html                    -- 440 ms
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.css"}}]
+[{"method":"mapping","params":{"from":"web/first_web_ui.html","to":"web\\out\\first_web_ui.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html"}}]
+Total time                                                   -- 494 ms
+build.dart finished [977 ms]
+
+---
+build.dart --machine --full
+Total time spent on web/first_web_ui.html                    -- 631 ms
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.css"}}]
+[{"method":"mapping","params":{"from":"web/first_web_ui.html","to":"web\\out\\first_web_ui.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html"}}]
+Total time                                                   -- 689 ms
+build.dart finished [2027 ms]
+
+---
+build.dart --machine --full
+Total time spent on web/first_web_ui.html                    -- 374 ms
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\clickcounter.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.dart.map"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html_bootstrap.dart"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.css"}}]
+[{"method":"mapping","params":{"from":"web/first_web_ui.html","to":"web\\out\\first_web_ui.html"}}]
+[{"method":"generated","params":{"file":"web\\out\\first_web_ui.html"}}]
+Total time                                                   -- 421 ms
+build.dart finished [920 ms]
+
+---
+build.dart --machine --full
+The built-in library 'dart:json' is not available on the stand-alone VM.
+'package:web_ui/component_build.dart': Error: line 23 pos 1: library handler failed
+import 'dart:json' as json;
+^
+'file:///F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [109 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+Unable to open file: F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/packages/web_ui/component_build.dart'file:///F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [81 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+Unable to open file: F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/packages/web_ui/component_build.dart'file:///F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [63 ms]
+
+---
+build.dart --machine --full
+Unable to open file: F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/packages/web_ui/component_build.dart'file:///F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [62 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+Unable to open file: F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/packages/csslib/visitor.dart'package:web_ui/src/compiler.dart': Error: line 11 pos 1: library handler failed
+import 'package:csslib/visitor.dart' show StyleSheet, treeToDebugString;
+^
+'package:web_ui/dwc.dart': Error: line 12 pos 1: library handler failed
+import 'src/compiler.dart';
+^
+'package:web_ui/component_build.dart': Error: line 26 pos 1: library handler failed
+import 'dwc.dart' as dwc;
+^
+'file:///F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [459 ms]
+
+---
+build.dart --machine --full
+Unable to open file: F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/packages/csslib/visitor.dart'package:web_ui/src/compiler.dart': Error: line 11 pos 1: library handler failed
+import 'package:csslib/visitor.dart' show StyleSheet, treeToDebugString;
+^
+'package:web_ui/dwc.dart': Error: line 12 pos 1: library handler failed
+import 'src/compiler.dart';
+^
+'package:web_ui/component_build.dart': Error: line 26 pos 1: library handler failed
+import 'dwc.dart' as dwc;
+^
+'file:///F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [197 ms]
+

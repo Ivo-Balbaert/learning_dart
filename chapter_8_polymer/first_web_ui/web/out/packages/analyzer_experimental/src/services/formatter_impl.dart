@@ -12,9 +12,6 @@ import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/source.dart';
 import 'package:analyzer_experimental/src/services/writer.dart';
 
-/// OS line separator. --- TODO(pquitslund): may not be necessary
-const NEW_LINE = '\n' ; //Platform.pathSeparator;
-
 /// Formatter options.
 class FormatterOptions {
 
@@ -25,7 +22,8 @@ class FormatterOptions {
                  this.lineSeparator: NEW_LINE,
                  this.pageWidth: 80,
                  this.tabsForIndent: false,
-                 this.tabSize: 2});
+                 this.tabSize: 2,
+                 this.codeTransforms: false});
 
   final String lineSeparator;
   final int initialIndentationLevel;
@@ -33,6 +31,7 @@ class FormatterOptions {
   final int tabSize;
   final bool tabsForIndent;
   final int pageWidth;
+  final bool codeTransforms;
 }
 
 
@@ -43,13 +42,19 @@ class FormatterException implements Exception {
   final String message;
 
   /// Creates a new FormatterException with an optional error [message].
-  const FormatterException([this.message = '']);
+  const FormatterException([this.message = 'FormatterException']);
 
-  FormatterException.forError(List<AnalysisError> errors) :
-    // TODO(pquitslund): add descriptive message based on errors
-    message = 'an analysis error occured during format';
+  FormatterException.forError(List<AnalysisError> errors, [LineInfo line]) :
+    message = _createMessage(errors);
 
-  String toString() => 'FormatterException: $message';
+  static String _createMessage(errors) {
+    //TODO(pquitslund): consider a verbosity flag to add/suppress details
+    var errorCode = errors[0].errorCode;
+    var phase = errorCode is ParserErrorCode ? 'parsing' : 'scanning';
+    return 'An error occured while ${phase} (${errorCode.name}).';
+  }
+
+  String toString() => '$message';
 }
 
 /// Specifies the kind of code snippet to format.
@@ -75,34 +80,70 @@ abstract class CodeFormatter {
 
   /// Format the specified portion (from [offset] with [length]) of the given
   /// [source] string, optionally providing an [indentationLevel].
-  String format(CodeKind kind, String source, {int offset, int end,
-    int indentationLevel: 0});
+  FormattedSource format(CodeKind kind, String source, {int offset, int end,
+    int indentationLevel: 0, Selection selection: null});
 
 }
+
+/// Source selection state information.
+class Selection {
+
+  /// The offset of the source selection.
+  final int offset;
+
+  /// The length of the selection.
+  final int length;
+
+  Selection(this.offset, this.length);
+
+  String toString() => 'Selection (offset: $offset, length: $length)';
+}
+
+/// Formatted source.
+class FormattedSource {
+
+  /// Selection state or null if unspecified.
+  Selection selection;
+
+  /// Formatted source string.
+  final String source;
+
+  /// Create a formatted [source] result, with optional [selection] information.
+  FormattedSource(this.source, [this.selection = null]);
+}
+
 
 class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
   final FormatterOptions options;
   final errors = <AnalysisError>[];
+  final whitespace = new RegExp(r'[\s]+');
 
   LineInfo lineInfo;
 
   CodeFormatterImpl(this.options);
 
-  String format(CodeKind kind, String source, {int offset, int end,
-      int indentationLevel: 0}) {
+  FormattedSource format(CodeKind kind, String source, {int offset, int end,
+      int indentationLevel: 0, Selection selection: null}) {
 
-    var start = tokenize(source);
+    var startToken = tokenize(source);
     checkForErrors();
 
-    var node = parse(kind, start);
+    var node = parse(kind, startToken);
     checkForErrors();
 
-    var formatter = new SourceVisitor(options, lineInfo);
+    var formatter = new SourceVisitor(options, lineInfo, selection);
     node.accept(formatter);
 
-    return formatter.writer.toString();
+    var formattedSource = formatter.writer.toString();
+
+    checkTokenStreams(startToken, tokenize(formattedSource));
+
+    return new FormattedSource(formattedSource, formatter.selection);
   }
+
+  checkTokenStreams(Token t1, Token t2) =>
+      new TokenStreamComparator(lineInfo, t1, t2).verifyEquals();
 
   ASTNode parse(CodeKind kind, Token start) {
 
@@ -118,13 +159,13 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     throw new FormatterException('Unsupported format kind: $kind');
   }
 
-  void checkForErrors() {
+  checkForErrors() {
     if (errors.length > 0) {
       throw new FormatterException.forError(errors);
     }
   }
 
-  void onError(AnalysisError error) {
+  onError(AnalysisError error) {
     errors.add(error);
   }
 
@@ -138,8 +179,164 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 }
 
 
+// Compares two token streams.  Used for sanity checking formatted results.
+class TokenStreamComparator {
+
+  final LineInfo lineInfo;
+  Token token1, token2;
+
+  TokenStreamComparator(this.lineInfo, this.token1, this.token2);
+
+  /// Verify that these two token streams are equal.
+  verifyEquals() {
+    while (!isEOF(token1)) {
+      checkPrecedingComments();
+      if (!checkTokens()) {
+        throwNotEqualException(token1, token2);
+      }
+      advance();
+
+    }
+    // TODO(pquitslund): consider a better way to notice trailing synthetics
+    if (!isEOF(token2) &&
+        !(isCLOSE_CURLY_BRACKET(token2) && isEOF(token2.next))) {
+      throw new FormatterException(
+          'Expected "EOF" but got "${token2}".');
+    }
+  }
+
+  checkPrecedingComments() {
+    var comment1 = token1.precedingComments;
+    var comment2 = token2.precedingComments;
+    while (comment1 != null) {
+      if (comment2 == null) {
+        throw new FormatterException(
+            'Expected comment, "${comment1}", at ${describeLocation(token1)}, '
+            'but got none.');
+      }
+      if (!equivalentComments(comment1, comment2)) {
+        throwNotEqualException(comment1, comment2);
+      }
+      comment1 = comment1.next;
+      comment2 = comment2.next;
+    }
+    if (comment2 != null) {
+      throw new FormatterException(
+          'Unexpected comment, "${comment2}", at ${describeLocation(token2)}.');
+    }
+  }
+
+  bool equivalentComments(Token comment1, Token comment2) =>
+      comment1.lexeme.trim() == comment2.lexeme.trim();
+
+  throwNotEqualException(t1, t2) {
+    throw new FormatterException(
+        'Expected "${t1}" but got "${t2}", at ${describeLocation(t1)}.');
+  }
+
+  String describeLocation(Token token) => lineInfo == null ? '<unknown>' :
+      'Line: ${lineInfo.getLocation(token.offset).lineNumber}, '
+      'Column: ${lineInfo.getLocation(token.offset).columnNumber}';
+
+  advance() {
+    token1 = token1.next;
+    token2 = token2.next;
+  }
+
+  bool checkTokens() {
+    if (token1 == null || token2 == null) {
+      return false;
+    }
+    if (token1 == token2 || token1.lexeme == token2.lexeme) {
+      return true;
+    }
+
+    // '[' ']' => '[]'
+    if (isOPEN_SQ_BRACKET(token1) && isCLOSE_SQUARE_BRACKET(token1.next)) {
+      if (isINDEX(token2)) {
+        token1 = token1.next;
+        return true;
+      }
+    }
+    // '>' '>' => '>>'
+    if (isGT(token1) && isGT(token1.next)) {
+      if (isGT_GT(token2)) {
+        token1 = token1.next;
+        return true;
+      }
+    }
+    // Cons(){} => Cons();
+    if (isOPEN_CURLY_BRACKET(token1) && isCLOSE_CURLY_BRACKET(token1.next)) {
+      if (isSEMICOLON(token2)) {
+        token1 = token1.next;
+        advance();
+        return true;
+      }
+    }
+    // Advance past synthetic { } tokens
+    if (isOPEN_CURLY_BRACKET(token2) || isCLOSE_CURLY_BRACKET(token2)) {
+      token2 = token2.next;
+      return checkTokens();
+    }
+
+    return false;
+  }
+
+}
+
+// Cached parser for testing token types.
+final tokenTester = new Parser(null,null);
+
+/// Test if this token is an EOF token.
+bool isEOF(Token token) => tokenIs(token, TokenType.EOF);
+
+/// Test for token type.
+bool tokenIs(Token token, TokenType type) =>
+    token != null && tokenTester.matches4(token, type);
+
+/// Test if this token is a GT token.
+bool isGT(Token token) => tokenIs(token, TokenType.GT);
+
+/// Test if this token is a GT_GT token.
+bool isGT_GT(Token token) => tokenIs(token, TokenType.GT_GT);
+
+/// Test if this token is an INDEX token.
+bool isINDEX(Token token) => tokenIs(token, TokenType.INDEX);
+
+/// Test if this token is a OPEN_CURLY_BRACKET token.
+bool isOPEN_CURLY_BRACKET(Token token) =>
+    tokenIs(token, TokenType.OPEN_CURLY_BRACKET);
+
+/// Test if this token is a CLOSE_CURLY_BRACKET token.
+bool isCLOSE_CURLY_BRACKET(Token token) =>
+    tokenIs(token, TokenType.CLOSE_CURLY_BRACKET);
+
+/// Test if this token is a OPEN_SQUARE_BRACKET token.
+bool isOPEN_SQ_BRACKET(Token token) =>
+    tokenIs(token, TokenType.OPEN_SQUARE_BRACKET);
+
+/// Test if this token is a CLOSE_SQUARE_BRACKET token.
+bool isCLOSE_SQUARE_BRACKET(Token token) =>
+    tokenIs(token, TokenType.CLOSE_SQUARE_BRACKET);
+
+/// Test if this token is a SEMICOLON token.
+bool isSEMICOLON(Token token) =>
+    tokenIs(token, TokenType.SEMICOLON);
+
+
 /// An AST visitor that drives formatting heuristics.
 class SourceVisitor implements ASTVisitor {
+
+  static final OPEN_CURLY = syntheticToken(TokenType.OPEN_CURLY_BRACKET, '{');
+  static final CLOSE_CURLY = syntheticToken(TokenType.CLOSE_CURLY_BRACKET, '}');
+  static final SEMI_COLON = syntheticToken(TokenType.SEMICOLON, ';');
+
+  static const SYNTH_OFFSET = -13;
+
+  static StringToken syntheticToken(TokenType type, String value) =>
+      new StringToken(type, value, SYNTH_OFFSET);
+
+  static bool isSynthetic(Token token) => token.offset == SYNTH_OFFSET;
 
   /// The writer to which the source is to be written.
   final SourceWriter writer;
@@ -152,25 +349,38 @@ class SourceVisitor implements ASTVisitor {
 
   /// A flag to indicate that a newline should be emitted before the next token.
   bool needsNewline = false;
-  
-  /// A flag to indicate that user introduced newlines should be emitted before
-  /// the next token.
-  bool preservePrecedingNewlines = false;
-  
+
+  /// A counter for spaces that should be emitted preceding the next token.
+  int leadingSpaces = 0;
+
+  /// Used for matching EOL comments
+  final twoSlashes = new RegExp(r'//[^/]');
+
+  /// Original pre-format selection information (may be null).
+  final Selection preSelection;
+
+  final bool codeTransforms;
+
+  /// Post format selection information.
+  Selection selection;
+
+
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
-  SourceVisitor(FormatterOptions options, this.lineInfo) :
+  SourceVisitor(FormatterOptions options, this.lineInfo, this.preSelection):
       writer = new SourceWriter(indentCount: options.initialIndentationLevel,
-                                lineSeparator: options.lineSeparator);
+                                lineSeparator: options.lineSeparator),
+      codeTransforms = options.codeTransforms;
 
   visitAdjacentStrings(AdjacentStrings node) {
-    visitList(node.strings, ' ');
+    visitNodes(node.strings, separatedBy: space);
   }
 
   visitAnnotation(Annotation node) {
     token(node.atSign);
     visit(node.name);
-    visitPrefixed('.', node.constructorName);
+    token(node.period);
+    visit(node.constructorName);
     visit(node.arguments);
   }
 
@@ -181,7 +391,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitArgumentList(ArgumentList node) {
     token(node.leftParenthesis);
-    visitList(node.arguments, ', ');
+    visitNodes(node.arguments, separatedBy: commaSeperator);
     token(node.rightParenthesis);
   }
 
@@ -220,16 +430,10 @@ class SourceVisitor implements ASTVisitor {
 
   visitBlock(Block node) {
     token(node.leftBracket);
-    needsNewline = true;
     indent();
-
-    for (var stmt in node.statements) {
-      visit(stmt);
-    }
-
+    visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
     unindent();
-    preservePrecedingNewlines = true;
-    needsNewline = true;
+    newlines();
     token(node.rightBracket);
   }
 
@@ -242,20 +446,23 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    preservePrecedingNewlines = true;
     token(node.keyword);
-    visitPrefixed(' ', node.label);
+    visitNode(node.label, precededBy: space);
     token(node.semicolon);
-    needsNewline = true;
   }
 
   visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
-    visitList(node.cascadeSections);
+    indent(2);
+    visitNodes(node.cascadeSections);
+    unindent(2);
   }
 
   visitCatchClause(CatchClause node) {
-    visitPrefixed('on ', node.exceptionType);
+
+    token(node.onKeyword, precededBy: space, followedBy: space);
+    visit(node.exceptionType);
+
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
         space();
@@ -264,37 +471,31 @@ class SourceVisitor implements ASTVisitor {
       space();
       token(node.leftParenthesis);
       visit(node.exceptionParameter);
-      visitPrefixed(', ', node.stackTraceParameter);
+      token(node.comma, followedBy: space);
+      visit(node.stackTraceParameter);
       token(node.rightParenthesis);
       space();
     } else {
       space();
     }
     visit(node.body);
-    needsNewline = true;
   }
 
   visitClassDeclaration(ClassDeclaration node) {
-    preservePrecedingNewlines = true;
     modifier(node.abstractKeyword);
     token(node.classKeyword);
     space();
     visit(node.name);
     visit(node.typeParameters);
-    visitPrefixed(' ', node.extendsClause);
-    visitPrefixed(' ', node.withClause);
-    visitPrefixed(' ', node.implementsClause);
+    visitNode(node.extendsClause, precededBy: space);
+    visitNode(node.withClause, precededBy: space);
+    visitNode(node.implementsClause, precededBy: space);
     space();
     token(node.leftBracket);
     indent();
-
-    for (var i = 0; i < node.members.length; i++) {
-      visit(node.members[i]);
-    }
-
+    visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
     unindent();
-
-    emitPrecedingNewlines(node.rightBracket, min: 1);
+    newlines();
     token(node.rightBracket);
   }
 
@@ -311,8 +512,8 @@ class SourceVisitor implements ASTVisitor {
       space();
     }
     visit(node.superclass);
-    visitPrefixed(' ', node.withClause);
-    visitPrefixed(' ', node.implementsClause);
+    visitNode(node.withClause, precededBy: space);
+    visitNode(node.implementsClause, precededBy: space);
     token(node.semicolon);
   }
 
@@ -321,22 +522,26 @@ class SourceVisitor implements ASTVisitor {
   visitCommentReference(CommentReference node) => null;
 
   visitCompilationUnit(CompilationUnit node) {
-    
+
     // Cache EOF for leading whitespace calculation
     var start = node.beginToken.previous;
     if (start != null && start.type is TokenType_EOF) {
       previousToken = start;
     }
-    
+
     var scriptTag = node.scriptTag;
     var directives = node.directives;
     visit(scriptTag);
-    visitList(directives);
-    visitList(node.declarations);
+
+    visitNodes(directives, separatedBy: newlines, followedBy: newlines);
+
+    visitNodes(node.declarations, separatedBy: newlines);
 
     // Handle trailing whitespace
-    preservePrecedingNewlines = true;
     token(node.endToken /* EOF */);
+
+    // Be a good citizen, end with a NL
+    ensureTrailingNewline();
   }
 
   visitConditionalExpression(ConditionalExpression node) {
@@ -356,11 +561,51 @@ class SourceVisitor implements ASTVisitor {
     modifier(node.constKeyword);
     modifier(node.factoryKeyword);
     visit(node.returnType);
-    visitPrefixed('.', node.name);
+    token(node.period);
+    visit(node.name);
     visit(node.parameters);
-    visitPrefixedList(' : ', node.initializers, ', ');
-    visitPrefixed(' = ', node.redirectedConstructor);
-    visitPrefixedBody(' ', node.body);
+
+    // Check for redirects or initializer lists
+    if (node.separator != null) {
+      if (node.redirectedConstructor != null) {
+        visitConstructorRedirects(node);
+      } else {
+        visitConstructorInitializers(node);
+      }
+    }
+
+    var body = node.body;
+    if (codeTransforms && body is BlockFunctionBody) {
+      if (body.block.statements.isEmpty) {
+        token(SEMI_COLON);
+        newlines();
+        return;
+      }
+    }
+
+    visitPrefixedBody(space, body);
+  }
+
+  visitConstructorInitializers(ConstructorDeclaration node) {
+    newlines();
+    indent(2);
+    token(node.separator /* : */);
+    space();
+    for (var i = 0; i < node.initializers.length; i++) {
+      if (i > 0) {
+        comma();
+        newlines();
+        space(2);
+      }
+      node.initializers[i].accept(this);
+    }
+    unindent(2);
+  }
+
+  visitConstructorRedirects(ConstructorDeclaration node) {
+    token(node.separator /* = */, precededBy: space, followedBy: space);
+    visitNodes(node.initializers, separatedBy: commaSeperator);
+    visit(node.redirectedConstructor);
   }
 
   visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
@@ -375,32 +620,31 @@ class SourceVisitor implements ASTVisitor {
 
   visitConstructorName(ConstructorName node) {
     visit(node.type);
-    visitPrefixed('.', node.name);
+    token(node.period);
+    visit(node.name);
   }
 
   visitContinueStatement(ContinueStatement node) {
     token(node.keyword);
-    visitPrefixed(' ', node.label);
+    visitNode(node.label, precededBy: space);
     token(node.semicolon);
   }
 
   visitDeclaredIdentifier(DeclaredIdentifier node) {
-    token(node.keyword);
-    space();
-    visit(node.type);
-    //TODO(pquitslund): avoiding visitSuffixed(..) but we can do better
-    if (node.type != null) {
-      space();
-    }
+    modifier(node.keyword);
+    visitNode(node.type, followedBy: space);
     visit(node.identifier);
   }
 
   visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.parameter);
     if (node.separator != null) {
-      space();
+      // The '=' separator is preceded by a space
+      if (node.separator.type == TokenType.EQ) {
+        space();
+      }
       token(node.separator);
-      visitPrefixed(' ', node.defaultValue);
+      visitNode(node.defaultValue, precededBy: space);
     }
   }
 
@@ -433,7 +677,7 @@ class SourceVisitor implements ASTVisitor {
     token(node.keyword);
     space();
     visit(node.uri);
-    visitPrefixedList(' ', node.combinators, ' ');
+    visitNodes(node.combinators, precededBy: space, separatedBy: space);
     token(node.semicolon);
   }
 
@@ -456,18 +700,14 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
-    needsNewline = true;
-    preservePrecedingNewlines = true;
-    modifier(node.keyword);
+    modifier(node.staticKeyword);
     visit(node.fields);
     token(node.semicolon);
   }
 
   visitFieldFormalParameter(FieldFormalParameter node) {
-    token(node.keyword);
-    space();
-    visit(node.type);
-    space();
+    token(node.keyword, followedBy: space);
+    visitNode(node.type, followedBy: space);
     token(node.thisToken);
     token(node.period);
     visit(node.identifier);
@@ -519,25 +759,23 @@ class SourceVisitor implements ASTVisitor {
     token(node.forKeyword);
     space();
     token(node.leftParenthesis);
-    var initialization = node.initialization;
-    if (initialization != null) {
-      visit(initialization);
+    if (node.initialization != null) {
+      visit(node.initialization);
     } else {
       visit(node.variables);
     }
     token(node.leftSeparator);
-    visitPrefixed(' ', node.condition);
+    space();
+    visit(node.condition);
     token(node.rightSeparator);
-    visitPrefixedList(' ', node.updaters, ', ');
-    token(node.leftParenthesis);
+    visitNodes(node.updaters, precededBy: space, separatedBy: space);
+    token(node.rightParenthesis);
     space();
     visit(node.body);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    needsNewline = true;
-    preservePrecedingNewlines = true;
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     token(node.propertyKeyword, followedBy: space);
     visit(node.name);
     visit(node.functionExpression);
@@ -545,8 +783,6 @@ class SourceVisitor implements ASTVisitor {
 
   visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     visit(node.functionDeclaration);
-    // TODO(pquitslund): fix and handle in function body
-    append(';');
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -563,7 +799,7 @@ class SourceVisitor implements ASTVisitor {
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     token(node.keyword);
     space();
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     visit(node.name);
     visit(node.typeParameters);
     visit(node.parameters);
@@ -571,7 +807,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     visit(node.identifier);
     visit(node.parameters);
   }
@@ -579,43 +815,42 @@ class SourceVisitor implements ASTVisitor {
   visitHideCombinator(HideCombinator node) {
     token(node.keyword);
     space();
-    visitList(node.hiddenNames, ', ');
+    visitNodes(node.hiddenNames, separatedBy: commaSeperator);
   }
 
   visitIfStatement(IfStatement node) {
-    preservePrecedingNewlines = true;
+    var hasElse = node.elseStatement != null;
     token(node.ifKeyword);
     space();
     token(node.leftParenthesis);
     visit(node.condition);
     token(node.rightParenthesis);
     space();
-    visit(node.thenStatement);
-    //visitPrefixed(' else ', node.elseStatement);
-    if (node.elseStatement != null) {
+    if (hasElse) {
+      printAsBlock(node.thenStatement);
       space();
       token(node.elseKeyword);
       space();
-      visit(node.elseStatement);
+      printAsBlock(node.elseStatement);
+    } else {
+      visit(node.thenStatement);
     }
-    needsNewline = true;
   }
-  
+
   visitImplementsClause(ImplementsClause node) {
     token(node.keyword);
     space();
-    visitList(node.interfaces, ', ');
+    visitNodes(node.interfaces, separatedBy: commaSeperator);
   }
 
   visitImportDirective(ImportDirective node) {
-    preservePrecedingNewlines = true;
     token(node.keyword);
     space();
     visit(node.uri);
-    visitPrefixed(' as ', node.prefix);
-    visitPrefixedList(' ', node.combinators, ' ');
+    token(node.asToken, precededBy: space, followedBy: space);
+    visit(node.prefix);
+    visitNodes(node.combinators, precededBy: space, separatedBy: space);
     token(node.semicolon);
-    needsNewline = true;
   }
 
   visitIndexExpression(IndexExpression node) {
@@ -670,7 +905,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitLabeledStatement(LabeledStatement node) {
-    visitSuffixedList(node.labels, ' ', ' ');
+    visitNodes(node.labels, separatedBy: space, followedBy: space);
     visit(node.statement);
   }
 
@@ -686,60 +921,53 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitListLiteral(ListLiteral node) {
-    if (node.modifier != null) {
-      token(node.modifier);
-      space();
-    }
+    modifier(node.constKeyword);
     visit(node.typeArguments);
     token(node.leftBracket);
-    visitList(node.elements, ', ');
+    visitNodes(node.elements, separatedBy: commaSeperator);
+    optionalTrailingComma(node.rightBracket);
     token(node.rightBracket);
   }
 
   visitMapLiteral(MapLiteral node) {
-    modifier(node.modifier);
-    visitSuffixed(node.typeArguments, ' ');
+    modifier(node.constKeyword);
+    visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
-    visitList(node.entries, ', ');
+    visitNodes(node.entries, separatedBy: commaSeperator);
+    optionalTrailingComma(node.rightBracket);
     token(node.rightBracket);
   }
 
   visitMapLiteralEntry(MapLiteralEntry node) {
     visit(node.key);
-    space();
     token(node.separator);
     space();
     visit(node.value);
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
-    needsNewline = true;
-    preservePrecedingNewlines = true;
     modifier(node.externalKeyword);
     modifier(node.modifierKeyword);
-    visitSuffixed(node.returnType, ' ');
+    visitNode(node.returnType, followedBy: space);
     modifier(node.propertyKeyword);
     modifier(node.operatorKeyword);
     visit(node.name);
     if (!node.isGetter) {
       visit(node.parameters);
     }
-    visitPrefixedBody(' ', node.body);
+    visitPrefixedBody(space, node.body);
   }
 
   visitMethodInvocation(MethodInvocation node) {
-    if (node.isCascaded) {
-      token(node.period);
-    } else {
-      visitSuffixed(node.target, '.');
-    }
+    visit(node.target);
+    token(node.period);
     visit(node.methodName);
     visit(node.argumentList);
   }
 
   visitNamedExpression(NamedExpression node) {
     visit(node.name);
-    visitPrefixed(' ', node.expression);
+    visitNode(node.expression, precededBy: space);
   }
 
   visitNativeClause(NativeClause node) {
@@ -775,6 +1003,8 @@ class SourceVisitor implements ASTVisitor {
   visitPartOfDirective(PartOfDirective node) {
     token(node.keyword);
     space();
+    token(node.ofToken);
+    space();
     visit(node.libraryName);
     token(node.semicolon);
   }
@@ -807,7 +1037,8 @@ class SourceVisitor implements ASTVisitor {
 
   visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     token(node.keyword);
-    visitPrefixed('.', node.constructorName);
+    token(node.period);
+    visit(node.constructorName);
     visit(node.argumentList);
   }
 
@@ -816,7 +1047,6 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitReturnStatement(ReturnStatement node) {
-    preservePrecedingNewlines = true;
     var expression = node.expression;
     if (expression == null) {
       token(node.keyword);
@@ -836,12 +1066,12 @@ class SourceVisitor implements ASTVisitor {
   visitShowCombinator(ShowCombinator node) {
     token(node.keyword);
     space();
-    visitList(node.shownNames, ', ');
+    visitNodes(node.shownNames, separatedBy: commaSeperator);
   }
 
   visitSimpleFormalParameter(SimpleFormalParameter node) {
     modifier(node.keyword);
-    visitSuffixed(node.type, ' ');
+    visitNode(node.type, followedBy: space);
     visit(node.identifier);
   }
 
@@ -854,12 +1084,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    visitList(node.elements);
+    visitNodes(node.elements);
   }
 
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     token(node.keyword);
-    visitPrefixed('.', node.constructorName);
+    token(node.period);
+    visit(node.constructorName);
     visit(node.argumentList);
   }
 
@@ -868,25 +1099,23 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSwitchCase(SwitchCase node) {
-    preservePrecedingNewlines = true;
-    visitSuffixedList(node.labels, ' ', ' ');
+    visitNodes(node.labels, separatedBy: space, followedBy: space);
     token(node.keyword);
     space();
     visit(node.expression);
     token(node.colon);
+    newlines();
     indent();
-    needsNewline = true;
-    visitList(node.statements);
+    visitNodes(node.statements, separatedBy: newlines);
     unindent();
   }
 
   visitSwitchDefault(SwitchDefault node) {
-    preservePrecedingNewlines = true;
-    visitSuffixedList(node.labels, ' ', ' ');
+    visitNodes(node.labels, separatedBy: space, followedBy: space);
     token(node.keyword);
     token(node.colon);
     space();
-    visitList(node.statements, ' ');
+    visitNodes(node.statements, separatedBy: space);
   }
 
   visitSwitchStatement(SwitchStatement node) {
@@ -898,10 +1127,10 @@ class SourceVisitor implements ASTVisitor {
     space();
     token(node.leftBracket);
     indent();
-    visitList(node.members);
+    newlines();
+    visitNodes(node.members, separatedBy: newlines, followedBy: newlines);
     unindent();
     token(node.rightBracket);
-    needsNewline = true;
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -919,23 +1148,22 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    preservePrecedingNewlines = true;
     visit(node.variables);
     token(node.semicolon);
   }
 
   visitTryStatement(TryStatement node) {
-    preservePrecedingNewlines = true;
     token(node.tryKeyword);
     space();
     visit(node.body);
-    visitPrefixedList(' ', node.catchClauses, ' ');
-    visitPrefixed(' finally ', node.finallyClause);
+    visitNodes(node.catchClauses, precededBy: space, separatedBy: space);
+    token(node.finallyKeyword, precededBy: space, followedBy: space);
+    visit(node.finallyBlock);
   }
 
   visitTypeArgumentList(TypeArgumentList node) {
     token(node.leftBracket);
-    visitList(node.arguments, ', ');
+    visitNodes(node.arguments, separatedBy: commaSeperator);
     token(node.rightBracket);
   }
 
@@ -946,12 +1174,13 @@ class SourceVisitor implements ASTVisitor {
 
   visitTypeParameter(TypeParameter node) {
     visit(node.name);
-    visitPrefixed(' extends ', node.bound);
+    token(node.keyword /* extends */, precededBy: space, followedBy: space);
+    visit(node.bound);
   }
 
   visitTypeParameterList(TypeParameterList node) {
     token(node.leftBracket);
-    visitList(node.typeParameters, ', ');
+    visitNodes(node.typeParameters, separatedBy: commaSeperator);
     token(node.rightBracket);
   }
 
@@ -966,16 +1195,14 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList node) {
-    token(node.keyword);
-    space();
-    visitSuffixed(node.type, ' ');
-    visitList(node.variables, ', ');
+    modifier(node.keyword);
+    visitNode(node.type, followedBy: space);
+    visitNodes(node.variables, separatedBy: commaSeperator);
   }
 
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     visit(node.variables);
     token(node.semicolon);
-    needsNewline = true;
   }
 
   visitWhileStatement(WhileStatement node) {
@@ -991,7 +1218,7 @@ class SourceVisitor implements ASTVisitor {
   visitWithClause(WithClause node) {
     token(node.withKeyword);
     space();
-    visitList(node.mixinTypes, ', ');
+    visitNodes(node.mixinTypes, separatedBy: commaSeperator);
   }
 
   /// Safely visit the given [node].
@@ -1001,148 +1228,241 @@ class SourceVisitor implements ASTVisitor {
     }
   }
 
-  /// Safely visit the given [node], printing the [suffix] after the node if it
-  /// is non-null.
-  visitSuffixed(ASTNode node, String suffix) {
-    if (node != null) {
-      node.accept(this);
-      append(suffix);
-    }
-  }
-
-  /// Safely visit the given [node], printing the [prefix] before the node if
-  /// it is non-null.
-  visitPrefixed(String prefix, ASTNode node) {
-    if (node != null) {
-      append(prefix);
-      node.accept(this);
-    }
-  }
-
   /// Visit the given function [body], printing the [prefix] before if given
   /// body is not empty.
-  visitPrefixedBody(String prefix, FunctionBody body) {
+  visitPrefixedBody(prefix(), FunctionBody body) {
     if (body is! EmptyFunctionBody) {
-      append(prefix);
+      prefix();
     }
     visit(body);
   }
 
-  /// Print a list of [nodes], optionally separated by the given [separator].
-  visitList(NodeList<ASTNode> nodes, [String separator = '']) {
-    if (nodes != null) {
-      var size = nodes.length;
-      for (var i = 0; i < size; i++) {
-        if (i > 0) {
-          append(separator);
-        }
-        nodes[i].accept(this);
-      }
-    }
-  }
-
-  /// Print a list of [nodes], separated by the given [separator].
-  visitSuffixedList(NodeList<ASTNode> nodes, String separator, String suffix) {
+  /// Visit a list of [nodes] if not null, optionally separated and/or preceded
+  /// and followed by the given functions.
+  visitNodes(NodeList<ASTNode> nodes, {precededBy(): null,
+      separatedBy() : null, followedBy(): null}) {
     if (nodes != null) {
       var size = nodes.length;
       if (size > 0) {
+        if (precededBy != null) {
+          precededBy();
+        }
         for (var i = 0; i < size; i++) {
-          if (i > 0) {
-            append(separator);
+          if (i > 0 && separatedBy != null) {
+            separatedBy();
           }
           nodes[i].accept(this);
         }
-        append(suffix);
-      }
-    }
-  }
-
-  /// Print a list of [nodes], separated by the given [separator].
-  visitPrefixedList(String prefix, NodeList<ASTNode> nodes,
-      [String separator = null]) {
-    if (nodes != null) {
-      var size = nodes.length;
-      if (size > 0) {
-        append(prefix);
-        for (var i = 0; i < size; i++) {
-          if (i > 0 && separator != null) {
-            append(separator);
-          }
-          nodes[i].accept(this);
+        if (followedBy != null) {
+          followedBy();
         }
       }
     }
   }
 
-  /// Emit the given [modifier] if it's non null, followed by non-breaking 
+  /// Visit a [node], and if not null, optionally preceded or followed by the
+  /// specified functions.
+  visitNode(ASTNode node, {precededBy(): null, followedBy(): null}) {
+    if (node != null) {
+      if (precededBy != null) {
+        precededBy();
+      }
+      node.accept(this);
+      if (followedBy != null) {
+        followedBy();
+      }
+    }
+  }
+
+
+  /// Emit the given [modifier] if it's non null, followed by non-breaking
   /// whitespace.
   modifier(Token modifier) {
     token(modifier, followedBy: space);
   }
-    
-  token(Token token, {followedBy(), int minNewlines: 0}) {
+
+  /// Indicate that at least one newline should be emitted and possibly more
+  /// if the source has them.
+  newlines() {
+    needsNewline = true;
+  }
+
+  /// Optionally emit a trailing comma.
+  optionalTrailingComma(Token rightBracket) {
+    if (rightBracket.previous.lexeme == ',') {
+      comma();
+    }
+  }
+
+  token(Token token, {precededBy(), followedBy(), int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
         minNewlines = max(1, minNewlines);
       }
-      if (preservePrecedingNewlines || minNewlines > 0) {
-        var emitted = emitPrecedingNewlines(token, min: minNewlines);
-        preservePrecedingNewlines = false;
-        if (emitted > 0) {
-          needsNewline = false;
-        }
+      var emitted = emitPrecedingCommentsAndNewlines(token, min: minNewlines);
+      if (emitted > 0) {
+        needsNewline = false;
       }
+      if (precededBy != null) {
+        precededBy();
+      }
+      checkForSelectionUpdate(token);
       append(token.lexeme);
-      if (followedBy != null) { 
+      if (followedBy != null) {
         followedBy();
       }
       previousToken = token;
-    }    
+    }
   }
-    
+
+  emitSpaces() {
+    while (leadingSpaces > 0) {
+      writer.print(' ');
+      leadingSpaces--;
+    }
+  }
+
+  checkForSelectionUpdate(Token token) {
+    // Cache the first token on or AFTER the selection offset
+    if (preSelection != null && selection == null) {
+      // Check for overshots
+      var overshot = token.offset - preSelection.offset;
+      if (overshot >= 0) {
+        //TODO(pquitslund): update length (may need truncating)
+        selection = new Selection(
+            writer.toString().length + leadingSpaces - overshot,
+            preSelection.length);
+      }
+    }
+  }
+
+  commaSeperator() {
+    comma();
+    space();
+  }
+
+  comma() {
+    writer.print(',');
+  }
+
+
   /// Emit a non-breakable space.
-  space() {
+  space([n = 1]) {
     //TODO(pquitslund): replace with a proper space token
-    append(' ');
+    leadingSpaces+=n;
   }
-  
+
   /// Emit a breakable space
   breakableSpace() {
     //Implement
   }
-  
+
   /// Append the given [string] to the source writer if it's non-null.
   append(String string) {
-    if (string != null) {
+    if (string != null && !string.isEmpty) {
+      emitSpaces();
       writer.print(string);
     }
   }
-    
+
   /// Indent.
-  indent() {
-    writer.indent();
+  indent([n = 1]) {
+    while (n-- > 0) {
+      writer.indent();
+    }
   }
-  
+
   /// Unindent
-  unindent() {
-    writer.unindent();
+  unindent([n = 1]) {
+    while (n-- > 0) {
+      writer.unindent();
+    }
   }
-  
-  /// Emit any detected newlines or a minimum as specified by [minNewlines].
-  int emitPrecedingNewlines(Token token, {min: 0}) {
+
+  /// Print this statement as if it were a block (e.g., surrounded by braces).
+  printAsBlock(Statement statement) {
+    if (codeTransforms && statement is! Block) {
+      token(OPEN_CURLY);
+      indent();
+      newlines();
+      visit(statement);
+      newlines();
+      unindent();
+      token(CLOSE_CURLY);
+    } else {
+      visit(statement);
+    }
+  }
+
+  /// Emit any detected comments and newlines or a minimum as specified
+  /// by [min].
+  int emitPrecedingCommentsAndNewlines(Token token, {min: 0}) {
+
     var comment = token.precedingComments;
     var currentToken = comment != null ? comment : token;
+
+    //Handle EOLs before newlines
+    if (isAtEOL(comment)) {
+      emitComment(comment, previousToken);
+      comment = comment.next;
+      currentToken = comment != null ? comment : token;
+    }
+
     var lines = max(min, countNewlinesBetween(previousToken, currentToken));
     writer.newlines(lines);
+
+    previousToken = currentToken.previous;
+
     while (comment != null) {
-      append(comment.toString().trim());
-      writer.newline();
+
+      emitComment(comment, previousToken);
+
+      var nextToken = comment.next != null ? comment.next : token;
+      var newlines = calculateNewlinesBetweenComments(comment, nextToken);
+      if (newlines > 0) {
+        writer.newlines(newlines);
+        lines += newlines;
+      } else if (!isEOF(token)) {
+        append(' ');
+      }
+
+      previousToken = comment;
       comment = comment.next;
     }
 
     previousToken = token;
     return lines;
   }
+
+
+  ensureTrailingNewline() {
+    if (writer.lastToken is! NewlineToken) {
+      writer.newline();
+    }
+  }
+
+
+  /// Test if this [comment] is at the end of a line.
+  bool isAtEOL(Token comment) =>
+      comment != null && comment.toString().trim().startsWith(twoSlashes) &&
+      sameLine(comment, previousToken);
+
+  /// Emit this [comment], inserting leading whitespace if appropriate.
+  emitComment(Token comment, Token previousToken) {
+    if (!writer.currentLine.isWhitespace() && !isBlock(comment)) {
+      var ws = countSpacesBetween(previousToken, comment);
+      // Preserve one space but no more
+      if (ws > 0) {
+        append(' ');
+      }
+    }
+
+    append(comment.toString().trim());
+  }
+
+  /// Count spaces between these tokens.  Tokens on different lines return 0.
+  int countSpacesBetween(Token last, Token current) => isEOF(last) ||
+      countNewlinesBetween(last, current) > 0 ? 0 : current.offset - last.end;
 
   /// Count the blanks between these two nodes.
   int countBlankLinesBetween(ASTNode lastNode, ASTNode currentNode) =>
@@ -1156,18 +1476,58 @@ class SourceVisitor implements ASTVisitor {
   int countSucceedingNewlines(ASTNode node) => node == null ? 0 :
       countNewlinesBetween(node.endToken, node.endToken.next);
 
-  /// Count the blanks between these two nodes.
+  /// Count the blanks between these two tokens.
   int countNewlinesBetween(Token last, Token current) {
-    if (last == null || current == null) {
+    if (last == null || current == null || isSynthetic(last)) {
       return 0;
     }
+
+    return linesBetween(last.end - 1, current.offset);
+  }
+
+  /// Calculate the newlines that should separate these comments.
+  int calculateNewlinesBetweenComments(Token last, Token current) {
+    // Insist on a newline after doc comments or single line comments
+    // (NOTE that EOL comments have already been processed).
+    if (isOldSingleLineDocComment(last) || isSingleLineComment(last)) {
+      return max(1, countNewlinesBetween(last, current));
+    } else {
+      return countNewlinesBetween(last, current);
+    }
+  }
+
+  /// Single line multi-line comments (e.g., '/** like this */').
+  bool isOldSingleLineDocComment(Token comment) =>
+      comment.lexeme.startsWith(r'/**') && singleLine(comment);
+
+  /// Test if this [token] spans just one line.
+  bool singleLine(Token token) => linesBetween(token.offset, token.end) < 1;
+
+  /// Test if token [first] is on the same line as [second].
+  bool sameLine(Token first, Token second) =>
+      countNewlinesBetween(first, second) == 0;
+
+  /// Test if this is a multi-line [comment] (e.g., '/* ...' or '/** ...')
+  bool isMultiLineComment(Token comment) =>
+      comment.type == TokenType.MULTI_LINE_COMMENT;
+
+  /// Test if this is a single-line [comment] (e.g., '// ...')
+  bool isSingleLineComment(Token comment) =>
+      comment.type == TokenType.SINGLE_LINE_COMMENT;
+
+  /// Test if this [comment] is a block comment (e.g., '/* like this */')..
+  bool isBlock(Token comment) =>
+      isMultiLineComment(comment) && singleLine(comment);
+
+  /// Count the lines between two offsets.
+  int linesBetween(int lastOffset, int currentOffset) {
     var lastLine =
-        lineInfo.getLocation(last.offset).lineNumber;
+        lineInfo.getLocation(lastOffset).lineNumber;
     var currentLine =
-        lineInfo.getLocation(current.offset).lineNumber;
-    return  currentLine - lastLine;
+        lineInfo.getLocation(currentOffset).lineNumber;
+    return currentLine - lastLine;
   }
 
   String toString() => writer.toString();
-  
+
 }

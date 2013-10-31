@@ -65,8 +65,9 @@ Future<AssetSet> runBarback(BarbackOptions options) {
 }
 
 /** Extract the current package from the pubspec.yaml file. */
-String readCurrentPackageFromPubspec() {
-  var pubspec = new File('pubspec.yaml');
+String readCurrentPackageFromPubspec([String dir]) {
+  var pubspec = new File(
+      dir == null ? 'pubspec.yaml' : path.join(dir, 'pubspec.yaml'));
   if (!pubspec.existsSync()) {
     print('error: pubspec.yaml file not found, please run this script from '
         'your package root directory.');
@@ -103,11 +104,12 @@ Map<String, String> _readPackageDirsFromPub(String currentPackage) {
 // TODO(sigmund): consider computing this list by recursively parsing
 // pubspec.yaml files in the `Options.packageDirs`.
 final Set<String> _polymerPackageDependencies = [
-    'analyzer_experimental', 'args', 'barback', 'browser', 'csslib',
+    'analyzer', 'args', 'barback', 'browser', 'csslib',
     'custom_element', 'fancy_syntax', 'html5lib', 'html_import', 'js',
-    'logging', 'mdv', 'meta', 'mutation_observer', 'observe', 'path'
+    'logging', 'meta', 'mutation_observer', 'observe', 'path'
     'polymer_expressions', 'serialization', 'shadow_dom', 'source_maps',
-    'stack_trace', 'unittest', 'unmodifiable_collection', 'yaml'].toSet();
+    'stack_trace', 'template_binding', 'unittest', 'unmodifiable_collection',
+    'yaml'].toSet();
 
 /** Return the relative path of each file under [subDir] in [package]. */
 Iterable<String> _listPackageDir(String package, String subDir,
@@ -150,8 +152,8 @@ void _initBarback(Barback barback, BarbackOptions options) {
 
   for (var package in options.packageDirs.keys) {
     // There is nothing to do in the polymer package dependencies.
-    // However: in Polymer package *itself*, we need to replace ObservableMixin
-    // with ChangeNotifierMixin.
+    // However: in Polymer package *itself*, we need to replace Observable
+    // with ChangeNotifier.
     if (!options.transformPolymerDependencies &&
         _polymerPackageDependencies.contains(package)) continue;
     barback.updateTransformers(package, options.phases);

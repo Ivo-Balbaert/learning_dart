@@ -4,8 +4,8 @@ InputElement task;
 UListElement list;
 
 main() {
-  task = query('#task');
-  list = query('#list');
+  task = querySelector('#task');
+  list = querySelector('#list');
   task.onChange.listen(addItem);
 }
 

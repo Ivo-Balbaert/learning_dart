@@ -14,12 +14,13 @@
  */
 library web_ui.observe.observable;
 
+import 'dart:async';
 import 'dart:collection' hide LinkedList;
 import 'list.dart';
 import 'map.dart';
 import 'reference.dart';
 import 'set.dart';
-import 'package:web_ui/src/utils_observe.dart' show setImmediate, hash3, hash4;
+import 'package:web_ui/src/utils_observe.dart' show hash3, hash4;
 import 'package:web_ui/src/linked_list.dart';
 
 /**
@@ -344,7 +345,7 @@ void notifyChange(Observable self, int type, key,
 
   if (_changedObjects == null) {
     _changedObjects = [];
-    setImmediate(deliverChangesSync);
+    runAsync(deliverChangesSync);
   }
   if (self.$_changes == null) {
     self.$_changes = [];

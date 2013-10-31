@@ -5,22 +5,14 @@
 part of observe;
 
 /**
- * Base class implementing [Observable] object that performs its own change
- * notifications, and does not need to be considered by [Observable.dirtyCheck].
+ * Mixin and base class for implementing an [Observable] object that performs
+ * its own change notifications, and does not need to be considered by
+ * [Observable.dirtyCheck].
  *
  * When a field, property, or indexable item is changed, a derived class should
  * call [notifyPropertyChange]. See that method for an example.
  */
-typedef ChangeNotifierBase = Object with ChangeNotifierMixin;
-
-/**
- * Mixin implementing [Observable] object that performs its own change
- * notifications, and does not need to be considered by [Observable.dirtyCheck].
- *
- * When a field, property, or indexable item is changed, a derived class should
- * call [notifyPropertyChange]. See that method for an example.
- */
-abstract class ChangeNotifierMixin implements Observable {
+abstract class ChangeNotifier implements Observable {
   StreamController _changes;
   List<ChangeRecord> _records;
 
@@ -65,16 +57,15 @@ abstract class ChangeNotifierMixin implements Observable {
    * Notify that the field [name] of this object has been changed.
    *
    * The [oldValue] and [newValue] are also recorded. If the two values are
-   * identical, no change will be recorded.
+   * equal, no change will be recorded.
    *
    * For convenience this returns [newValue]. This makes it easy to use in a
    * setter:
    *
    *     var _myField;
-   *     get myField => _myField;
-   *     set myField(value) {
-   *       _myField = notifyPropertyChange(
-   *           const Symbol('myField'), _myField, value);
+   *     @reflectable get myField => _myField;
+   *     @reflectable set myField(value) {
+   *       _myField = notifyPropertyChange(#myField, _myField, value);
    *     }
    */
   notifyPropertyChange(Symbol field, Object oldValue, Object newValue)
@@ -85,7 +76,7 @@ abstract class ChangeNotifierMixin implements Observable {
 
     if (_records == null) {
       _records = [];
-      runAsync(deliverChanges);
+      scheduleMicrotask(deliverChanges);
     }
     _records.add(record);
   }

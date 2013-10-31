@@ -4,7 +4,7 @@
 
 library messages;
 
-import 'dart:json' as json;
+import 'dart:convert';
 
 import 'package:source_maps/span.dart' show Span;
 import 'package:logging/logging.dart' show Level;
@@ -53,7 +53,7 @@ class Message {
 
   String toJson() {
     if (span == null) return toString();
-    return json.stringify([{
+    return JSON.encode([{
       'method': kind,
       'params': {
         'file': span.sourceUrl,

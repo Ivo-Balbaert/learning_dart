@@ -6,13 +6,20 @@
 // dart:html?
 library safe_html;
 
+import 'package:meta/meta.dart';
+
 /** Declares a string that is a well-formed HTML fragment. */
+// TODO(sigmund): delete this type now that Element.html is safe by default.
 class SafeHtml {
 
   /** Underlying html string. */
   String _html;
 
-  // TODO(sigmund): provide a constructor that does html validation
+  /**
+   * dart:html now supports sanitizing elements. You can add any node
+   * directly in your bindings instead of creating instances of SafeHtml.
+   */
+  @deprecated
   SafeHtml.unsafe(this._html);
 
   String toString() => _html;

@@ -5,7 +5,7 @@ class Person {
   String _name, address, _email, _gender;
   DateTime _date_birth;
 
-  @observable String get name => _name;
+  String get name => _name;
   set name(value) {
     if (value != null && !value.isEmpty) _name = value;
   }

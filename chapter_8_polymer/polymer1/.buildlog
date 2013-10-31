@@ -1,96 +1,15 @@
 ---
 build.dart --machine --full
-Unhandled exception:
-No top-level method 'parseOptions' declared.
 
-NoSuchMethodError : method not found: 'parseOptions'
-Receiver: top-level
-Arguments: [...]
-#0      NoSuchMethodError._throwNew (dart:core-patch/errors_patch.dart:99:5)
-#1      build (package:polymer/component_build.dart:21:42)
-#2      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/polymer1/build.dart:5:8)
-build.dart finished [407 ms]
+build.dart finished [1063 ms]
 
 ---
-build.dart --machine --changed=web\polymer1.html
-Unhandled exception:
-No top-level method 'parseOptions' declared.
+build.dart --machine --changed=web\clickcounter.html
 
-NoSuchMethodError : method not found: 'parseOptions'
-Receiver: top-level
-Arguments: [...]
-#0      NoSuchMethodError._throwNew (dart:core-patch/errors_patch.dart:99:5)
-#1      build (package:polymer/component_build.dart:21:42)
-#2      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/polymer1/build.dart:5:8)
-build.dart finished [348 ms]
-
----
-build.dart --machine --changed=web\polymer1.html
-Unhandled exception:
-No top-level method 'parseOptions' declared.
-
-NoSuchMethodError : method not found: 'parseOptions'
-Receiver: top-level
-Arguments: [...]
-#0      NoSuchMethodError._throwNew (dart:core-patch/errors_patch.dart:99:5)
-#1      build (package:polymer/component_build.dart:21:42)
-#2      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/polymer1/build.dart:5:8)
-build.dart finished [347 ms]
-
----
-build.dart --machine --changed=web\polymer1.html
-Unhandled exception:
-No top-level method 'parseOptions' declared.
-
-NoSuchMethodError : method not found: 'parseOptions'
-Receiver: top-level
-Arguments: [...]
-#0      NoSuchMethodError._throwNew (dart:core-patch/errors_patch.dart:99:5)
-#1      build (package:polymer/component_build.dart:21:42)
-#2      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/polymer1/build.dart:5:8)
-build.dart finished [436 ms]
-
----
-build.dart --machine --full
-Unhandled exception:
-No top-level method 'parseOptions' declared.
-
-NoSuchMethodError : method not found: 'parseOptions'
-Receiver: top-level
-Arguments: [...]
-#0      NoSuchMethodError._throwNew (dart:core-patch/errors_patch.dart:156)
-#1      build (package:polymer/component_build.dart:21:42)
-#2      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/polymer1/build.dart:5:8)
-build.dart finished [457 ms]
-
----
-build.dart --machine --full
-Unhandled exception:
-No top-level method 'parseOptions' declared.
-
-NoSuchMethodError : method not found: 'parseOptions'
-Receiver: top-level
-Arguments: [...]
-#0      NoSuchMethodError._throwNew (dart:core-patch/errors_patch.dart:156)
-#1      build (package:polymer/component_build.dart:21:42)
-#2      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/polymer1/build.dart:5:8)
-build.dart finished [663 ms]
-
----
-build.dart --machine --changed=web\clickcounter.dart
-Unhandled exception:
-No top-level method 'parseOptions' declared.
-
-NoSuchMethodError : method not found: 'parseOptions'
-Receiver: top-level
-Arguments: [...]
-#0      NoSuchMethodError._throwNew (dart:core-patch/errors_patch.dart:156)
-#1      build (package:polymer/component_build.dart:21:42)
-#2      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/polymer1/build.dart:5:8)
-build.dart finished [385 ms]
+build.dart finished [1045 ms]
 
 ---
 build.dart --machine --full
 
-build.dart finished [1589 ms]
+build.dart finished [1275 ms]
 

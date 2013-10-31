@@ -1,0 +1,50 @@
+<polymer-element name="bank-account">
+<style>
+.auto-style1 {
+  width: 25%;
+  border: 1px solid #0000FF;
+}
+
+.auto-style2 {
+  width: 107px;
+}
+
+.btns {
+  width: 127px;
+}
+
+.red {
+  color: red;
+}
+</style>
+  <template>
+    <table class="auto-style1" on-keypress="{{enter}}">
+       <tr>
+         <td class="auto-style2">Number</td>
+         <td>{{bac.number}}</td>
+       </tr>
+       <tr>
+         <td class="auto-style2">Owner</td>
+         <td>{{bac.owner.name}}</td>
+       </tr>
+       <tr>
+         <td class="auto-style2">Starting balance</td>
+         <td> {{bac.balance}}</td>  
+        </tr>
+        <tr>
+        <td class="auto-style2"> After transaction:</td>
+         <td> {{balance}}</td> 
+        </tr>
+       <tr>
+         <td class="auto-style2">Amount</td>
+         <td><input id="amount" type="text"/></td>
+       </tr>
+       <tr>
+         <td>
+           <button class="btns" on-click="{{transact}}">Transaction</button>
+         </td>
+      </tr>
+    </table>
+  </template>
+  <script type="application/dart" src="bank_account.dart"></script>
+</polymer-element>

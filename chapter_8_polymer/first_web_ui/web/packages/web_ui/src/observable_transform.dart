@@ -125,10 +125,9 @@ void transformTopLevelField(TopLevelVariableDeclaration field,
 void transformClassFields(FieldDeclaration member, TextEditTransaction code,
     Set<String> instanceFields, Set<String> staticFields) {
 
-  bool isStatic = hasKeyword(member.keyword, Keyword.STATIC);
   transformFields(member.fields, code, member.offset, member.end,
-      isStatic: isStatic,
-      changedFields: isStatic ? staticFields : instanceFields);
+      isStatic: member.isStatic,
+      changedFields: member.isStatic ? staticFields : instanceFields);
 }
 
 

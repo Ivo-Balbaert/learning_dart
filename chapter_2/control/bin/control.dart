@@ -36,10 +36,10 @@ void main() {
     default:
       print('The bank account owner is not Jeff, nor Mary');
   }
- // switch with decimal:
-  double x = 7.8;
+ // switch with integer:
+  int x = 7;
   switch (x) {
-    case 7.8:
+    case 7:
       print("Hit");
       break;
     default:

@@ -4,7 +4,6 @@ library engine.ast;
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
-import 'error.dart';
 import 'source.dart' show LineInfo;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
@@ -209,7 +208,7 @@ abstract class ASTNode {
    *
    * @param visitor the visitor that will be used to visit the children of this node
    */
-  void visitChildren(ASTVisitor<Object> visitor);
+  void visitChildren(ASTVisitor visitor);
 
   /**
    * Make this node the parent of the given child node.
@@ -231,7 +230,7 @@ abstract class ASTNode {
    * @param child the child to be visited
    * @param visitor the visitor that will be used to visit the child
    */
-  void safelyVisitChild(ASTNode child, ASTVisitor<Object> visitor) {
+  void safelyVisitChild(ASTNode child, ASTVisitor visitor) {
     if (child != null) {
       child.accept(visitor);
     }
@@ -378,7 +377,7 @@ class AdjacentStrings extends StringLiteral {
   /**
    * The strings that are implicitly concatenated.
    */
-  NodeList<StringLiteral> _strings;
+  NodeList<StringLiteral> strings;
 
   /**
    * Initialize a newly created list of adjacent strings.
@@ -386,8 +385,8 @@ class AdjacentStrings extends StringLiteral {
    * @param strings the strings that are implicitly concatenated
    */
   AdjacentStrings.full(List<StringLiteral> strings) {
-    this._strings = new NodeList<StringLiteral>(this);
-    this._strings.addAll(strings);
+    this.strings = new NodeList<StringLiteral>(this);
+    this.strings.addAll(strings);
   }
 
   /**
@@ -397,17 +396,10 @@ class AdjacentStrings extends StringLiteral {
    */
   AdjacentStrings({List<StringLiteral> strings}) : this.full(strings);
   accept(ASTVisitor visitor) => visitor.visitAdjacentStrings(this);
-  Token get beginToken => _strings.beginToken;
-  Token get endToken => _strings.endToken;
-
-  /**
-   * Return the strings that are implicitly concatenated.
-   *
-   * @return the strings that are implicitly concatenated
-   */
-  NodeList<StringLiteral> get strings => _strings;
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _strings.accept(visitor);
+  Token get beginToken => strings.beginToken;
+  Token get endToken => strings.endToken;
+  void visitChildren(ASTVisitor visitor) {
+    strings.accept(visitor);
   }
   void appendStringValue(JavaStringBuilder builder) {
     for (StringLiteral stringLiteral in strings) {
@@ -491,8 +483,8 @@ abstract class AnnotatedNode extends ASTNode {
    *
    * @param comment the documentation comment to be associated with this node
    */
-  void set documentationComment(Comment comment2) {
-    this._comment = becomeParentOf(comment2);
+  void set documentationComment(Comment comment) {
+    this._comment = becomeParentOf(comment);
   }
 
   /**
@@ -500,11 +492,11 @@ abstract class AnnotatedNode extends ASTNode {
    *
    * @param metadata the metadata to be associated with this node
    */
-  void set metadata(List<Annotation> metadata2) {
+  void set metadata(List<Annotation> metadata) {
     this._metadata.clear();
-    this._metadata.addAll(metadata2);
+    this._metadata.addAll(metadata);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
       _metadata.accept(visitor);
@@ -570,7 +562,7 @@ class Annotation extends ASTNode {
   /**
    * The at sign that introduced the annotation.
    */
-  Token _atSign;
+  Token atSign;
 
   /**
    * The name of the class defining the constructor that is being invoked or the name of the field
@@ -582,7 +574,7 @@ class Annotation extends ASTNode {
    * The period before the constructor name, or `null` if this annotation is not the
    * invocation of a named constructor.
    */
-  Token _period;
+  Token period;
 
   /**
    * The name of the constructor being invoked, or `null` if this annotation is not the
@@ -616,9 +608,9 @@ class Annotation extends ASTNode {
    *          annotation is not the invocation of a constructor
    */
   Annotation.full(Token atSign, Identifier name, Token period, SimpleIdentifier constructorName, ArgumentList arguments) {
-    this._atSign = atSign;
+    this.atSign = atSign;
     this._name = becomeParentOf(name);
-    this._period = period;
+    this.period = period;
     this._constructorName = becomeParentOf(constructorName);
     this._arguments = becomeParentOf(arguments);
   }
@@ -646,14 +638,7 @@ class Annotation extends ASTNode {
    * @return the arguments to the constructor being invoked
    */
   ArgumentList get arguments => _arguments;
-
-  /**
-   * Return the at sign that introduced the annotation.
-   *
-   * @return the at sign that introduced the annotation
-   */
-  Token get atSign => _atSign;
-  Token get beginToken => _atSign;
+  Token get beginToken => atSign;
 
   /**
    * Return the name of the constructor being invoked, or `null` if this annotation is not the
@@ -674,7 +659,7 @@ class Annotation extends ASTNode {
       return _element;
     }
     if (_name != null) {
-      return _name.element;
+      return _name.staticElement;
     }
     return null;
   }
@@ -696,29 +681,12 @@ class Annotation extends ASTNode {
   Identifier get name => _name;
 
   /**
-   * Return the period before the constructor name, or `null` if this annotation is not the
-   * invocation of a named constructor.
-   *
-   * @return the period before the constructor name
-   */
-  Token get period => _period;
-
-  /**
    * Set the arguments to the constructor being invoked to the given arguments.
    *
    * @param arguments the arguments to the constructor being invoked
    */
-  void set arguments(ArgumentList arguments2) {
-    this._arguments = becomeParentOf(arguments2);
-  }
-
-  /**
-   * Set the at sign that introduced the annotation to the given token.
-   *
-   * @param atSign the at sign that introduced the annotation
-   */
-  void set atSign(Token atSign2) {
-    this._atSign = atSign2;
+  void set arguments(ArgumentList arguments) {
+    this._arguments = becomeParentOf(arguments);
   }
 
   /**
@@ -726,8 +694,8 @@ class Annotation extends ASTNode {
    *
    * @param constructorName the name of the constructor being invoked
    */
-  void set constructorName(SimpleIdentifier constructorName2) {
-    this._constructorName = becomeParentOf(constructorName2);
+  void set constructorName(SimpleIdentifier constructorName) {
+    this._constructorName = becomeParentOf(constructorName);
   }
 
   /**
@@ -735,8 +703,8 @@ class Annotation extends ASTNode {
    *
    * @param element the element to be associated with this identifier
    */
-  void set element(Element element2) {
-    this._element = element2;
+  void set element(Element element) {
+    this._element = element;
   }
 
   /**
@@ -745,19 +713,10 @@ class Annotation extends ASTNode {
    *
    * @param name the name of the constructor being invoked or the name of the field being referenced
    */
-  void set name(Identifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(Identifier name) {
+    this._name = becomeParentOf(name);
   }
-
-  /**
-   * Set the period before the constructor name to the given token.
-   *
-   * @param period the period before the constructor name
-   */
-  void set period(Token period2) {
-    this._period = period2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_arguments, visitor);
@@ -778,7 +737,7 @@ class ArgumentDefinitionTest extends Expression {
   /**
    * The token representing the question mark.
    */
-  Token _question;
+  Token question;
 
   /**
    * The identifier representing the argument being tested.
@@ -792,7 +751,7 @@ class ArgumentDefinitionTest extends Expression {
    * @param identifier the identifier representing the argument being tested
    */
   ArgumentDefinitionTest.full(Token question, SimpleIdentifier identifier) {
-    this._question = question;
+    this.question = question;
     this._identifier = becomeParentOf(identifier);
   }
 
@@ -804,7 +763,7 @@ class ArgumentDefinitionTest extends Expression {
    */
   ArgumentDefinitionTest({Token question, SimpleIdentifier identifier}) : this.full(question, identifier);
   accept(ASTVisitor visitor) => visitor.visitArgumentDefinitionTest(this);
-  Token get beginToken => _question;
+  Token get beginToken => question;
   Token get endToken => _identifier.endToken;
 
   /**
@@ -815,30 +774,14 @@ class ArgumentDefinitionTest extends Expression {
   SimpleIdentifier get identifier => _identifier;
 
   /**
-   * Return the token representing the question mark.
-   *
-   * @return the token representing the question mark
-   */
-  Token get question => _question;
-
-  /**
    * Set the identifier representing the argument being tested to the given identifier.
    *
    * @param identifier the identifier representing the argument being tested
    */
-  void set identifier(SimpleIdentifier identifier2) {
-    this._identifier = becomeParentOf(identifier2);
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
-
-  /**
-   * Set the token representing the question mark to the given token.
-   *
-   * @param question the token representing the question mark
-   */
-  void set question(Token question2) {
-    this._question = question2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
   }
 }
@@ -867,7 +810,7 @@ class ArgumentList extends ASTNode {
   /**
    * The expressions producing the values of the arguments.
    */
-  NodeList<Expression> _arguments;
+  NodeList<Expression> arguments;
 
   /**
    * The right parenthesis.
@@ -900,9 +843,9 @@ class ArgumentList extends ASTNode {
    * @param rightParenthesis the right parenthesis
    */
   ArgumentList.full(Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
-    this._arguments = new NodeList<Expression>(this);
+    this.arguments = new NodeList<Expression>(this);
     this._leftParenthesis = leftParenthesis;
-    this._arguments.addAll(arguments);
+    this.arguments.addAll(arguments);
     this._rightParenthesis = rightParenthesis;
   }
 
@@ -915,15 +858,6 @@ class ArgumentList extends ASTNode {
    */
   ArgumentList({Token leftParenthesis, List<Expression> arguments, Token rightParenthesis}) : this.full(leftParenthesis, arguments, rightParenthesis);
   accept(ASTVisitor visitor) => visitor.visitArgumentList(this);
-
-  /**
-   * Return the expressions producing the values of the arguments. Although the language requires
-   * that positional arguments appear before named arguments, this class allows them to be
-   * intermixed.
-   *
-   * @return the expressions producing the values of the arguments
-   */
-  NodeList<Expression> get arguments => _arguments;
   Token get beginToken => _leftParenthesis;
   Token get endToken => _rightParenthesis;
 
@@ -950,8 +884,8 @@ class ArgumentList extends ASTNode {
    * @param parameters the parameter elements corresponding to the arguments
    */
   void set correspondingPropagatedParameters(List<ParameterElement> parameters) {
-    if (parameters.length != _arguments.length) {
-      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
+    if (parameters.length != arguments.length) {
+      throw new IllegalArgumentException("Expected ${arguments.length} parameters, not ${parameters.length}");
     }
     _correspondingPropagatedParameters = parameters;
   }
@@ -965,8 +899,8 @@ class ArgumentList extends ASTNode {
    * @param parameters the parameter elements corresponding to the arguments
    */
   void set correspondingStaticParameters(List<ParameterElement> parameters) {
-    if (parameters.length != _arguments.length) {
-      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
+    if (parameters.length != arguments.length) {
+      throw new IllegalArgumentException("Expected ${arguments.length} parameters, not ${parameters.length}");
     }
     _correspondingStaticParameters = parameters;
   }
@@ -988,8 +922,8 @@ class ArgumentList extends ASTNode {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _arguments.accept(visitor);
+  void visitChildren(ASTVisitor visitor) {
+    arguments.accept(visitor);
   }
 
   /**
@@ -1009,7 +943,7 @@ class ArgumentList extends ASTNode {
     if (_correspondingPropagatedParameters == null) {
       return null;
     }
-    int index = _arguments.indexOf(expression);
+    int index = arguments.indexOf(expression);
     if (index < 0) {
       return null;
     }
@@ -1033,7 +967,7 @@ class ArgumentList extends ASTNode {
     if (_correspondingStaticParameters == null) {
       return null;
     }
-    int index = _arguments.indexOf(expression);
+    int index = arguments.indexOf(expression);
     if (index < 0) {
       return null;
     }
@@ -1060,7 +994,7 @@ class AsExpression extends Expression {
   /**
    * The as operator.
    */
-  Token _asOperator;
+  Token asOperator;
 
   /**
    * The name of the type being cast to.
@@ -1076,7 +1010,7 @@ class AsExpression extends Expression {
    */
   AsExpression.full(Expression expression, Token isOperator, TypeName type) {
     this._expression = becomeParentOf(expression);
-    this._asOperator = isOperator;
+    this.asOperator = isOperator;
     this._type = becomeParentOf(type);
   }
 
@@ -1089,13 +1023,6 @@ class AsExpression extends Expression {
    */
   AsExpression({Expression expression, Token isOperator, TypeName type}) : this.full(expression, isOperator, type);
   accept(ASTVisitor visitor) => visitor.visitAsExpression(this);
-
-  /**
-   * Return the as operator being applied.
-   *
-   * @return the as operator being applied
-   */
-  Token get asOperator => _asOperator;
   Token get beginToken => _expression.beginToken;
   Token get endToken => _type.endToken;
 
@@ -1114,21 +1041,12 @@ class AsExpression extends Expression {
   TypeName get type => _type;
 
   /**
-   * Set the is operator being applied to the given operator.
-   *
-   * @param asOperator the is operator being applied
-   */
-  void set asOperator(Token asOperator2) {
-    this._asOperator = asOperator2;
-  }
-
-  /**
    * Set the expression used to compute the value being cast to the given expression.
    *
    * @param expression the expression used to compute the value being cast
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -1139,7 +1057,7 @@ class AsExpression extends Expression {
   void set type(TypeName name) {
     this._type = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     safelyVisitChild(_type, visitor);
   }
@@ -1159,12 +1077,12 @@ class AssertStatement extends Statement {
   /**
    * The token representing the 'assert' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The condition that is being asserted to be `true`.
@@ -1174,12 +1092,12 @@ class AssertStatement extends Statement {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created assert statement.
@@ -1191,11 +1109,11 @@ class AssertStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   AssertStatement.full(Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon) {
-    this._keyword = keyword;
-    this._leftParenthesis = leftParenthesis;
+    this.keyword = keyword;
+    this.leftParenthesis = leftParenthesis;
     this._condition = becomeParentOf(condition);
-    this._rightParenthesis = rightParenthesis;
-    this._semicolon = semicolon;
+    this.rightParenthesis = rightParenthesis;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -1209,7 +1127,7 @@ class AssertStatement extends Statement {
    */
   AssertStatement({Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon}) : this.full(keyword, leftParenthesis, condition, rightParenthesis, semicolon);
   accept(ASTVisitor visitor) => visitor.visitAssertStatement(this);
-  Token get beginToken => _keyword;
+  Token get beginToken => keyword;
 
   /**
    * Return the condition that is being asserted to be `true`.
@@ -1217,81 +1135,17 @@ class AssertStatement extends Statement {
    * @return the condition that is being asserted to be `true`
    */
   Expression get condition => _condition;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the token representing the 'assert' keyword.
-   *
-   * @return the token representing the 'assert' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
+  Token get endToken => semicolon;
 
   /**
    * Set the condition that is being asserted to be `true` to the given expression.
    *
    * @param the condition that is being asserted to be `true`
    */
-  void set condition(Expression condition2) {
-    this._condition = becomeParentOf(condition2);
+  void set condition(Expression condition) {
+    this._condition = becomeParentOf(condition);
   }
-
-  /**
-   * Set the token representing the 'assert' keyword to the given token.
-   *
-   * @param keyword the token representing the 'assert' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param the left parenthesis
-   */
-  void set leftParenthesis(Token leftParenthesis2) {
-    this._leftParenthesis = leftParenthesis2;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param rightParenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token rightParenthesis2) {
-    this._rightParenthesis = rightParenthesis2;
-  }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
   }
 }
@@ -1315,7 +1169,7 @@ class AssignmentExpression extends Expression {
   /**
    * The assignment operator being applied.
    */
-  Token _operator;
+  Token operator;
 
   /**
    * The expression used to compute the right hand side.
@@ -1345,7 +1199,7 @@ class AssignmentExpression extends Expression {
    */
   AssignmentExpression.full(Expression leftHandSide, Token operator, Expression rightHandSide) {
     this._leftHandSide = becomeParentOf(leftHandSide);
-    this._operator = operator;
+    this.operator = operator;
     this._rightHandSide = becomeParentOf(rightHandSide);
   }
 
@@ -1385,13 +1239,6 @@ class AssignmentExpression extends Expression {
   Expression get leftHandSide => _leftHandSide;
 
   /**
-   * Return the assignment operator being applied.
-   *
-   * @return the assignment operator being applied
-   */
-  Token get operator => _operator;
-
-  /**
    * Return the element associated with the operator based on the propagated type of the
    * left-hand-side, or `null` if the AST structure has not been resolved, if the operator is
    * not a compound operator, or if the operator could not be resolved. One example of the latter
@@ -1428,15 +1275,6 @@ class AssignmentExpression extends Expression {
   }
 
   /**
-   * Set the assignment operator being applied to the given operator.
-   *
-   * @param operator the assignment operator being applied
-   */
-  void set operator(Token operator2) {
-    this._operator = operator2;
-  }
-
-  /**
    * Set the element associated with the operator based on the propagated type of the left-hand-side
    * to the given element.
    *
@@ -1464,7 +1302,7 @@ class AssignmentExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_leftHandSide, visitor);
     safelyVisitChild(_rightHandSide, visitor);
   }
@@ -1531,7 +1369,7 @@ class BinaryExpression extends Expression {
   /**
    * The binary operator being applied.
    */
-  Token _operator;
+  Token operator;
 
   /**
    * The expression used to compute the right operand.
@@ -1561,7 +1399,7 @@ class BinaryExpression extends Expression {
    */
   BinaryExpression.full(Expression leftOperand, Token operator, Expression rightOperand) {
     this._leftOperand = becomeParentOf(leftOperand);
-    this._operator = operator;
+    this.operator = operator;
     this._rightOperand = becomeParentOf(rightOperand);
   }
 
@@ -1601,13 +1439,6 @@ class BinaryExpression extends Expression {
   Expression get leftOperand => _leftOperand;
 
   /**
-   * Return the binary operator being applied.
-   *
-   * @return the binary operator being applied
-   */
-  Token get operator => _operator;
-
-  /**
    * Return the element associated with the operator based on the propagated type of the left
    * operand, or `null` if the AST structure has not been resolved, if the operator is not
    * user definable, or if the operator could not be resolved. One example of the latter case is an
@@ -1644,15 +1475,6 @@ class BinaryExpression extends Expression {
   }
 
   /**
-   * Set the binary operator being applied to the given operator.
-   *
-   * @return the binary operator being applied
-   */
-  void set operator(Token operator2) {
-    this._operator = operator2;
-  }
-
-  /**
    * Set the element associated with the operator based on the propagated type of the left operand
    * to the given element.
    *
@@ -1680,7 +1502,7 @@ class BinaryExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_leftOperand, visitor);
     safelyVisitChild(_rightOperand, visitor);
   }
@@ -1742,17 +1564,17 @@ class Block extends Statement {
   /**
    * The left curly bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The statements contained in the block.
    */
-  NodeList<Statement> _statements;
+  NodeList<Statement> statements;
 
   /**
    * The right curly bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created block of code.
@@ -1762,10 +1584,10 @@ class Block extends Statement {
    * @param rightBracket the right curly bracket
    */
   Block.full(Token leftBracket, List<Statement> statements, Token rightBracket) {
-    this._statements = new NodeList<Statement>(this);
-    this._leftBracket = leftBracket;
-    this._statements.addAll(statements);
-    this._rightBracket = rightBracket;
+    this.statements = new NodeList<Statement>(this);
+    this.leftBracket = leftBracket;
+    this.statements.addAll(statements);
+    this.rightBracket = rightBracket;
   }
 
   /**
@@ -1777,49 +1599,10 @@ class Block extends Statement {
    */
   Block({Token leftBracket, List<Statement> statements, Token rightBracket}) : this.full(leftBracket, statements, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitBlock(this);
-  Token get beginToken => _leftBracket;
-  Token get endToken => _rightBracket;
-
-  /**
-   * Return the left curly bracket.
-   *
-   * @return the left curly bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the right curly bracket.
-   *
-   * @return the right curly bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Return the statements contained in the block.
-   *
-   * @return the statements contained in the block
-   */
-  NodeList<Statement> get statements => _statements;
-
-  /**
-   * Set the left curly bracket to the given token.
-   *
-   * @param leftBracket the left curly bracket
-   */
-  void set leftBracket(Token leftBracket2) {
-    this._leftBracket = leftBracket2;
-  }
-
-  /**
-   * Set the right curly bracket to the given token.
-   *
-   * @param rightBracket the right curly bracket
-   */
-  void set rightBracket(Token rightBracket2) {
-    this._rightBracket = rightBracket2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _statements.accept(visitor);
+  Token get beginToken => leftBracket;
+  Token get endToken => rightBracket;
+  void visitChildren(ASTVisitor visitor) {
+    statements.accept(visitor);
   }
 }
 /**
@@ -1871,10 +1654,10 @@ class BlockFunctionBody extends FunctionBody {
    *
    * @param block the block representing the body of the function
    */
-  void set block(Block block2) {
-    this._block = becomeParentOf(block2);
+  void set block(Block block) {
+    this._block = becomeParentOf(block);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_block, visitor);
   }
 }
@@ -1893,12 +1676,12 @@ class BooleanLiteral extends Literal {
   /**
    * The token representing the literal.
    */
-  Token _literal;
+  Token literal;
 
   /**
    * The value of the literal.
    */
-  bool _value = false;
+  bool value = false;
 
   /**
    * Initialize a newly created boolean literal.
@@ -1907,8 +1690,8 @@ class BooleanLiteral extends Literal {
    * @param value the value of the literal
    */
   BooleanLiteral.full(Token literal, bool value) {
-    this._literal = literal;
-    this._value = value;
+    this.literal = literal;
+    this.value = value;
   }
 
   /**
@@ -1919,42 +1702,10 @@ class BooleanLiteral extends Literal {
    */
   BooleanLiteral({Token literal, bool value}) : this.full(literal, value);
   accept(ASTVisitor visitor) => visitor.visitBooleanLiteral(this);
-  Token get beginToken => _literal;
-  Token get endToken => _literal;
-
-  /**
-   * Return the token representing the literal.
-   *
-   * @return the token representing the literal
-   */
-  Token get literal => _literal;
-
-  /**
-   * Return the value of the literal.
-   *
-   * @return the value of the literal
-   */
-  bool get value => _value;
-  bool get isSynthetic => _literal.isSynthetic;
-
-  /**
-   * Set the token representing the literal to the given token.
-   *
-   * @param literal the token representing the literal
-   */
-  void set literal(Token literal2) {
-    this._literal = literal2;
-  }
-
-  /**
-   * Set the value of the literal to the given value.
-   *
-   * @param value the value of the literal
-   */
-  void set value(bool value2) {
-    this._value = value2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => literal;
+  Token get endToken => literal;
+  bool get isSynthetic => literal.isSynthetic;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -1972,7 +1723,7 @@ class BreakStatement extends Statement {
   /**
    * The token representing the 'break' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The label associated with the statement, or `null` if there is no label.
@@ -1982,7 +1733,7 @@ class BreakStatement extends Statement {
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created break statement.
@@ -1992,9 +1743,9 @@ class BreakStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   BreakStatement.full(Token keyword, SimpleIdentifier label, Token semicolon) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._label = becomeParentOf(label);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -2006,15 +1757,8 @@ class BreakStatement extends Statement {
    */
   BreakStatement({Token keyword, SimpleIdentifier label, Token semicolon}) : this.full(keyword, label, semicolon);
   accept(ASTVisitor visitor) => visitor.visitBreakStatement(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the token representing the 'break' keyword.
-   *
-   * @return the token representing the 'break' keyword
-   */
-  Token get keyword => _keyword;
+  Token get beginToken => keyword;
+  Token get endToken => semicolon;
 
   /**
    * Return the label associated with the statement, or `null` if there is no label.
@@ -2024,22 +1768,6 @@ class BreakStatement extends Statement {
   SimpleIdentifier get label => _label;
 
   /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Set the token representing the 'break' keyword to the given token.
-   *
-   * @param keyword the token representing the 'break' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
    * Set the label associated with the statement to the given identifier.
    *
    * @param identifier the label associated with the statement
@@ -2047,16 +1775,7 @@ class BreakStatement extends Statement {
   void set label(SimpleIdentifier identifier) {
     _label = becomeParentOf(identifier);
   }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -2090,7 +1809,7 @@ class CascadeExpression extends Expression {
   /**
    * The cascade sections sharing the common target.
    */
-  NodeList<Expression> _cascadeSections;
+  NodeList<Expression> cascadeSections;
 
   /**
    * Initialize a newly created cascade expression.
@@ -2099,9 +1818,9 @@ class CascadeExpression extends Expression {
    * @param cascadeSections the cascade sections sharing the common target
    */
   CascadeExpression.full(Expression target, List<Expression> cascadeSections) {
-    this._cascadeSections = new NodeList<Expression>(this);
+    this.cascadeSections = new NodeList<Expression>(this);
     this._target = becomeParentOf(target);
-    this._cascadeSections.addAll(cascadeSections);
+    this.cascadeSections.addAll(cascadeSections);
   }
 
   /**
@@ -2113,14 +1832,7 @@ class CascadeExpression extends Expression {
   CascadeExpression({Expression target, List<Expression> cascadeSections}) : this.full(target, cascadeSections);
   accept(ASTVisitor visitor) => visitor.visitCascadeExpression(this);
   Token get beginToken => _target.beginToken;
-
-  /**
-   * Return the cascade sections sharing the common target.
-   *
-   * @return the cascade sections sharing the common target
-   */
-  NodeList<Expression> get cascadeSections => _cascadeSections;
-  Token get endToken => _cascadeSections.endToken;
+  Token get endToken => cascadeSections.endToken;
 
   /**
    * Return the target of the cascade sections.
@@ -2134,12 +1846,12 @@ class CascadeExpression extends Expression {
    *
    * @param target the target of the cascade sections
    */
-  void set target(Expression target2) {
-    this._target = becomeParentOf(target2);
+  void set target(Expression target) {
+    this._target = becomeParentOf(target);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
-    _cascadeSections.accept(visitor);
+    cascadeSections.accept(visitor);
   }
 }
 /**
@@ -2161,18 +1873,18 @@ class CatchClause extends ASTNode {
   /**
    * The token representing the 'on' keyword, or `null` if there is no 'on' keyword.
    */
-  Token _onKeyword;
+  Token onKeyword;
 
   /**
    * The type of exceptions caught by this catch clause, or `null` if this catch clause
    * catches every type of exception.
    */
-  TypeName _exceptionType;
+  TypeName exceptionType;
 
   /**
    * The token representing the 'catch' keyword, or `null` if there is no 'catch' keyword.
    */
-  Token _catchKeyword;
+  Token catchKeyword;
 
   /**
    * The left parenthesis.
@@ -2188,7 +1900,7 @@ class CatchClause extends ASTNode {
    * The comma separating the exception parameter from the stack trace parameter, or `null` if
    * there is no stack trace parameter.
    */
-  Token _comma;
+  Token comma;
 
   /**
    * The parameter whose value will be the stack trace associated with the exception, or
@@ -2220,12 +1932,12 @@ class CatchClause extends ASTNode {
    * @param body the body of the catch block
    */
   CatchClause.full(Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
-    this._onKeyword = onKeyword;
-    this._exceptionType = becomeParentOf(exceptionType);
-    this._catchKeyword = catchKeyword;
+    this.onKeyword = onKeyword;
+    this.exceptionType = becomeParentOf(exceptionType);
+    this.catchKeyword = catchKeyword;
     this._leftParenthesis = leftParenthesis;
     this._exceptionParameter = becomeParentOf(exceptionParameter);
-    this._comma = comma;
+    this.comma = comma;
     this._stackTraceParameter = becomeParentOf(stackTraceParameter);
     this._rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
@@ -2247,10 +1959,10 @@ class CatchClause extends ASTNode {
   CatchClause({Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body}) : this.full(onKeyword, exceptionType, catchKeyword, leftParenthesis, exceptionParameter, comma, stackTraceParameter, rightParenthesis, body);
   accept(ASTVisitor visitor) => visitor.visitCatchClause(this);
   Token get beginToken {
-    if (_onKeyword != null) {
-      return _onKeyword;
+    if (onKeyword != null) {
+      return onKeyword;
     }
-    return _catchKeyword;
+    return catchKeyword;
   }
 
   /**
@@ -2259,21 +1971,6 @@ class CatchClause extends ASTNode {
    * @return the body of the catch block
    */
   Block get body => _body;
-
-  /**
-   * Return the token representing the 'catch' keyword, or `null` if there is no 'catch'
-   * keyword.
-   *
-   * @return the token representing the 'catch' keyword
-   */
-  Token get catchKeyword => _catchKeyword;
-
-  /**
-   * Return the comma, or `null` if there is no stack trace parameter.
-   *
-   * @return the comma
-   */
-  Token get comma => _comma;
   Token get endToken => _body.endToken;
 
   /**
@@ -2284,26 +1981,11 @@ class CatchClause extends ASTNode {
   SimpleIdentifier get exceptionParameter => _exceptionParameter;
 
   /**
-   * Return the type of exceptions caught by this catch clause, or `null` if this catch clause
-   * catches every type of exception.
-   *
-   * @return the type of exceptions caught by this catch clause
-   */
-  TypeName get exceptionType => _exceptionType;
-
-  /**
    * Return the left parenthesis.
    *
    * @return the left parenthesis
    */
   Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the token representing the 'on' keyword, or `null` if there is no 'on' keyword.
-   *
-   * @return the token representing the 'on' keyword
-   */
-  Token get onKeyword => _onKeyword;
 
   /**
    * Return the right parenthesis.
@@ -2330,24 +2012,6 @@ class CatchClause extends ASTNode {
   }
 
   /**
-   * Set the token representing the 'catch' keyword to the given token.
-   *
-   * @param catchKeyword the token representing the 'catch' keyword
-   */
-  void set catchKeyword(Token catchKeyword2) {
-    this._catchKeyword = catchKeyword2;
-  }
-
-  /**
-   * Set the comma to the given token.
-   *
-   * @param comma the comma
-   */
-  void set comma(Token comma2) {
-    this._comma = comma2;
-  }
-
-  /**
    * Set the parameter whose value will be the exception that was thrown to the given parameter.
    *
    * @param parameter the parameter whose value will be the exception that was thrown
@@ -2357,30 +2021,12 @@ class CatchClause extends ASTNode {
   }
 
   /**
-   * Set the type of exceptions caught by this catch clause to the given type.
-   *
-   * @param exceptionType the type of exceptions caught by this catch clause
-   */
-  void set exceptionType(TypeName exceptionType2) {
-    this._exceptionType = exceptionType2;
-  }
-
-  /**
    * Set the left parenthesis to the given token.
    *
    * @param parenthesis the left parenthesis
    */
   void set leftParenthesis(Token parenthesis) {
     _leftParenthesis = parenthesis;
-  }
-
-  /**
-   * Set the token representing the 'on' keyword to the given keyword.
-   *
-   * @param onKeyword the token representing the 'on' keyword
-   */
-  void set onKeyword(Token onKeyword2) {
-    this._onKeyword = onKeyword2;
   }
 
   /**
@@ -2402,8 +2048,8 @@ class CatchClause extends ASTNode {
   void set stackTraceParameter(SimpleIdentifier parameter) {
     _stackTraceParameter = becomeParentOf(parameter);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(_exceptionType, visitor);
+  void visitChildren(ASTVisitor visitor) {
+    safelyVisitChild(exceptionType, visitor);
     safelyVisitChild(_exceptionParameter, visitor);
     safelyVisitChild(_stackTraceParameter, visitor);
     safelyVisitChild(_body, visitor);
@@ -2427,12 +2073,12 @@ class ClassDeclaration extends CompilationUnitMember {
   /**
    * The 'abstract' keyword, or `null` if the keyword was absent.
    */
-  Token _abstractKeyword;
+  Token abstractKeyword;
 
   /**
    * The token representing the 'class' keyword.
    */
-  Token _classKeyword;
+  Token classKeyword;
 
   /**
    * The name of the class being declared.
@@ -2443,7 +2089,7 @@ class ClassDeclaration extends CompilationUnitMember {
    * The type parameters for the class, or `null` if the class does not have any type
    * parameters.
    */
-  TypeParameterList _typeParameters;
+  TypeParameterList typeParameters;
 
   /**
    * The extends clause for the class, or `null` if the class does not extend any other class.
@@ -2464,22 +2110,22 @@ class ClassDeclaration extends CompilationUnitMember {
   /**
    * The native clause for the class, or `null` if the class does not have a native clause.
    */
-  NativeClause _nativeClause;
+  NativeClause nativeClause;
 
   /**
    * The left curly bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The members defined by the class.
    */
-  NodeList<ClassMember> _members;
+  NodeList<ClassMember> members;
 
   /**
    * The right curly bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created class declaration.
@@ -2498,17 +2144,17 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param rightBracket the right curly bracket
    */
   ClassDeclaration.full(Comment comment, List<Annotation> metadata, Token abstractKeyword, Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members, Token rightBracket) : super.full(comment, metadata) {
-    this._members = new NodeList<ClassMember>(this);
-    this._abstractKeyword = abstractKeyword;
-    this._classKeyword = classKeyword;
+    this.members = new NodeList<ClassMember>(this);
+    this.abstractKeyword = abstractKeyword;
+    this.classKeyword = classKeyword;
     this._name = becomeParentOf(name);
-    this._typeParameters = becomeParentOf(typeParameters);
+    this.typeParameters = becomeParentOf(typeParameters);
     this._extendsClause = becomeParentOf(extendsClause);
     this._withClause = becomeParentOf(withClause);
     this._implementsClause = becomeParentOf(implementsClause);
-    this._leftBracket = leftBracket;
-    this._members.addAll(members);
-    this._rightBracket = rightBracket;
+    this.leftBracket = leftBracket;
+    this.members.addAll(members);
+    this.rightBracket = rightBracket;
   }
 
   /**
@@ -2529,22 +2175,8 @@ class ClassDeclaration extends CompilationUnitMember {
    */
   ClassDeclaration({Comment comment, List<Annotation> metadata, Token abstractKeyword, Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members, Token rightBracket}) : this.full(comment, metadata, abstractKeyword, classKeyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitClassDeclaration(this);
-
-  /**
-   * Return the 'abstract' keyword, or `null` if the keyword was absent.
-   *
-   * @return the 'abstract' keyword
-   */
-  Token get abstractKeyword => _abstractKeyword;
-
-  /**
-   * Return the token representing the 'class' keyword.
-   *
-   * @return the token representing the 'class' keyword
-   */
-  Token get classKeyword => _classKeyword;
-  ClassElement get element => _name != null ? (_name.element as ClassElement) : null;
-  Token get endToken => _rightBracket;
+  ClassElement get element => _name != null ? (_name.staticElement as ClassElement) : null;
+  Token get endToken => rightBracket;
 
   /**
    * Return the extends clause for this class, or `null` if the class does not extend any
@@ -2563,48 +2195,11 @@ class ClassDeclaration extends CompilationUnitMember {
   ImplementsClause get implementsClause => _implementsClause;
 
   /**
-   * Return the left curly bracket.
-   *
-   * @return the left curly bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the members defined by the class.
-   *
-   * @return the members defined by the class
-   */
-  NodeList<ClassMember> get members => _members;
-
-  /**
    * Return the name of the class being declared.
    *
    * @return the name of the class being declared
    */
   SimpleIdentifier get name => _name;
-
-  /**
-   * Return the native clause for this class, or `null` if the class does not have a native
-   * cluse.
-   *
-   * @return the native clause for this class
-   */
-  NativeClause get nativeClause => _nativeClause;
-
-  /**
-   * Return the right curly bracket.
-   *
-   * @return the right curly bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Return the type parameters for the class, or `null` if the class does not have any type
-   * parameters.
-   *
-   * @return the type parameters for the class
-   */
-  TypeParameterList get typeParameters => _typeParameters;
 
   /**
    * Return the with clause for the class, or `null` if the class does not have a with clause.
@@ -2614,30 +2209,12 @@ class ClassDeclaration extends CompilationUnitMember {
   WithClause get withClause => _withClause;
 
   /**
-   * Set the 'abstract' keyword to the given keyword.
-   *
-   * @param abstractKeyword the 'abstract' keyword
-   */
-  void set abstractKeyword(Token abstractKeyword2) {
-    this._abstractKeyword = abstractKeyword2;
-  }
-
-  /**
-   * Set the token representing the 'class' keyword to the given token.
-   *
-   * @param classKeyword the token representing the 'class' keyword
-   */
-  void set classKeyword(Token classKeyword2) {
-    this._classKeyword = classKeyword2;
-  }
-
-  /**
    * Set the extends clause for this class to the given clause.
    *
    * @param extendsClause the extends clause for this class
    */
-  void set extendsClause(ExtendsClause extendsClause2) {
-    this._extendsClause = becomeParentOf(extendsClause2);
+  void set extendsClause(ExtendsClause extendsClause) {
+    this._extendsClause = becomeParentOf(extendsClause);
   }
 
   /**
@@ -2645,17 +2222,8 @@ class ClassDeclaration extends CompilationUnitMember {
    *
    * @param implementsClause the implements clause for the class
    */
-  void set implementsClause(ImplementsClause implementsClause2) {
-    this._implementsClause = becomeParentOf(implementsClause2);
-  }
-
-  /**
-   * Set the left curly bracket to the given token.
-   *
-   * @param leftBracket the left curly bracket
-   */
-  void set leftBracket(Token leftBracket2) {
-    this._leftBracket = leftBracket2;
+  void set implementsClause(ImplementsClause implementsClause) {
+    this._implementsClause = becomeParentOf(implementsClause);
   }
 
   /**
@@ -2668,55 +2236,28 @@ class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Set the native clause for this class to the given clause.
-   *
-   * @param nativeClause the native clause for this class
-   */
-  void set nativeClause(NativeClause nativeClause2) {
-    this._nativeClause = nativeClause2;
-  }
-
-  /**
-   * Set the right curly bracket to the given token.
-   *
-   * @param rightBracket the right curly bracket
-   */
-  void set rightBracket(Token rightBracket2) {
-    this._rightBracket = rightBracket2;
-  }
-
-  /**
-   * Set the type parameters for the class to the given list of type parameters.
-   *
-   * @param typeParameters the type parameters for the class
-   */
-  void set typeParameters(TypeParameterList typeParameters2) {
-    this._typeParameters = typeParameters2;
-  }
-
-  /**
    * Set the with clause for the class to the given clause.
    *
    * @param withClause the with clause for the class
    */
-  void set withClause(WithClause withClause2) {
-    this._withClause = becomeParentOf(withClause2);
+  void set withClause(WithClause withClause) {
+    this._withClause = becomeParentOf(withClause);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
-    safelyVisitChild(_typeParameters, visitor);
+    safelyVisitChild(typeParameters, visitor);
     safelyVisitChild(_extendsClause, visitor);
     safelyVisitChild(_withClause, visitor);
     safelyVisitChild(_implementsClause, visitor);
-    safelyVisitChild(_nativeClause, visitor);
+    safelyVisitChild(nativeClause, visitor);
     members.accept(visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    if (_abstractKeyword != null) {
-      return _abstractKeyword;
+    if (abstractKeyword != null) {
+      return abstractKeyword;
     }
-    return _classKeyword;
+    return classKeyword;
   }
 }
 /**
@@ -2772,13 +2313,13 @@ class ClassTypeAlias extends TypeAlias {
   /**
    * The token for the '=' separating the name from the definition.
    */
-  Token _equals;
+  Token equals;
 
   /**
    * The token for the 'abstract' keyword, or `null` if this is not defining an abstract
    * class.
    */
-  Token _abstractKeyword;
+  Token abstractKeyword;
 
   /**
    * The name of the superclass of the class being declared.
@@ -2813,8 +2354,8 @@ class ClassTypeAlias extends TypeAlias {
   ClassTypeAlias.full(Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, Token abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon) : super.full(comment, metadata, keyword, semicolon) {
     this._name = becomeParentOf(name);
     this._typeParameters = becomeParentOf(typeParameters);
-    this._equals = equals;
-    this._abstractKeyword = abstractKeyword;
+    this.equals = equals;
+    this.abstractKeyword = abstractKeyword;
     this._superclass = becomeParentOf(superclass);
     this._withClause = becomeParentOf(withClause);
     this._implementsClause = becomeParentOf(implementsClause);
@@ -2837,22 +2378,7 @@ class ClassTypeAlias extends TypeAlias {
    */
   ClassTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, Token abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon}) : this.full(comment, metadata, keyword, name, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
   accept(ASTVisitor visitor) => visitor.visitClassTypeAlias(this);
-
-  /**
-   * Return the token for the 'abstract' keyword, or `null` if this is not defining an
-   * abstract class.
-   *
-   * @return the token for the 'abstract' keyword
-   */
-  Token get abstractKeyword => _abstractKeyword;
-  ClassElement get element => _name != null ? (_name.element as ClassElement) : null;
-
-  /**
-   * Return the token for the '=' separating the name from the definition.
-   *
-   * @return the token for the '=' separating the name from the definition
-   */
-  Token get equals => _equals;
+  ClassElement get element => _name != null ? (_name.staticElement as ClassElement) : null;
 
   /**
    * Return the implements clause for this class, or `null` if there is no implements clause.
@@ -2891,30 +2417,12 @@ class ClassTypeAlias extends TypeAlias {
   WithClause get withClause => _withClause;
 
   /**
-   * Set the token for the 'abstract' keyword to the given token.
-   *
-   * @param abstractKeyword the token for the 'abstract' keyword
-   */
-  void set abstractKeyword(Token abstractKeyword2) {
-    this._abstractKeyword = abstractKeyword2;
-  }
-
-  /**
-   * Set the token for the '=' separating the name from the definition to the given token.
-   *
-   * @param equals the token for the '=' separating the name from the definition
-   */
-  void set equals(Token equals2) {
-    this._equals = equals2;
-  }
-
-  /**
    * Set the implements clause for this class to the given implements clause.
    *
    * @param implementsClause the implements clause for this class
    */
-  void set implementsClause(ImplementsClause implementsClause2) {
-    this._implementsClause = becomeParentOf(implementsClause2);
+  void set implementsClause(ImplementsClause implementsClause) {
+    this._implementsClause = becomeParentOf(implementsClause);
   }
 
   /**
@@ -2922,8 +2430,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param name the name of the class being declared
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
 
   /**
@@ -2931,8 +2439,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param superclass the name of the superclass of the class being declared
    */
-  void set superclass(TypeName superclass2) {
-    this._superclass = becomeParentOf(superclass2);
+  void set superclass(TypeName superclass) {
+    this._superclass = becomeParentOf(superclass);
   }
 
   /**
@@ -2940,8 +2448,8 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param typeParameters the type parameters for the class
    */
-  void set typeParameters(TypeParameterList typeParameters2) {
-    this._typeParameters = becomeParentOf(typeParameters2);
+  void set typeParameters(TypeParameterList typeParameters) {
+    this._typeParameters = becomeParentOf(typeParameters);
   }
 
   /**
@@ -2949,10 +2457,10 @@ class ClassTypeAlias extends TypeAlias {
    *
    * @param withClause the with clause for this class
    */
-  void set withClause(WithClause withClause2) {
-    this._withClause = becomeParentOf(withClause2);
+  void set withClause(WithClause withClause) {
+    this._withClause = becomeParentOf(withClause);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeParameters, visitor);
@@ -2978,7 +2486,7 @@ abstract class Combinator extends ASTNode {
   /**
    * The keyword specifying what kind of processing is to be done on the imported names.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * Initialize a newly created import combinator.
@@ -2987,7 +2495,7 @@ abstract class Combinator extends ASTNode {
    *          names
    */
   Combinator.full(Token keyword) {
-    this._keyword = keyword;
+    this.keyword = keyword;
   }
 
   /**
@@ -2997,25 +2505,7 @@ abstract class Combinator extends ASTNode {
    *          names
    */
   Combinator({Token keyword}) : this.full(keyword);
-  Token get beginToken => _keyword;
-
-  /**
-   * Return the keyword specifying what kind of processing is to be done on the imported names.
-   *
-   * @return the keyword specifying what kind of processing is to be done on the imported names
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Set the keyword specifying what kind of processing is to be done on the imported names to the
-   * given token.
-   *
-   * @param keyword the keyword specifying what kind of processing is to be done on the imported
-   *          names
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
+  Token get beginToken => keyword;
 }
 /**
  * Instances of the class `Comment` represent a comment within the source code.
@@ -3077,7 +2567,7 @@ class Comment extends ASTNode {
   /**
    * The tokens representing the comment.
    */
-  List<Token> _tokens;
+  List<Token> tokens;
 
   /**
    * The type of the comment.
@@ -3088,7 +2578,7 @@ class Comment extends ASTNode {
    * The references embedded within the documentation comment. This list will be empty unless this
    * is a documentation comment that has references embedded within it.
    */
-  NodeList<CommentReference> _references;
+  NodeList<CommentReference> references;
 
   /**
    * Initialize a newly created comment.
@@ -3098,10 +2588,10 @@ class Comment extends ASTNode {
    * @param references the references embedded within the documentation comment
    */
   Comment.full(List<Token> tokens, CommentType type, List<CommentReference> references) {
-    this._references = new NodeList<CommentReference>(this);
-    this._tokens = tokens;
+    this.references = new NodeList<CommentReference>(this);
+    this.tokens = tokens;
     this._type = type;
-    this._references.addAll(references);
+    this.references.addAll(references);
   }
 
   /**
@@ -3113,22 +2603,8 @@ class Comment extends ASTNode {
    */
   Comment({List<Token> tokens, CommentType type, List<CommentReference> references}) : this.full(tokens, type, references);
   accept(ASTVisitor visitor) => visitor.visitComment(this);
-  Token get beginToken => _tokens[0];
-  Token get endToken => _tokens[_tokens.length - 1];
-
-  /**
-   * Return the references embedded within the documentation comment.
-   *
-   * @return the references embedded within the documentation comment
-   */
-  NodeList<CommentReference> get references => _references;
-
-  /**
-   * Return the tokens representing the comment.
-   *
-   * @return the tokens representing the comment
-   */
-  List<Token> get tokens => _tokens;
+  Token get beginToken => tokens[0];
+  Token get endToken => tokens[tokens.length - 1];
 
   /**
    * Return `true` if this is a block comment.
@@ -3150,15 +2626,15 @@ class Comment extends ASTNode {
    * @return `true` if this is an end-of-line comment
    */
   bool get isEndOfLine => identical(_type, CommentType.END_OF_LINE);
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _references.accept(visitor);
+  void visitChildren(ASTVisitor visitor) {
+    references.accept(visitor);
   }
 }
 /**
  * The enumeration `CommentType` encodes all the different types of comments that are
  * recognized by the parser.
  */
-class CommentType implements Enum<CommentType> {
+class CommentType extends Enum<CommentType> {
 
   /**
    * An end-of-line comment.
@@ -3175,16 +2651,7 @@ class CommentType implements Enum<CommentType> {
    */
   static final CommentType DOCUMENTATION = new CommentType('DOCUMENTATION', 2);
   static final List<CommentType> values = [END_OF_LINE, BLOCK, DOCUMENTATION];
-
-  /// The name of this enum constant, as declared in the enum declaration.
-  final String name;
-
-  /// The position in the enum declaration.
-  final int ordinal;
-  CommentType(this.name, this.ordinal);
-  int compareTo(CommentType other) => ordinal - other.ordinal;
-  int get hashCode => ordinal;
-  String toString() => name;
+  CommentType(String name, int ordinal) : super(name, ordinal);
 }
 /**
  * Instances of the class `CommentReference` represent a reference to a Dart element that is
@@ -3202,7 +2669,7 @@ class CommentReference extends ASTNode {
   /**
    * The token representing the 'new' keyword, or `null` if there was no 'new' keyword.
    */
-  Token _newKeyword;
+  Token newKeyword;
 
   /**
    * The identifier being referenced.
@@ -3216,7 +2683,7 @@ class CommentReference extends ASTNode {
    * @param identifier the identifier being referenced
    */
   CommentReference.full(Token newKeyword, Identifier identifier) {
-    this._newKeyword = newKeyword;
+    this.newKeyword = newKeyword;
     this._identifier = becomeParentOf(identifier);
   }
 
@@ -3239,30 +2706,14 @@ class CommentReference extends ASTNode {
   Identifier get identifier => _identifier;
 
   /**
-   * Return the token representing the 'new' keyword, or `null` if there was no 'new' keyword.
-   *
-   * @return the token representing the 'new' keyword
-   */
-  Token get newKeyword => _newKeyword;
-
-  /**
    * Set the identifier being referenced to the given identifier.
    *
    * @param identifier the identifier being referenced
    */
-  void set identifier(Identifier identifier2) {
-    identifier2 = becomeParentOf(identifier2);
+  void set identifier(Identifier identifier) {
+    identifier = becomeParentOf(identifier);
   }
-
-  /**
-   * Set the token representing the 'new' keyword to the given token.
-   *
-   * @param newKeyword the token representing the 'new' keyword
-   */
-  void set newKeyword(Token newKeyword2) {
-    this._newKeyword = newKeyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
   }
 }
@@ -3308,12 +2759,12 @@ class CompilationUnit extends ASTNode {
   /**
    * The directives contained in this compilation unit.
    */
-  NodeList<Directive> _directives;
+  NodeList<Directive> directives;
 
   /**
    * The declarations contained in this compilation unit.
    */
-  NodeList<CompilationUnitMember> _declarations;
+  NodeList<CompilationUnitMember> declarations;
 
   /**
    * The last token in the token stream that was parsed to form this compilation unit. This token
@@ -3325,22 +2776,12 @@ class CompilationUnit extends ASTNode {
    * The element associated with this compilation unit, or `null` if the AST structure has not
    * been resolved.
    */
-  CompilationUnitElement _element;
+  CompilationUnitElement element;
 
   /**
    * The line information for this compilation unit.
    */
-  LineInfo _lineInfo;
-
-  /**
-   * The parsing errors encountered when the receiver was parsed.
-   */
-  List<AnalysisError> _parsingErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The resolution errors encountered when the receiver was resolved.
-   */
-  List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
+  LineInfo lineInfo;
 
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
@@ -3352,12 +2793,12 @@ class CompilationUnit extends ASTNode {
    * @param endToken the last token in the token stream
    */
   CompilationUnit.full(Token beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, Token endToken) {
-    this._directives = new NodeList<Directive>(this);
-    this._declarations = new NodeList<CompilationUnitMember>(this);
+    this.directives = new NodeList<Directive>(this);
+    this.declarations = new NodeList<CompilationUnitMember>(this);
     this._beginToken = beginToken;
     this._scriptTag = becomeParentOf(scriptTag);
-    this._directives.addAll(directives);
-    this._declarations.addAll(declarations);
+    this.directives.addAll(directives);
+    this.declarations.addAll(declarations);
     this._endToken = endToken;
   }
 
@@ -3373,50 +2814,7 @@ class CompilationUnit extends ASTNode {
   CompilationUnit({Token beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, Token endToken}) : this.full(beginToken, scriptTag, directives, declarations, endToken);
   accept(ASTVisitor visitor) => visitor.visitCompilationUnit(this);
   Token get beginToken => _beginToken;
-
-  /**
-   * Return the declarations contained in this compilation unit.
-   *
-   * @return the declarations contained in this compilation unit
-   */
-  NodeList<CompilationUnitMember> get declarations => _declarations;
-
-  /**
-   * Return the directives contained in this compilation unit.
-   *
-   * @return the directives contained in this compilation unit
-   */
-  NodeList<Directive> get directives => _directives;
-
-  /**
-   * Return the element associated with this compilation unit, or `null` if the AST structure
-   * has not been resolved.
-   *
-   * @return the element associated with this compilation unit
-   */
-  CompilationUnitElement get element => _element;
   Token get endToken => _endToken;
-
-  /**
-   * Return an array containing all of the errors associated with the receiver. The array will be
-   * empty if the receiver has not been resolved and there were no parse errors.
-   *
-   * @return the errors associated with the receiver
-   */
-  List<AnalysisError> get errors {
-    List<AnalysisError> parserErrors = parsingErrors;
-    List<AnalysisError> resolverErrors = resolutionErrors;
-    if (resolverErrors.length == 0) {
-      return parserErrors;
-    } else if (parserErrors.length == 0) {
-      return resolverErrors;
-    } else {
-      List<AnalysisError> allErrors = new List<AnalysisError>(parserErrors.length + resolverErrors.length);
-      JavaSystem.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
-      JavaSystem.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
-      return allErrors;
-    }
-  }
   int get length {
     Token endToken = this.endToken;
     if (endToken == null) {
@@ -3424,29 +2822,7 @@ class CompilationUnit extends ASTNode {
     }
     return endToken.offset + endToken.length;
   }
-
-  /**
-   * Return the line information for this compilation unit.
-   *
-   * @return the line information for this compilation unit
-   */
-  LineInfo get lineInfo => _lineInfo;
   int get offset => 0;
-
-  /**
-   * Return an array containing all of the parsing errors associated with the receiver.
-   *
-   * @return the parsing errors associated with the receiver
-   */
-  List<AnalysisError> get parsingErrors => _parsingErrors;
-
-  /**
-   * Return an array containing all of the resolution errors associated with the receiver. The array
-   * will be empty if the receiver has not been resolved.
-   *
-   * @return the resolution errors associated with the receiver
-   */
-  List<AnalysisError> get resolutionErrors => _resolutionErrors;
 
   /**
    * Return the script tag at the beginning of the compilation unit, or `null` if there is no
@@ -3457,54 +2833,18 @@ class CompilationUnit extends ASTNode {
   ScriptTag get scriptTag => _scriptTag;
 
   /**
-   * Set the element associated with this compilation unit to the given element.
-   *
-   * @param element the element associated with this compilation unit
-   */
-  void set element(CompilationUnitElement element2) {
-    this._element = element2;
-  }
-
-  /**
-   * Set the line information for this compilation unit to the given line information.
-   *
-   * @param errors the line information to associate with this compilation unit
-   */
-  void set lineInfo(LineInfo lineInfo2) {
-    this._lineInfo = lineInfo2;
-  }
-
-  /**
-   * Set the parse errors associated with this compilation unit to the given errors.
-   *
-   * @param the parse errors to be associated with this compilation unit
-   */
-  void set parsingErrors(List<AnalysisError> errors) {
-    _parsingErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
-  }
-
-  /**
-   * Set the resolution errors associated with this compilation unit to the given errors.
-   *
-   * @param the resolution errors to be associated with this compilation unit
-   */
-  void set resolutionErrors(List<AnalysisError> errors) {
-    _resolutionErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
-  }
-
-  /**
    * Set the script tag at the beginning of the compilation unit to the given script tag.
    *
    * @param scriptTag the script tag at the beginning of the compilation unit
    */
-  void set scriptTag(ScriptTag scriptTag2) {
-    this._scriptTag = becomeParentOf(scriptTag2);
+  void set scriptTag(ScriptTag scriptTag) {
+    this._scriptTag = becomeParentOf(scriptTag);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_scriptTag, visitor);
     if (directivesAreBeforeDeclarations()) {
-      _directives.accept(visitor);
-      _declarations.accept(visitor);
+      directives.accept(visitor);
+      declarations.accept(visitor);
     } else {
       for (ASTNode child in sortedDirectivesAndDeclarations) {
         child.accept(visitor);
@@ -3518,11 +2858,11 @@ class CompilationUnit extends ASTNode {
    * @return `true` if all of the directives are lexically before any declarations
    */
   bool directivesAreBeforeDeclarations() {
-    if (_directives.isEmpty || _declarations.isEmpty) {
+    if (directives.isEmpty || declarations.isEmpty) {
       return true;
     }
-    Directive lastDirective = _directives[_directives.length - 1];
-    CompilationUnitMember firstDeclaration = _declarations[0];
+    Directive lastDirective = directives[directives.length - 1];
+    CompilationUnitMember firstDeclaration = declarations[0];
     return lastDirective.offset < firstDeclaration.offset;
   }
 
@@ -3535,8 +2875,8 @@ class CompilationUnit extends ASTNode {
    */
   List<ASTNode> get sortedDirectivesAndDeclarations {
     List<ASTNode> childList = new List<ASTNode>();
-    childList.addAll(_directives);
-    childList.addAll(_declarations);
+    childList.addAll(directives);
+    childList.addAll(declarations);
     List<ASTNode> children = new List.from(childList);
     children.sort(ASTNode.LEXICAL_ORDER);
     return children;
@@ -3596,7 +2936,7 @@ class ConditionalExpression extends Expression {
   /**
    * The token used to separate the condition from the then expression.
    */
-  Token _question;
+  Token question;
 
   /**
    * The expression that is executed if the condition evaluates to `true`.
@@ -3606,7 +2946,7 @@ class ConditionalExpression extends Expression {
   /**
    * The token used to separate the then expression from the else expression.
    */
-  Token _colon;
+  Token colon;
 
   /**
    * The expression that is executed if the condition evaluates to `false`.
@@ -3626,9 +2966,9 @@ class ConditionalExpression extends Expression {
    */
   ConditionalExpression.full(Expression condition, Token question, Expression thenExpression, Token colon, Expression elseExpression) {
     this._condition = becomeParentOf(condition);
-    this._question = question;
+    this.question = question;
     this._thenExpression = becomeParentOf(thenExpression);
-    this._colon = colon;
+    this.colon = colon;
     this._elseExpression = becomeParentOf(elseExpression);
   }
 
@@ -3648,13 +2988,6 @@ class ConditionalExpression extends Expression {
   Token get beginToken => _condition.beginToken;
 
   /**
-   * Return the token used to separate the then expression from the else expression.
-   *
-   * @return the token used to separate the then expression from the else expression
-   */
-  Token get colon => _colon;
-
-  /**
    * Return the condition used to determine which of the expressions is executed next.
    *
    * @return the condition used to determine which expression is executed next
@@ -3670,27 +3003,11 @@ class ConditionalExpression extends Expression {
   Token get endToken => _elseExpression.endToken;
 
   /**
-   * Return the token used to separate the condition from the then expression.
-   *
-   * @return the token used to separate the condition from the then expression
-   */
-  Token get question => _question;
-
-  /**
    * Return the expression that is executed if the condition evaluates to `true`.
    *
    * @return the expression that is executed if the condition evaluates to `true`
    */
   Expression get thenExpression => _thenExpression;
-
-  /**
-   * Set the token used to separate the then expression from the else expression to the given token.
-   *
-   * @param colon the token used to separate the then expression from the else expression
-   */
-  void set colon(Token colon2) {
-    this._colon = colon2;
-  }
 
   /**
    * Set the condition used to determine which of the expressions is executed next to the given
@@ -3713,15 +3030,6 @@ class ConditionalExpression extends Expression {
   }
 
   /**
-   * Set the token used to separate the condition from the then expression to the given token.
-   *
-   * @param question the token used to separate the condition from the then expression
-   */
-  void set question(Token question2) {
-    this._question = question2;
-  }
-
-  /**
    * Set the expression that is executed if the condition evaluates to `true` to the given
    * expression.
    *
@@ -3730,7 +3038,7 @@ class ConditionalExpression extends Expression {
   void set thenExpression(Expression expression) {
     _thenExpression = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenExpression, visitor);
     safelyVisitChild(_elseExpression, visitor);
@@ -3766,19 +3074,19 @@ class ConstructorDeclaration extends ClassMember {
   /**
    * The token for the 'external' keyword, or `null` if the constructor is not external.
    */
-  Token _externalKeyword;
+  Token externalKeyword;
 
   /**
    * The token for the 'const' keyword, or `null` if the constructor is not a const
    * constructor.
    */
-  Token _constKeyword;
+  Token constKeyword;
 
   /**
    * The token for the 'factory' keyword, or `null` if the constructor is not a factory
    * constructor.
    */
-  Token _factoryKeyword;
+  Token factoryKeyword;
 
   /**
    * The type of object being created. This can be different than the type in which the constructor
@@ -3790,7 +3098,7 @@ class ConstructorDeclaration extends ClassMember {
    * The token for the period before the constructor name, or `null` if the constructor being
    * declared is unnamed.
    */
-  Token _period;
+  Token period;
 
   /**
    * The name of the constructor, or `null` if the constructor being declared is unnamed.
@@ -3806,12 +3114,12 @@ class ConstructorDeclaration extends ClassMember {
    * The token for the separator (colon or equals) before the initializer list or redirection, or
    * `null` if there are no initializers.
    */
-  Token _separator;
+  Token separator;
 
   /**
    * The initializers associated with the constructor.
    */
-  NodeList<ConstructorInitializer> _initializers;
+  NodeList<ConstructorInitializer> initializers;
 
   /**
    * The name of the constructor to which this constructor will be redirected, or `null` if
@@ -3849,16 +3157,16 @@ class ConstructorDeclaration extends ClassMember {
    * @param body the body of the constructor
    */
   ConstructorDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, Token constKeyword, Token factoryKeyword, Identifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters, Token separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body) : super.full(comment, metadata) {
-    this._initializers = new NodeList<ConstructorInitializer>(this);
-    this._externalKeyword = externalKeyword;
-    this._constKeyword = constKeyword;
-    this._factoryKeyword = factoryKeyword;
+    this.initializers = new NodeList<ConstructorInitializer>(this);
+    this.externalKeyword = externalKeyword;
+    this.constKeyword = constKeyword;
+    this.factoryKeyword = factoryKeyword;
     this._returnType = becomeParentOf(returnType);
-    this._period = period;
+    this.period = period;
     this._name = becomeParentOf(name);
     this._parameters = becomeParentOf(parameters);
-    this._separator = separator;
-    this._initializers.addAll(initializers);
+    this.separator = separator;
+    this.initializers.addAll(initializers);
     this._redirectedConstructor = becomeParentOf(redirectedConstructor);
     this._body = becomeParentOf(body);
   }
@@ -3890,44 +3198,15 @@ class ConstructorDeclaration extends ClassMember {
    * @return the body of the constructor
    */
   FunctionBody get body => _body;
-
-  /**
-   * Return the token for the 'const' keyword.
-   *
-   * @return the token for the 'const' keyword
-   */
-  Token get constKeyword => _constKeyword;
   ConstructorElement get element => _element;
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
-    } else if (!_initializers.isEmpty) {
-      return _initializers.endToken;
+    } else if (!initializers.isEmpty) {
+      return initializers.endToken;
     }
     return _parameters.endToken;
   }
-
-  /**
-   * Return the token for the 'external' keyword, or `null` if the constructor is not
-   * external.
-   *
-   * @return the token for the 'external' keyword
-   */
-  Token get externalKeyword => _externalKeyword;
-
-  /**
-   * Return the token for the 'factory' keyword.
-   *
-   * @return the token for the 'factory' keyword
-   */
-  Token get factoryKeyword => _factoryKeyword;
-
-  /**
-   * Return the initializers associated with the constructor.
-   *
-   * @return the initializers associated with the constructor
-   */
-  NodeList<ConstructorInitializer> get initializers => _initializers;
 
   /**
    * Return the name of the constructor, or `null` if the constructor being declared is
@@ -3943,14 +3222,6 @@ class ConstructorDeclaration extends ClassMember {
    * @return the parameters associated with the constructor
    */
   FormalParameterList get parameters => _parameters;
-
-  /**
-   * Return the token for the period before the constructor name, or `null` if the constructor
-   * being declared is unnamed.
-   *
-   * @return the token for the period before the constructor name
-   */
-  Token get period => _period;
 
   /**
    * Return the name of the constructor to which this constructor will be redirected, or
@@ -3970,14 +3241,6 @@ class ConstructorDeclaration extends ClassMember {
   Identifier get returnType => _returnType;
 
   /**
-   * Return the token for the separator (colon or equals) before the initializer list or
-   * redirection, or `null` if there are no initializers.
-   *
-   * @return the token for the separator before the initializer list or redirection
-   */
-  Token get separator => _separator;
-
-  /**
    * Set the body of the constructor to the given function body.
    *
    * @param functionBody the body of the constructor
@@ -3987,39 +3250,12 @@ class ConstructorDeclaration extends ClassMember {
   }
 
   /**
-   * Set the token for the 'const' keyword to the given token.
-   *
-   * @param constKeyword the token for the 'const' keyword
-   */
-  void set constKeyword(Token constKeyword2) {
-    this._constKeyword = constKeyword2;
-  }
-
-  /**
    * Set the element associated with this constructor to the given element.
    *
    * @param element the element associated with this constructor
    */
-  void set element(ConstructorElement element2) {
-    this._element = element2;
-  }
-
-  /**
-   * Set the token for the 'external' keyword to the given token.
-   *
-   * @param externalKeyword the token for the 'external' keyword
-   */
-  void set externalKeyword(Token externalKeyword2) {
-    this._externalKeyword = externalKeyword2;
-  }
-
-  /**
-   * Set the token for the 'factory' keyword to the given token.
-   *
-   * @param factoryKeyword the token for the 'factory' keyword
-   */
-  void set factoryKeyword(Token factoryKeyword2) {
-    this._factoryKeyword = factoryKeyword2;
+  void set element(ConstructorElement element) {
+    this._element = element;
   }
 
   /**
@@ -4036,17 +3272,8 @@ class ConstructorDeclaration extends ClassMember {
    *
    * @param parameters the parameters associated with the constructor
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
-  }
-
-  /**
-   * Set the token for the period before the constructor name to the given token.
-   *
-   * @param period the token for the period before the constructor name
-   */
-  void set period(Token period2) {
-    this._period = period2;
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -4056,8 +3283,8 @@ class ConstructorDeclaration extends ClassMember {
    * @param redirectedConstructor the name of the constructor to which this constructor will be
    *          redirected
    */
-  void set redirectedConstructor(ConstructorName redirectedConstructor2) {
-    this._redirectedConstructor = becomeParentOf(redirectedConstructor2);
+  void set redirectedConstructor(ConstructorName redirectedConstructor) {
+    this._redirectedConstructor = becomeParentOf(redirectedConstructor);
   }
 
   /**
@@ -4068,28 +3295,19 @@ class ConstructorDeclaration extends ClassMember {
   void set returnType(Identifier typeName) {
     _returnType = becomeParentOf(typeName);
   }
-
-  /**
-   * Set the token for the separator (colon or equals) before the initializers to the given token.
-   *
-   * @param separator the token for the separator (colon or equals) before the initializers
-   */
-  void set separator(Token separator2) {
-    this._separator = separator2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_parameters, visitor);
-    _initializers.accept(visitor);
+    initializers.accept(visitor);
     safelyVisitChild(_redirectedConstructor, visitor);
     safelyVisitChild(_body, visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    Token leftMost2 = leftMost([_externalKeyword, _constKeyword, _factoryKeyword]);
-    if (leftMost2 != null) {
-      return leftMost2;
+    Token leftMost = this.leftMost([externalKeyword, constKeyword, factoryKeyword]);
+    if (leftMost != null) {
+      return leftMost;
     }
     return _returnType.beginToken;
   }
@@ -4128,13 +3346,13 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   /**
    * The token for the 'this' keyword, or `null` if there is no 'this' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The token for the period after the 'this' keyword, or `null` if there is no 'this'
    * keyword.
    */
-  Token _period;
+  Token period;
 
   /**
    * The name of the field being initialized.
@@ -4144,7 +3362,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   /**
    * The token for the equal sign between the field name and the expression.
    */
-  Token _equals;
+  Token equals;
 
   /**
    * The expression computing the value to which the field will be initialized.
@@ -4162,10 +3380,10 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * @param expression the expression computing the value to which the field will be initialized
    */
   ConstructorFieldInitializer.full(Token keyword, Token period, SimpleIdentifier fieldName, Token equals, Expression expression) {
-    this._keyword = keyword;
-    this._period = period;
+    this.keyword = keyword;
+    this.period = period;
     this._fieldName = becomeParentOf(fieldName);
-    this._equals = equals;
+    this.equals = equals;
     this._expression = becomeParentOf(expression);
   }
 
@@ -4182,19 +3400,12 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   ConstructorFieldInitializer({Token keyword, Token period, SimpleIdentifier fieldName, Token equals, Expression expression}) : this.full(keyword, period, fieldName, equals, expression);
   accept(ASTVisitor visitor) => visitor.visitConstructorFieldInitializer(this);
   Token get beginToken {
-    if (_keyword != null) {
-      return _keyword;
+    if (keyword != null) {
+      return keyword;
     }
     return _fieldName.beginToken;
   }
   Token get endToken => _expression.endToken;
-
-  /**
-   * Return the token for the equal sign between the field name and the expression.
-   *
-   * @return the token for the equal sign between the field name and the expression
-   */
-  Token get equals => _equals;
 
   /**
    * Return the expression computing the value to which the field will be initialized.
@@ -4211,37 +3422,13 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   SimpleIdentifier get fieldName => _fieldName;
 
   /**
-   * Return the token for the 'this' keyword, or `null` if there is no 'this' keyword.
-   *
-   * @return the token for the 'this' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the token for the period after the 'this' keyword, or `null` if there is no 'this'
-   * keyword.
-   *
-   * @return the token for the period after the 'this' keyword
-   */
-  Token get period => _period;
-
-  /**
-   * Set the token for the equal sign between the field name and the expression to the given token.
-   *
-   * @param equals the token for the equal sign between the field name and the expression
-   */
-  void set equals(Token equals2) {
-    this._equals = equals2;
-  }
-
-  /**
    * Set the expression computing the value to which the field will be initialized to the given
    * expression.
    *
    * @param expression the expression computing the value to which the field will be initialized
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -4252,25 +3439,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   void set fieldName(SimpleIdentifier identifier) {
     _fieldName = becomeParentOf(identifier);
   }
-
-  /**
-   * Set the token for the 'this' keyword to the given token.
-   *
-   * @param keyword the token for the 'this' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the token for the period after the 'this' keyword to the given token.
-   *
-   * @param period the token for the period after the 'this' keyword
-   */
-  void set period(Token period2) {
-    this._period = period2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_fieldName, visitor);
     safelyVisitChild(_expression, visitor);
   }
@@ -4310,7 +3479,7 @@ class ConstructorName extends ASTNode {
    * The token for the period before the constructor name, or `null` if the specified
    * constructor is the unnamed constructor.
    */
-  Token _period;
+  Token period;
 
   /**
    * The name of the constructor, or `null` if the specified constructor is the unnamed
@@ -4326,13 +3495,6 @@ class ConstructorName extends ASTNode {
   ConstructorElement _staticElement;
 
   /**
-   * The element associated with this constructor name based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if this constructor name could not
-   * be resolved.
-   */
-  ConstructorElement _propagatedElement;
-
-  /**
    * Initialize a newly created constructor name.
    *
    * @param type the name of the type defining the constructor
@@ -4341,7 +3503,7 @@ class ConstructorName extends ASTNode {
    */
   ConstructorName.full(TypeName type, Token period, SimpleIdentifier name) {
     this._type = becomeParentOf(type);
-    this._period = period;
+    this.period = period;
     this._name = becomeParentOf(name);
   }
 
@@ -4355,15 +3517,6 @@ class ConstructorName extends ASTNode {
   ConstructorName({TypeName type, Token period, SimpleIdentifier name}) : this.full(type, period, name);
   accept(ASTVisitor visitor) => visitor.visitConstructorName(this);
   Token get beginToken => _type.beginToken;
-
-  /**
-   * Return the element associated with this constructor name based on propagated type information,
-   * or `null` if the AST structure has not been resolved or if this constructor name could
-   * not be resolved.
-   *
-   * @return the element associated with this constructor name
-   */
-  ConstructorElement get element => _propagatedElement;
   Token get endToken {
     if (_name != null) {
       return _name.endToken;
@@ -4378,14 +3531,6 @@ class ConstructorName extends ASTNode {
    * @return the name of the constructor
    */
   SimpleIdentifier get name => _name;
-
-  /**
-   * Return the token for the period before the constructor name, or `null` if the specified
-   * constructor is the unnamed constructor.
-   *
-   * @return the token for the period before the constructor name
-   */
-  Token get period => _period;
 
   /**
    * Return the element associated with this constructor name based on static type information, or
@@ -4404,31 +3549,12 @@ class ConstructorName extends ASTNode {
   TypeName get type => _type;
 
   /**
-   * Set the element associated with this constructor name based on propagated type information to
-   * the given element.
-   *
-   * @param element the element to be associated with this constructor name
-   */
-  void set element(ConstructorElement element2) {
-    _propagatedElement = element2;
-  }
-
-  /**
    * Set the name of the constructor to the given name.
    *
    * @param name the name of the constructor
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
-  }
-
-  /**
-   * Return the token for the period before the constructor name to the given token.
-   *
-   * @param period the token for the period before the constructor name
-   */
-  void set period(Token period2) {
-    this._period = period2;
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
 
   /**
@@ -4446,10 +3572,10 @@ class ConstructorName extends ASTNode {
    *
    * @param type the name of the type defining the constructor
    */
-  void set type(TypeName type2) {
-    this._type = becomeParentOf(type2);
+  void set type(TypeName type) {
+    this._type = becomeParentOf(type);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
     safelyVisitChild(_name, visitor);
   }
@@ -4469,7 +3595,7 @@ class ContinueStatement extends Statement {
   /**
    * The token representing the 'continue' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The label associated with the statement, or `null` if there is no label.
@@ -4479,7 +3605,7 @@ class ContinueStatement extends Statement {
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created continue statement.
@@ -4489,9 +3615,9 @@ class ContinueStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ContinueStatement.full(Token keyword, SimpleIdentifier label, Token semicolon) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._label = becomeParentOf(label);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -4503,15 +3629,8 @@ class ContinueStatement extends Statement {
    */
   ContinueStatement({Token keyword, SimpleIdentifier label, Token semicolon}) : this.full(keyword, label, semicolon);
   accept(ASTVisitor visitor) => visitor.visitContinueStatement(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the token representing the 'continue' keyword.
-   *
-   * @return the token representing the 'continue' keyword
-   */
-  Token get keyword => _keyword;
+  Token get beginToken => keyword;
+  Token get endToken => semicolon;
 
   /**
    * Return the label associated with the statement, or `null` if there is no label.
@@ -4521,22 +3640,6 @@ class ContinueStatement extends Statement {
   SimpleIdentifier get label => _label;
 
   /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Set the token representing the 'continue' keyword to the given token.
-   *
-   * @param keyword the token representing the 'continue' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
    * Set the label associated with the statement to the given label.
    *
    * @param identifier the label associated with the statement
@@ -4544,16 +3647,7 @@ class ContinueStatement extends Statement {
   void set label(SimpleIdentifier identifier) {
     _label = becomeParentOf(identifier);
   }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -4606,7 +3700,7 @@ class DeclaredIdentifier extends Declaration {
    * The token representing either the 'final', 'const' or 'var' keyword, or `null` if no
    * keyword was used.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The name of the declared type of the parameter, or `null` if the parameter does not have
@@ -4617,7 +3711,7 @@ class DeclaredIdentifier extends Declaration {
   /**
    * The name of the variable being declared.
    */
-  SimpleIdentifier _identifier;
+  SimpleIdentifier identifier;
 
   /**
    * Initialize a newly created formal parameter.
@@ -4629,9 +3723,9 @@ class DeclaredIdentifier extends Declaration {
    * @param identifier the name of the parameter being declared
    */
   DeclaredIdentifier.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier) : super.full(comment, metadata) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._type = becomeParentOf(type);
-    this._identifier = becomeParentOf(identifier);
+    this.identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -4650,24 +3744,9 @@ class DeclaredIdentifier extends Declaration {
     if (identifier == null) {
       return null;
     }
-    return identifier.element as LocalVariableElement;
+    return identifier.staticElement as LocalVariableElement;
   }
-  Token get endToken => _identifier.endToken;
-
-  /**
-   * Return the name of the variable being declared.
-   *
-   * @return the name of the variable being declared
-   */
-  SimpleIdentifier get identifier => _identifier;
-
-  /**
-   * Return the token representing either the 'final', 'const' or 'var' keyword, or `null` if
-   * no keyword was used.
-   *
-   * @return the token representing either the 'final', 'const' or 'var' keyword
-   */
-  Token get keyword => _keyword;
+  Token get endToken => identifier.endToken;
 
   /**
    * Return the name of the declared type of the parameter, or `null` if the parameter does
@@ -4682,7 +3761,7 @@ class DeclaredIdentifier extends Declaration {
    *
    * @return `true` if this variable was declared with the 'const' modifier
    */
-  bool get isConst => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
 
   /**
    * Return `true` if this variable was declared with the 'final' modifier. Variables that are
@@ -4691,16 +3770,7 @@ class DeclaredIdentifier extends Declaration {
    *
    * @return `true` if this variable was declared with the 'final' modifier
    */
-  bool get isFinal => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
-
-  /**
-   * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
-   *
-   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
+  bool get isFinal => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the name of the declared type of the parameter to the given type name.
@@ -4710,18 +3780,18 @@ class DeclaredIdentifier extends Declaration {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
-    safelyVisitChild(_identifier, visitor);
+    safelyVisitChild(identifier, visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    if (_keyword != null) {
-      return _keyword;
+    if (keyword != null) {
+      return keyword;
     } else if (_type != null) {
       return _type.beginToken;
     }
-    return _identifier.beginToken;
+    return identifier.beginToken;
   }
 }
 /**
@@ -4755,7 +3825,7 @@ class DefaultFormalParameter extends FormalParameter {
    * The token separating the parameter from the default value, or `null` if there is no
    * default value.
    */
-  Token _separator;
+  Token separator;
 
   /**
    * The expression computing the default value for the parameter, or `null` if there is no
@@ -4774,7 +3844,7 @@ class DefaultFormalParameter extends FormalParameter {
   DefaultFormalParameter.full(NormalFormalParameter parameter, ParameterKind kind, Token separator, Expression defaultValue) {
     this._parameter = becomeParentOf(parameter);
     this._kind = kind;
-    this._separator = separator;
+    this.separator = separator;
     this._defaultValue = becomeParentOf(defaultValue);
   }
 
@@ -4812,14 +3882,6 @@ class DefaultFormalParameter extends FormalParameter {
    * @return the formal parameter with which the default value is associated
    */
   NormalFormalParameter get parameter => _parameter;
-
-  /**
-   * Return the token separating the parameter from the default value, or `null` if there is
-   * no default value.
-   *
-   * @return the token separating the parameter from the default value
-   */
-  Token get separator => _separator;
   bool get isConst => _parameter != null && _parameter.isConst;
   bool get isFinal => _parameter != null && _parameter.isFinal;
 
@@ -4837,8 +3899,8 @@ class DefaultFormalParameter extends FormalParameter {
    *
    * @param kind the kind of this parameter
    */
-  void set kind(ParameterKind kind2) {
-    this._kind = kind2;
+  void set kind(ParameterKind kind) {
+    this._kind = kind;
   }
 
   /**
@@ -4849,16 +3911,7 @@ class DefaultFormalParameter extends FormalParameter {
   void set parameter(NormalFormalParameter formalParameter) {
     _parameter = becomeParentOf(formalParameter);
   }
-
-  /**
-   * Set the token separating the parameter from the default value to the given token.
-   *
-   * @param separator the token separating the parameter from the default value
-   */
-  void set separator(Token separator2) {
-    this._separator = separator2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_parameter, visitor);
     safelyVisitChild(_defaultValue, visitor);
   }
@@ -4924,8 +3977,8 @@ abstract class Directive extends AnnotatedNode {
    *
    * @param element the element associated with this directive
    */
-  void set element(Element element2) {
-    this._element = element2;
+  void set element(Element element) {
+    this._element = element;
   }
 }
 /**
@@ -4943,7 +3996,7 @@ class DoStatement extends Statement {
   /**
    * The token representing the 'do' keyword.
    */
-  Token _doKeyword;
+  Token doKeyword;
 
   /**
    * The body of the loop.
@@ -4953,7 +4006,7 @@ class DoStatement extends Statement {
   /**
    * The token representing the 'while' keyword.
    */
-  Token _whileKeyword;
+  Token whileKeyword;
 
   /**
    * The left parenthesis.
@@ -4973,7 +4026,7 @@ class DoStatement extends Statement {
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created do loop.
@@ -4987,13 +4040,13 @@ class DoStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   DoStatement.full(Token doKeyword, Statement body, Token whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon) {
-    this._doKeyword = doKeyword;
+    this.doKeyword = doKeyword;
     this._body = becomeParentOf(body);
-    this._whileKeyword = whileKeyword;
+    this.whileKeyword = whileKeyword;
     this._leftParenthesis = leftParenthesis;
     this._condition = becomeParentOf(condition);
     this._rightParenthesis = rightParenthesis;
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -5009,7 +4062,7 @@ class DoStatement extends Statement {
    */
   DoStatement({Token doKeyword, Statement body, Token whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon}) : this.full(doKeyword, body, whileKeyword, leftParenthesis, condition, rightParenthesis, semicolon);
   accept(ASTVisitor visitor) => visitor.visitDoStatement(this);
-  Token get beginToken => _doKeyword;
+  Token get beginToken => doKeyword;
 
   /**
    * Return the body of the loop.
@@ -5024,14 +4077,7 @@ class DoStatement extends Statement {
    * @return the condition that determines when the loop will terminate
    */
   Expression get condition => _condition;
-
-  /**
-   * Return the token representing the 'do' keyword.
-   *
-   * @return the token representing the 'do' keyword
-   */
-  Token get doKeyword => _doKeyword;
-  Token get endToken => _semicolon;
+  Token get endToken => semicolon;
 
   /**
    * Return the left parenthesis.
@@ -5046,20 +4092,6 @@ class DoStatement extends Statement {
    * @return the right parenthesis
    */
   Token get rightParenthesis => _rightParenthesis;
-
-  /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Return the token representing the 'while' keyword.
-   *
-   * @return the token representing the 'while' keyword
-   */
-  Token get whileKeyword => _whileKeyword;
 
   /**
    * Set the body of the loop to the given statement.
@@ -5080,15 +4112,6 @@ class DoStatement extends Statement {
   }
 
   /**
-   * Set the token representing the 'do' keyword to the given token.
-   *
-   * @param doKeyword the token representing the 'do' keyword
-   */
-  void set doKeyword(Token doKeyword2) {
-    this._doKeyword = doKeyword2;
-  }
-
-  /**
    * Set the left parenthesis to the given token.
    *
    * @param parenthesis the left parenthesis
@@ -5105,25 +4128,7 @@ class DoStatement extends Statement {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-
-  /**
-   * Set the token representing the 'while' keyword to the given token.
-   *
-   * @param whileKeyword the token representing the 'while' keyword
-   */
-  void set whileKeyword(Token whileKeyword2) {
-    this._whileKeyword = whileKeyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_body, visitor);
     safelyVisitChild(_condition, visitor);
   }
@@ -5147,12 +4152,12 @@ class DoubleLiteral extends Literal {
   /**
    * The token representing the literal.
    */
-  Token _literal;
+  Token literal;
 
   /**
    * The value of the literal.
    */
-  double _value = 0.0;
+  double value = 0.0;
 
   /**
    * Initialize a newly created floating point literal.
@@ -5161,8 +4166,8 @@ class DoubleLiteral extends Literal {
    * @param value the value of the literal
    */
   DoubleLiteral.full(Token literal, double value) {
-    this._literal = literal;
-    this._value = value;
+    this.literal = literal;
+    this.value = value;
   }
 
   /**
@@ -5173,41 +4178,9 @@ class DoubleLiteral extends Literal {
    */
   DoubleLiteral({Token literal, double value}) : this.full(literal, value);
   accept(ASTVisitor visitor) => visitor.visitDoubleLiteral(this);
-  Token get beginToken => _literal;
-  Token get endToken => _literal;
-
-  /**
-   * Return the token representing the literal.
-   *
-   * @return the token representing the literal
-   */
-  Token get literal => _literal;
-
-  /**
-   * Return the value of the literal.
-   *
-   * @return the value of the literal
-   */
-  double get value => _value;
-
-  /**
-   * Set the token representing the literal to the given token.
-   *
-   * @param literal the token representing the literal
-   */
-  void set literal(Token literal2) {
-    this._literal = literal2;
-  }
-
-  /**
-   * Set the value of the literal to the given value.
-   *
-   * @param value the value of the literal
-   */
-  void set value(double value2) {
-    this._value = value2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => literal;
+  Token get endToken => literal;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -5226,7 +4199,7 @@ class EmptyFunctionBody extends FunctionBody {
   /**
    * The token representing the semicolon that marks the end of the function body.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created function body.
@@ -5234,7 +4207,7 @@ class EmptyFunctionBody extends FunctionBody {
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
   EmptyFunctionBody.full(Token semicolon) {
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -5244,26 +4217,9 @@ class EmptyFunctionBody extends FunctionBody {
    */
   EmptyFunctionBody({Token semicolon}) : this.full(semicolon);
   accept(ASTVisitor visitor) => visitor.visitEmptyFunctionBody(this);
-  Token get beginToken => _semicolon;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the token representing the semicolon that marks the end of the function body.
-   *
-   * @return the token representing the semicolon that marks the end of the function body
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Set the token representing the semicolon that marks the end of the function body to the given
-   * token.
-   *
-   * @param semicolon the token representing the semicolon that marks the end of the function body
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => semicolon;
+  Token get endToken => semicolon;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -5281,7 +4237,7 @@ class EmptyStatement extends Statement {
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created empty statement.
@@ -5289,7 +4245,7 @@ class EmptyStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   EmptyStatement.full(Token semicolon) {
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -5299,25 +4255,9 @@ class EmptyStatement extends Statement {
    */
   EmptyStatement({Token semicolon}) : this.full(semicolon);
   accept(ASTVisitor visitor) => visitor.visitEmptyStatement(this);
-  Token get beginToken => _semicolon;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => semicolon;
+  Token get endToken => semicolon;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -5374,7 +4314,7 @@ class ExportDirective extends NamespaceDirective {
     }
     return null;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     combinators.accept(visitor);
   }
@@ -5397,13 +4337,29 @@ abstract class Expression extends ASTNode {
   /**
    * The static type of this expression, or `null` if the AST structure has not been resolved.
    */
-  Type2 _staticType;
+  Type2 staticType;
 
   /**
    * The propagated type of this expression, or `null` if type propagation has not been
    * performed on the AST structure.
    */
-  Type2 _propagatedType;
+  Type2 propagatedType;
+
+  /**
+   * Return the best parameter element information available for this expression. If type
+   * propagation was able to find a better parameter element than static analysis, that type will be
+   * returned. Otherwise, the result of static analysis will be returned.
+   *
+   * @return the parameter element representing the parameter to which the value of this expression
+   *         will be bound
+   */
+  ParameterElement get bestParameterElement {
+    ParameterElement propagatedElement = propagatedParameterElement;
+    if (propagatedElement != null) {
+      return propagatedElement;
+    }
+    return staticParameterElement;
+  }
 
   /**
    * Return the best type information available for this expression. If type propagation was able to
@@ -5414,10 +4370,10 @@ abstract class Expression extends ASTNode {
    * @return the best type information available for this expression
    */
   Type2 get bestType {
-    if (_propagatedType != null) {
-      return _propagatedType;
-    } else if (_staticType != null) {
-      return _staticType;
+    if (propagatedType != null) {
+      return propagatedType;
+    } else if (staticType != null) {
+      return staticType;
     }
     return DynamicTypeImpl.instance;
   }
@@ -5460,14 +4416,6 @@ abstract class Expression extends ASTNode {
   }
 
   /**
-   * Return the propagated type of this expression, or `null` if type propagation has not been
-   * performed on the AST structure.
-   *
-   * @return the propagated type of this expression
-   */
-  Type2 get propagatedType => _propagatedType;
-
-  /**
    * If this expression is an argument to an invocation, and the AST structure has been resolved,
    * and the function being invoked is known based on static type information, and this expression
    * corresponds to one of the parameters of the function being invoked, then return the parameter
@@ -5505,38 +4453,12 @@ abstract class Expression extends ASTNode {
   }
 
   /**
-   * Return the static type of this expression, or `null` if the AST structure has not been
-   * resolved.
-   *
-   * @return the static type of this expression
-   */
-  Type2 get staticType => _staticType;
-
-  /**
    * Return `true` if this expression is syntactically valid for the LHS of an
    * [AssignmentExpression].
    *
    * @return `true` if this expression matches the `assignableExpression` production
    */
   bool get isAssignable => false;
-
-  /**
-   * Set the propagated type of this expression to the given type.
-   *
-   * @param propagatedType the propagated type of this expression
-   */
-  void set propagatedType(Type2 propagatedType2) {
-    this._propagatedType = propagatedType2;
-  }
-
-  /**
-   * Set the static type of this expression to the given type.
-   *
-   * @param staticType the static type of this expression
-   */
-  void set staticType(Type2 staticType2) {
-    this._staticType = staticType2;
-  }
 }
 /**
  * Instances of the class `ExpressionFunctionBody` represent a function body consisting of a
@@ -5554,7 +4476,7 @@ class ExpressionFunctionBody extends FunctionBody {
   /**
    * The token introducing the expression that represents the body of the function.
    */
-  Token _functionDefinition;
+  Token functionDefinition;
 
   /**
    * The expression representing the body of the function.
@@ -5564,7 +4486,7 @@ class ExpressionFunctionBody extends FunctionBody {
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created function body consisting of a block of statements.
@@ -5575,9 +4497,9 @@ class ExpressionFunctionBody extends FunctionBody {
    * @param semicolon the semicolon terminating the statement
    */
   ExpressionFunctionBody.full(Token functionDefinition, Expression expression, Token semicolon) {
-    this._functionDefinition = functionDefinition;
+    this.functionDefinition = functionDefinition;
     this._expression = becomeParentOf(expression);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -5590,10 +4512,10 @@ class ExpressionFunctionBody extends FunctionBody {
    */
   ExpressionFunctionBody({Token functionDefinition, Expression expression, Token semicolon}) : this.full(functionDefinition, expression, semicolon);
   accept(ASTVisitor visitor) => visitor.visitExpressionFunctionBody(this);
-  Token get beginToken => _functionDefinition;
+  Token get beginToken => functionDefinition;
   Token get endToken {
-    if (_semicolon != null) {
-      return _semicolon;
+    if (semicolon != null) {
+      return semicolon;
     }
     return _expression.endToken;
   }
@@ -5606,47 +4528,14 @@ class ExpressionFunctionBody extends FunctionBody {
   Expression get expression => _expression;
 
   /**
-   * Return the token introducing the expression that represents the body of the function.
-   *
-   * @return the function definition token
-   */
-  Token get functionDefinition => _functionDefinition;
-
-  /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
-
-  /**
    * Set the expression representing the body of the function to the given expression.
    *
    * @param expression the expression representing the body of the function
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Set the token introducing the expression that represents the body of the function to the given
-   * token.
-   *
-   * @param functionDefinition the function definition token
-   */
-  void set functionDefinition(Token functionDefinition2) {
-    this._functionDefinition = functionDefinition2;
-  }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -5671,7 +4560,7 @@ class ExpressionStatement extends Statement {
    * The semicolon terminating the statement, or `null` if the expression is a function
    * expression and therefore isn't followed by a semicolon.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created expression statement.
@@ -5681,7 +4570,7 @@ class ExpressionStatement extends Statement {
    */
   ExpressionStatement.full(Expression expression, Token semicolon) {
     this._expression = becomeParentOf(expression);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -5694,8 +4583,8 @@ class ExpressionStatement extends Statement {
   accept(ASTVisitor visitor) => visitor.visitExpressionStatement(this);
   Token get beginToken => _expression.beginToken;
   Token get endToken {
-    if (_semicolon != null) {
-      return _semicolon;
+    if (semicolon != null) {
+      return semicolon;
     }
     return _expression.endToken;
   }
@@ -5706,34 +4595,17 @@ class ExpressionStatement extends Statement {
    * @return the expression that comprises the statement
    */
   Expression get expression => _expression;
-
-  /**
-   * Return the semicolon terminating the statement, or `null` if the expression is a function
-   * expression and therefore isn't followed by a semicolon.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
-  bool get isSynthetic => _expression.isSynthetic && _semicolon.isSynthetic;
+  bool get isSynthetic => _expression.isSynthetic && semicolon.isSynthetic;
 
   /**
    * Set the expression that comprises the statement to the given expression.
    *
    * @param expression the expression that comprises the statement
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -5753,7 +4625,7 @@ class ExtendsClause extends ASTNode {
   /**
    * The token representing the 'extends' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The name of the class that is being extended.
@@ -5767,7 +4639,7 @@ class ExtendsClause extends ASTNode {
    * @param superclass the name of the class that is being extended
    */
   ExtendsClause.full(Token keyword, TypeName superclass) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._superclass = becomeParentOf(superclass);
   }
 
@@ -5779,15 +4651,8 @@ class ExtendsClause extends ASTNode {
    */
   ExtendsClause({Token keyword, TypeName superclass}) : this.full(keyword, superclass);
   accept(ASTVisitor visitor) => visitor.visitExtendsClause(this);
-  Token get beginToken => _keyword;
+  Token get beginToken => keyword;
   Token get endToken => _superclass.endToken;
-
-  /**
-   * Return the token representing the 'extends' keyword.
-   *
-   * @return the token representing the 'extends' keyword
-   */
-  Token get keyword => _keyword;
 
   /**
    * Return the name of the class that is being extended.
@@ -5797,15 +4662,6 @@ class ExtendsClause extends ASTNode {
   TypeName get superclass => _superclass;
 
   /**
-   * Set the token representing the 'extends' keyword to the given token.
-   *
-   * @param keyword the token representing the 'extends' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
    * Set the name of the class that is being extended to the given name.
    *
    * @param name the name of the class that is being extended
@@ -5813,7 +4669,7 @@ class ExtendsClause extends ASTNode {
   void set superclass(TypeName name) {
     _superclass = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_superclass, visitor);
   }
 }
@@ -5833,7 +4689,7 @@ class FieldDeclaration extends ClassMember {
   /**
    * The token representing the 'static' keyword, or `null` if the fields are not static.
    */
-  Token _keyword;
+  Token staticKeyword;
 
   /**
    * The fields being declared.
@@ -5843,21 +4699,21 @@ class FieldDeclaration extends ClassMember {
   /**
    * The semicolon terminating the declaration.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created field declaration.
    *
    * @param comment the documentation comment associated with this field
    * @param metadata the annotations associated with this field
-   * @param keyword the token representing the 'static' keyword
+   * @param staticKeyword the token representing the 'static' keyword
    * @param fieldList the fields being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  FieldDeclaration.full(Comment comment, List<Annotation> metadata, Token keyword, VariableDeclarationList fieldList, Token semicolon) : super.full(comment, metadata) {
-    this._keyword = keyword;
+  FieldDeclaration.full(Comment comment, List<Annotation> metadata, Token staticKeyword, VariableDeclarationList fieldList, Token semicolon) : super.full(comment, metadata) {
+    this.staticKeyword = staticKeyword;
     this._fieldList = becomeParentOf(fieldList);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -5865,14 +4721,14 @@ class FieldDeclaration extends ClassMember {
    *
    * @param comment the documentation comment associated with this field
    * @param metadata the annotations associated with this field
-   * @param keyword the token representing the 'static' keyword
+   * @param staticKeyword the token representing the 'static' keyword
    * @param fieldList the fields being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  FieldDeclaration({Comment comment, List<Annotation> metadata, Token keyword, VariableDeclarationList fieldList, Token semicolon}) : this.full(comment, metadata, keyword, fieldList, semicolon);
+  FieldDeclaration({Comment comment, List<Annotation> metadata, Token staticKeyword, VariableDeclarationList fieldList, Token semicolon}) : this.full(comment, metadata, staticKeyword, fieldList, semicolon);
   accept(ASTVisitor visitor) => visitor.visitFieldDeclaration(this);
   Element get element => null;
-  Token get endToken => _semicolon;
+  Token get endToken => semicolon;
 
   /**
    * Return the fields being declared.
@@ -5882,26 +4738,11 @@ class FieldDeclaration extends ClassMember {
   VariableDeclarationList get fields => _fieldList;
 
   /**
-   * Return the token representing the 'static' keyword, or `null` if the fields are not
-   * static.
-   *
-   * @return the token representing the 'static' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the semicolon terminating the declaration.
-   *
-   * @return the semicolon terminating the declaration
-   */
-  Token get semicolon => _semicolon;
-
-  /**
    * Return `true` if the fields are static.
    *
    * @return `true` if the fields are declared to be static
    */
-  bool get isStatic => _keyword != null;
+  bool get isStatic => staticKeyword != null;
 
   /**
    * Set the fields being declared to the given list of variables.
@@ -5911,31 +4752,13 @@ class FieldDeclaration extends ClassMember {
   void set fields(VariableDeclarationList fieldList) {
     fieldList = becomeParentOf(fieldList);
   }
-
-  /**
-   * Set the token representing the 'static' keyword to the given token.
-   *
-   * @param keyword the token representing the 'static' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the semicolon terminating the declaration to the given token.
-   *
-   * @param semicolon the semicolon terminating the declaration
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_fieldList, visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    if (_keyword != null) {
-      return _keyword;
+    if (staticKeyword != null) {
+      return staticKeyword;
     }
     return _fieldList.beginToken;
   }
@@ -5956,7 +4779,7 @@ class FieldFormalParameter extends NormalFormalParameter {
    * The token representing either the 'final', 'const' or 'var' keyword, or `null` if no
    * keyword was used.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The name of the declared type of the parameter, or `null` if the parameter does not have
@@ -5967,12 +4790,12 @@ class FieldFormalParameter extends NormalFormalParameter {
   /**
    * The token representing the 'this' keyword.
    */
-  Token _thisToken;
+  Token thisToken;
 
   /**
    * The token representing the period.
    */
-  Token _period;
+  Token period;
 
   /**
    * The parameters of the function-typed parameter, or `null` if this is not a function-typed
@@ -5994,10 +4817,10 @@ class FieldFormalParameter extends NormalFormalParameter {
    *          not a function-typed field formal parameter
    */
   FieldFormalParameter.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters) : super.full(comment, metadata, identifier) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._type = becomeParentOf(type);
-    this._thisToken = thisToken;
-    this._period = period;
+    this.thisToken = thisToken;
+    this.period = period;
     this._parameters = becomeParentOf(parameters);
   }
 
@@ -6017,22 +4840,14 @@ class FieldFormalParameter extends NormalFormalParameter {
   FieldFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters}) : this.full(comment, metadata, keyword, type, thisToken, period, identifier, parameters);
   accept(ASTVisitor visitor) => visitor.visitFieldFormalParameter(this);
   Token get beginToken {
-    if (_keyword != null) {
-      return _keyword;
+    if (keyword != null) {
+      return keyword;
     } else if (_type != null) {
       return _type.beginToken;
     }
-    return _thisToken;
+    return thisToken;
   }
   Token get endToken => identifier.endToken;
-
-  /**
-   * Return the token representing either the 'final', 'const' or 'var' keyword, or `null` if
-   * no keyword was used.
-   *
-   * @return the token representing either the 'final', 'const' or 'var' keyword
-   */
-  Token get keyword => _keyword;
 
   /**
    * Return the parameters of the function-typed parameter, or `null` if this is not a
@@ -6043,20 +4858,6 @@ class FieldFormalParameter extends NormalFormalParameter {
   FormalParameterList get parameters => _parameters;
 
   /**
-   * Return the token representing the period.
-   *
-   * @return the token representing the period
-   */
-  Token get period => _period;
-
-  /**
-   * Return the token representing the 'this' keyword.
-   *
-   * @return the token representing the 'this' keyword
-   */
-  Token get thisToken => _thisToken;
-
-  /**
    * Return the name of the declared type of the parameter, or `null` if the parameter does
    * not have a declared type. Note that if this is a function-typed field formal parameter this is
    * the return type of the function.
@@ -6064,43 +4865,16 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @return the name of the declared type of the parameter
    */
   TypeName get type => _type;
-  bool get isConst => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
-  bool get isFinal => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
-
-  /**
-   * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
-   *
-   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
+  bool get isConst => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isFinal => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the parameters of the function-typed parameter to the given parameters.
    *
    * @param parameters the parameters of the function-typed parameter
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
-  }
-
-  /**
-   * Set the token representing the period to the given token.
-   *
-   * @param period the token representing the period
-   */
-  void set period(Token period2) {
-    this._period = period2;
-  }
-
-  /**
-   * Set the token representing the 'this' keyword to the given token.
-   *
-   * @param thisToken the token representing the 'this' keyword
-   */
-  void set thisToken(Token thisToken2) {
-    this._thisToken = thisToken2;
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -6111,7 +4885,7 @@ class FieldFormalParameter extends NormalFormalParameter {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
@@ -6123,7 +4897,8 @@ class FieldFormalParameter extends NormalFormalParameter {
  *
  * <pre>
  * forEachStatement ::=
- *     'for' '(' [SimpleFormalParameter] 'in' [Expression] ')' [Block]
+ *     'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
+ *   | 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  * </pre>
  *
  * @coverage dart.engine.ast
@@ -6133,22 +4908,28 @@ class ForEachStatement extends Statement {
   /**
    * The token representing the 'for' keyword.
    */
-  Token _forKeyword;
+  Token forKeyword;
 
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
-   * The declaration of the loop variable.
+   * The declaration of the loop variable, or `null` if the loop variable is a simple
+   * identifier.
    */
   DeclaredIdentifier _loopVariable;
 
   /**
+   * The loop variable, or `null` if the loop variable is declared in the 'for'.
+   */
+  SimpleIdentifier _identifier;
+
+  /**
    * The token representing the 'in' keyword.
    */
-  Token _inKeyword;
+  Token inKeyword;
 
   /**
    * The expression evaluated to produce the iterator.
@@ -6158,7 +4939,7 @@ class ForEachStatement extends Statement {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The body of the loop.
@@ -6175,13 +4956,13 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.full(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
-    this._forKeyword = forKeyword;
-    this._leftParenthesis = leftParenthesis;
+  ForEachStatement.con1_full(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
     this._loopVariable = becomeParentOf(loopVariable);
-    this._inKeyword = inKeyword;
+    this.inKeyword = inKeyword;
     this._iterator = becomeParentOf(iterator);
-    this._rightParenthesis = rightParenthesis;
+    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
 
@@ -6195,9 +4976,41 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement({Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
+  ForEachStatement.con1({Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.con1_full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
+
+  /**
+   * Initialize a newly created for-each statement.
+   *
+   * @param forKeyword the token representing the 'for' keyword
+   * @param leftParenthesis the left parenthesis
+   * @param identifier the loop variable
+   * @param iterator the expression evaluated to produce the iterator
+   * @param rightParenthesis the right parenthesis
+   * @param body the body of the loop
+   */
+  ForEachStatement.con2_full(Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    this._identifier = becomeParentOf(identifier);
+    this.inKeyword = inKeyword;
+    this._iterator = becomeParentOf(iterator);
+    this.rightParenthesis = rightParenthesis;
+    this._body = becomeParentOf(body);
+  }
+
+  /**
+   * Initialize a newly created for-each statement.
+   *
+   * @param forKeyword the token representing the 'for' keyword
+   * @param leftParenthesis the left parenthesis
+   * @param identifier the loop variable
+   * @param iterator the expression evaluated to produce the iterator
+   * @param rightParenthesis the right parenthesis
+   * @param body the body of the loop
+   */
+  ForEachStatement.con2({Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.con2_full(forKeyword, leftParenthesis, identifier, inKeyword, iterator, rightParenthesis, body);
   accept(ASTVisitor visitor) => visitor.visitForEachStatement(this);
-  Token get beginToken => _forKeyword;
+  Token get beginToken => forKeyword;
 
   /**
    * Return the body of the loop.
@@ -6208,18 +5021,11 @@ class ForEachStatement extends Statement {
   Token get endToken => _body.endToken;
 
   /**
-   * Return the token representing the 'for' keyword.
+   * Return the loop variable, or `null` if the loop variable is declared in the 'for'.
    *
-   * @return the token representing the 'for' keyword
+   * @return the loop variable
    */
-  Token get forKeyword => _forKeyword;
-
-  /**
-   * Return the token representing the 'in' keyword.
-   *
-   * @return the token representing the 'in' keyword
-   */
-  Token get inKeyword => _inKeyword;
+  SimpleIdentifier get identifier => _identifier;
 
   /**
    * Return the expression evaluated to produce the iterator.
@@ -6229,51 +5035,29 @@ class ForEachStatement extends Statement {
   Expression get iterator => _iterator;
 
   /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the declaration of the loop variable.
+   * Return the declaration of the loop variable, or `null` if the loop variable is a simple
+   * identifier.
    *
    * @return the declaration of the loop variable
    */
   DeclaredIdentifier get loopVariable => _loopVariable;
 
   /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
    * Set the body of the loop to the given block.
    *
    * @param body the body of the loop
    */
-  void set body(Statement body2) {
-    this._body = becomeParentOf(body2);
+  void set body(Statement body) {
+    this._body = becomeParentOf(body);
   }
 
   /**
-   * Set the token representing the 'for' keyword to the given token.
+   * Set the loop variable to the given variable.
    *
-   * @param forKeyword the token representing the 'for' keyword
+   * @param identifier the loop variable
    */
-  void set forKeyword(Token forKeyword2) {
-    this._forKeyword = forKeyword2;
-  }
-
-  /**
-   * Set the token representing the 'in' keyword to the given token.
-   *
-   * @param inKeyword the token representing the 'in' keyword
-   */
-  void set inKeyword(Token inKeyword2) {
-    this._inKeyword = inKeyword2;
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -6286,15 +5070,6 @@ class ForEachStatement extends Statement {
   }
 
   /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param leftParenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token leftParenthesis2) {
-    this._leftParenthesis = leftParenthesis2;
-  }
-
-  /**
    * Set the declaration of the loop variable to the given variable.
    *
    * @param variable the declaration of the loop variable
@@ -6302,17 +5077,9 @@ class ForEachStatement extends Statement {
   void set loopVariable(DeclaredIdentifier variable) {
     _loopVariable = becomeParentOf(variable);
   }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param rightParenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token rightParenthesis2) {
-    this._rightParenthesis = rightParenthesis2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_loopVariable, visitor);
+    safelyVisitChild(_identifier, visitor);
     safelyVisitChild(_iterator, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -6339,12 +5106,12 @@ class ForStatement extends Statement {
   /**
    * The token representing the 'for' keyword.
    */
-  Token _forKeyword;
+  Token forKeyword;
 
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The declaration of the loop variables, or `null` if there are no variables. Note that a
@@ -6363,7 +5130,7 @@ class ForStatement extends Statement {
   /**
    * The semicolon separating the initializer and the condition.
    */
-  Token _leftSeparator;
+  Token leftSeparator;
 
   /**
    * The condition used to determine when to terminate the loop, or `null` if there is no
@@ -6374,17 +5141,17 @@ class ForStatement extends Statement {
   /**
    * The semicolon separating the condition and the updater.
    */
-  Token _rightSeparator;
+  Token rightSeparator;
 
   /**
    * The list of expressions run after each execution of the loop body.
    */
-  NodeList<Expression> _updaters;
+  NodeList<Expression> updaters;
 
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The body of the loop.
@@ -6406,16 +5173,16 @@ class ForStatement extends Statement {
    * @param body the body of the loop
    */
   ForStatement.full(Token forKeyword, Token leftParenthesis, VariableDeclarationList variableList, Expression initialization, Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters, Token rightParenthesis, Statement body) {
-    this._updaters = new NodeList<Expression>(this);
-    this._forKeyword = forKeyword;
-    this._leftParenthesis = leftParenthesis;
+    this.updaters = new NodeList<Expression>(this);
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
     this._variableList = becomeParentOf(variableList);
     this._initialization = becomeParentOf(initialization);
-    this._leftSeparator = leftSeparator;
+    this.leftSeparator = leftSeparator;
     this._condition = becomeParentOf(condition);
-    this._rightSeparator = rightSeparator;
-    this._updaters.addAll(updaters);
-    this._rightParenthesis = rightParenthesis;
+    this.rightSeparator = rightSeparator;
+    this.updaters.addAll(updaters);
+    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
 
@@ -6435,7 +5202,7 @@ class ForStatement extends Statement {
    */
   ForStatement({Token forKeyword, Token leftParenthesis, VariableDeclarationList variableList, Expression initialization, Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters, Token rightParenthesis, Statement body}) : this.full(forKeyword, leftParenthesis, variableList, initialization, leftSeparator, condition, rightSeparator, updaters, rightParenthesis, body);
   accept(ASTVisitor visitor) => visitor.visitForStatement(this);
-  Token get beginToken => _forKeyword;
+  Token get beginToken => forKeyword;
 
   /**
    * Return the body of the loop.
@@ -6454,53 +5221,11 @@ class ForStatement extends Statement {
   Token get endToken => _body.endToken;
 
   /**
-   * Return the token representing the 'for' keyword.
-   *
-   * @return the token representing the 'for' keyword
-   */
-  Token get forKeyword => _forKeyword;
-
-  /**
    * Return the initialization expression, or `null` if there is no initialization expression.
    *
    * @return the initialization expression
    */
   Expression get initialization => _initialization;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the semicolon separating the initializer and the condition.
-   *
-   * @return the semicolon separating the initializer and the condition
-   */
-  Token get leftSeparator => _leftSeparator;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
-   * Return the semicolon separating the condition and the updater.
-   *
-   * @return the semicolon separating the condition and the updater
-   */
-  Token get rightSeparator => _rightSeparator;
-
-  /**
-   * Return the list of expressions run after each execution of the loop body.
-   *
-   * @return the list of expressions run after each execution of the loop body
-   */
-  NodeList<Expression> get updaters => _updaters;
 
   /**
    * Return the declaration of the loop variables, or `null` if there are no variables.
@@ -6514,8 +5239,8 @@ class ForStatement extends Statement {
    *
    * @param body the body of the loop
    */
-  void set body(Statement body2) {
-    this._body = becomeParentOf(body2);
+  void set body(Statement body) {
+    this._body = becomeParentOf(body);
   }
 
   /**
@@ -6528,57 +5253,12 @@ class ForStatement extends Statement {
   }
 
   /**
-   * Set the token representing the 'for' keyword to the given token.
-   *
-   * @param forKeyword the token representing the 'for' keyword
-   */
-  void set forKeyword(Token forKeyword2) {
-    this._forKeyword = forKeyword2;
-  }
-
-  /**
    * Set the initialization expression to the given expression.
    *
    * @param initialization the initialization expression
    */
-  void set initialization(Expression initialization2) {
-    this._initialization = becomeParentOf(initialization2);
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param leftParenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token leftParenthesis2) {
-    this._leftParenthesis = leftParenthesis2;
-  }
-
-  /**
-   * Set the semicolon separating the initializer and the condition to the given token.
-   *
-   * @param leftSeparator the semicolon separating the initializer and the condition
-   */
-  void set leftSeparator(Token leftSeparator2) {
-    this._leftSeparator = leftSeparator2;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param rightParenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token rightParenthesis2) {
-    this._rightParenthesis = rightParenthesis2;
-  }
-
-  /**
-   * Set the semicolon separating the condition and the updater to the given token.
-   *
-   * @param rightSeparator the semicolon separating the condition and the updater
-   */
-  void set rightSeparator(Token rightSeparator2) {
-    this._rightSeparator = rightSeparator2;
+  void set initialization(Expression initialization) {
+    this._initialization = becomeParentOf(initialization);
   }
 
   /**
@@ -6589,11 +5269,11 @@ class ForStatement extends Statement {
   void set variables(VariableDeclarationList variableList) {
     variableList = becomeParentOf(variableList);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
     safelyVisitChild(_initialization, visitor);
     safelyVisitChild(_condition, visitor);
-    _updaters.accept(visitor);
+    updaters.accept(visitor);
     safelyVisitChild(_body, visitor);
   }
 }
@@ -6623,7 +5303,7 @@ abstract class FormalParameter extends ASTNode {
     if (identifier == null) {
       return null;
     }
-    return identifier.element as ParameterElement;
+    return identifier.staticElement as ParameterElement;
   }
 
   /**
@@ -6697,7 +5377,7 @@ class FormalParameterList extends ASTNode {
   /**
    * The parameters associated with the method.
    */
-  NodeList<FormalParameter> _parameters;
+  NodeList<FormalParameter> parameters;
 
   /**
    * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters, or
@@ -6726,9 +5406,9 @@ class FormalParameterList extends ASTNode {
    * @param rightParenthesis the right parenthesis
    */
   FormalParameterList.full(Token leftParenthesis, List<FormalParameter> parameters, Token leftDelimiter, Token rightDelimiter, Token rightParenthesis) {
-    this._parameters = new NodeList<FormalParameter>(this);
+    this.parameters = new NodeList<FormalParameter>(this);
     this._leftParenthesis = leftParenthesis;
-    this._parameters.addAll(parameters);
+    this.parameters.addAll(parameters);
     this._leftDelimiter = leftDelimiter;
     this._rightDelimiter = rightDelimiter;
     this._rightParenthesis = rightParenthesis;
@@ -6771,20 +5451,13 @@ class FormalParameterList extends ASTNode {
    * @return the elements representing the parameters in this list
    */
   List<ParameterElement> get parameterElements {
-    int count = _parameters.length;
+    int count = parameters.length;
     List<ParameterElement> types = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
-      types[i] = _parameters[i].element;
+      types[i] = parameters[i].element;
     }
     return types;
   }
-
-  /**
-   * Return the parameters associated with the method.
-   *
-   * @return the parameters associated with the method
-   */
-  NodeList<FormalParameter> get parameters => _parameters;
 
   /**
    * Return the right square bracket (']') or right curly brace ('}') introducing the optional
@@ -6839,8 +5512,8 @@ class FormalParameterList extends ASTNode {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _parameters.accept(visitor);
+  void visitChildren(ASTVisitor visitor) {
+    parameters.accept(visitor);
   }
 }
 /**
@@ -6878,7 +5551,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * The token representing the 'external' keyword, or `null` if this is not an external
    * function.
    */
-  Token _externalKeyword;
+  Token externalKeyword;
 
   /**
    * The return type of the function, or `null` if no return type was declared.
@@ -6889,7 +5562,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    * The token representing the 'get' or 'set' keyword, or `null` if this is a function
    * declaration rather than a property declaration.
    */
-  Token _propertyKeyword;
+  Token propertyKeyword;
 
   /**
    * The name of the function, or `null` if the function is not named.
@@ -6913,9 +5586,9 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param functionExpression the function expression being wrapped
    */
   FunctionDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, TypeName returnType, Token propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression) : super.full(comment, metadata) {
-    this._externalKeyword = externalKeyword;
+    this.externalKeyword = externalKeyword;
     this._returnType = becomeParentOf(returnType);
-    this._propertyKeyword = propertyKeyword;
+    this.propertyKeyword = propertyKeyword;
     this._name = becomeParentOf(name);
     this._functionExpression = becomeParentOf(functionExpression);
   }
@@ -6933,16 +5606,8 @@ class FunctionDeclaration extends CompilationUnitMember {
    */
   FunctionDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, TypeName returnType, Token propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression}) : this.full(comment, metadata, externalKeyword, returnType, propertyKeyword, name, functionExpression);
   accept(ASTVisitor visitor) => visitor.visitFunctionDeclaration(this);
-  ExecutableElement get element => _name != null ? (_name.element as ExecutableElement) : null;
+  ExecutableElement get element => _name != null ? (_name.staticElement as ExecutableElement) : null;
   Token get endToken => _functionExpression.endToken;
-
-  /**
-   * Return the token representing the 'external' keyword, or `null` if this is not an
-   * external function.
-   *
-   * @return the token representing the 'external' keyword
-   */
-  Token get externalKeyword => _externalKeyword;
 
   /**
    * Return the function expression being wrapped.
@@ -6959,14 +5624,6 @@ class FunctionDeclaration extends CompilationUnitMember {
   SimpleIdentifier get name => _name;
 
   /**
-   * Return the token representing the 'get' or 'set' keyword, or `null` if this is a function
-   * declaration rather than a property declaration.
-   *
-   * @return the token representing the 'get' or 'set' keyword
-   */
-  Token get propertyKeyword => _propertyKeyword;
-
-  /**
    * Return the return type of the function, or `null` if no return type was declared.
    *
    * @return the return type of the function
@@ -6978,31 +5635,22 @@ class FunctionDeclaration extends CompilationUnitMember {
    *
    * @return `true` if this function declares a getter
    */
-  bool get isGetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.GET);
+  bool get isGetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.GET);
 
   /**
    * Return `true` if this function declares a setter.
    *
    * @return `true` if this function declares a setter
    */
-  bool get isSetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
-
-  /**
-   * Set the token representing the 'external' keyword to the given token.
-   *
-   * @param externalKeyword the token representing the 'external' keyword
-   */
-  void set externalKeyword(Token externalKeyword2) {
-    this._externalKeyword = externalKeyword2;
-  }
+  bool get isSetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.SET);
 
   /**
    * Set the function expression being wrapped to the given function expression.
    *
    * @param functionExpression the function expression being wrapped
    */
-  void set functionExpression(FunctionExpression functionExpression2) {
-    functionExpression2 = becomeParentOf(functionExpression2);
+  void set functionExpression(FunctionExpression functionExpression) {
+    functionExpression = becomeParentOf(functionExpression);
   }
 
   /**
@@ -7015,15 +5663,6 @@ class FunctionDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Set the token representing the 'get' or 'set' keyword to the given token.
-   *
-   * @param propertyKeyword the token representing the 'get' or 'set' keyword
-   */
-  void set propertyKeyword(Token propertyKeyword2) {
-    this._propertyKeyword = propertyKeyword2;
-  }
-
-  /**
    * Set the return type of the function to the given name.
    *
    * @param name the return type of the function
@@ -7031,20 +5670,20 @@ class FunctionDeclaration extends CompilationUnitMember {
   void set returnType(TypeName name) {
     _returnType = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_functionExpression, visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    if (_externalKeyword != null) {
-      return _externalKeyword;
+    if (externalKeyword != null) {
+      return externalKeyword;
     }
     if (_returnType != null) {
       return _returnType.beginToken;
-    } else if (_propertyKeyword != null) {
-      return _propertyKeyword;
+    } else if (propertyKeyword != null) {
+      return propertyKeyword;
     } else if (_name != null) {
       return _name.beginToken;
     }
@@ -7062,7 +5701,7 @@ class FunctionDeclarationStatement extends Statement {
   /**
    * The function declaration being wrapped.
    */
-  FunctionDeclaration _functionDeclaration;
+  FunctionDeclaration functionDeclaration;
 
   /**
    * Initialize a newly created function declaration statement.
@@ -7070,7 +5709,7 @@ class FunctionDeclarationStatement extends Statement {
    * @param functionDeclaration the the function declaration being wrapped
    */
   FunctionDeclarationStatement.full(FunctionDeclaration functionDeclaration) {
-    this._functionDeclaration = becomeParentOf(functionDeclaration);
+    this.functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
   /**
@@ -7080,26 +5719,19 @@ class FunctionDeclarationStatement extends Statement {
    */
   FunctionDeclarationStatement({FunctionDeclaration functionDeclaration}) : this.full(functionDeclaration);
   accept(ASTVisitor visitor) => visitor.visitFunctionDeclarationStatement(this);
-  Token get beginToken => _functionDeclaration.beginToken;
-  Token get endToken => _functionDeclaration.endToken;
-
-  /**
-   * Return the function declaration being wrapped.
-   *
-   * @return the function declaration being wrapped
-   */
-  FunctionDeclaration get functionDeclaration => _functionDeclaration;
+  Token get beginToken => functionDeclaration.beginToken;
+  Token get endToken => functionDeclaration.endToken;
 
   /**
    * Set the function declaration being wrapped to the given function declaration.
    *
    * @param functionDeclaration the function declaration being wrapped
    */
-  void set functionExpression(FunctionDeclaration functionDeclaration2) {
-    this._functionDeclaration = becomeParentOf(functionDeclaration2);
+  void set functionExpression(FunctionDeclaration functionDeclaration) {
+    this.functionDeclaration = becomeParentOf(functionDeclaration);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(_functionDeclaration, visitor);
+  void visitChildren(ASTVisitor visitor) {
+    safelyVisitChild(functionDeclaration, visitor);
   }
 }
 /**
@@ -7128,7 +5760,7 @@ class FunctionExpression extends Expression {
    * The element associated with the function, or `null` if the AST structure has not been
    * resolved.
    */
-  ExecutableElement _element;
+  ExecutableElement element;
 
   /**
    * Initialize a newly created function declaration.
@@ -7164,14 +5796,6 @@ class FunctionExpression extends Expression {
    * @return the body of the function
    */
   FunctionBody get body => _body;
-
-  /**
-   * Return the element associated with this function, or `null` if the AST structure has not
-   * been resolved.
-   *
-   * @return the element associated with this function
-   */
-  ExecutableElement get element => _element;
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
@@ -7198,23 +5822,14 @@ class FunctionExpression extends Expression {
   }
 
   /**
-   * Set the element associated with this function to the given element.
-   *
-   * @param element the element associated with this function
-   */
-  void set element(ExecutableElement element2) {
-    this._element = element2;
-  }
-
-  /**
    * Set the parameters associated with the function to the given list of parameters.
    *
    * @param parameters the parameters associated with the function
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_parameters, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -7249,7 +5864,7 @@ class FunctionExpressionInvocation extends Expression {
    * The element associated with the function being invoked based on static type information, or
    * `null` if the AST structure has not been resolved or the function could not be resolved.
    */
-  ExecutableElement _staticElement;
+  ExecutableElement staticElement;
 
   /**
    * The element associated with the function being invoked based on propagated type information, or
@@ -7320,22 +5935,12 @@ class FunctionExpressionInvocation extends Expression {
   ExecutableElement get propagatedElement => _propagatedElement;
 
   /**
-   * Return the element associated with the function being invoked based on static type information,
-   * or `null` if the AST structure has not been resolved or the function could not be
-   * resolved. One common example of the latter case is an expression whose value can change over
-   * time.
-   *
-   * @return the element associated with the function
-   */
-  ExecutableElement get staticElement => _staticElement;
-
-  /**
    * Set the list of arguments to the method to the given list.
    *
    * @param argumentList the list of arguments to the method
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -7343,8 +5948,8 @@ class FunctionExpressionInvocation extends Expression {
    *
    * @param function the expression producing the function being invoked
    */
-  void set function(Expression function2) {
-    function2 = becomeParentOf(function2);
+  void set function(Expression function) {
+    function = becomeParentOf(function);
   }
 
   /**
@@ -7356,17 +5961,7 @@ class FunctionExpressionInvocation extends Expression {
   void set propagatedElement(ExecutableElement element) {
     _propagatedElement = element;
   }
-
-  /**
-   * Set the element associated with the function being invoked based on static type information to
-   * the given element.
-   *
-   * @param element the element to be associated with the function
-   */
-  void set staticElement(ExecutableElement element) {
-    this._staticElement = element;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_function, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -7441,7 +6036,7 @@ class FunctionTypeAlias extends TypeAlias {
    */
   FunctionTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon}) : this.full(comment, metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
   accept(ASTVisitor visitor) => visitor.visitFunctionTypeAlias(this);
-  FunctionTypeAliasElement get element => _name != null ? (_name.element as FunctionTypeAliasElement) : null;
+  FunctionTypeAliasElement get element => _name != null ? (_name.staticElement as FunctionTypeAliasElement) : null;
 
   /**
    * Return the name of the function type being declared.
@@ -7478,8 +6073,8 @@ class FunctionTypeAlias extends TypeAlias {
    *
    * @param name the name of the function type being declared
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
 
   /**
@@ -7487,8 +6082,8 @@ class FunctionTypeAlias extends TypeAlias {
    *
    * @param parameters the parameters associated with the function type
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -7505,10 +6100,10 @@ class FunctionTypeAlias extends TypeAlias {
    *
    * @param typeParameters the type parameters for the function type
    */
-  void set typeParameters(TypeParameterList typeParameters2) {
-    this._typeParameters = becomeParentOf(typeParameters2);
+  void set typeParameters(TypeParameterList typeParameters) {
+    this._typeParameters = becomeParentOf(typeParameters);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -7596,8 +6191,8 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    *
    * @param parameters the parameters of the function-typed parameter
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -7605,10 +6200,10 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    *
    * @param returnType the return type of the function
    */
-  void set returnType(TypeName returnType2) {
-    this._returnType = becomeParentOf(returnType2);
+  void set returnType(TypeName returnType) {
+    this._returnType = becomeParentOf(returnType);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(identifier, visitor);
@@ -7631,7 +6226,7 @@ class HideCombinator extends Combinator {
   /**
    * The list of names from the library that are hidden by this combinator.
    */
-  NodeList<SimpleIdentifier> _hiddenNames;
+  NodeList<SimpleIdentifier> hiddenNames;
 
   /**
    * Initialize a newly created import show combinator.
@@ -7640,8 +6235,8 @@ class HideCombinator extends Combinator {
    * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
   HideCombinator.full(Token keyword, List<SimpleIdentifier> hiddenNames) : super.full(keyword) {
-    this._hiddenNames = new NodeList<SimpleIdentifier>(this);
-    this._hiddenNames.addAll(hiddenNames);
+    this.hiddenNames = new NodeList<SimpleIdentifier>(this);
+    this.hiddenNames.addAll(hiddenNames);
   }
 
   /**
@@ -7652,16 +6247,9 @@ class HideCombinator extends Combinator {
    */
   HideCombinator({Token keyword, List<SimpleIdentifier> hiddenNames}) : this.full(keyword, hiddenNames);
   accept(ASTVisitor visitor) => visitor.visitHideCombinator(this);
-  Token get endToken => _hiddenNames.endToken;
-
-  /**
-   * Return the list of names from the library that are hidden by this combinator.
-   *
-   * @return the list of names from the library that are hidden by this combinator
-   */
-  NodeList<SimpleIdentifier> get hiddenNames => _hiddenNames;
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _hiddenNames.accept(visitor);
+  Token get endToken => hiddenNames.endToken;
+  void visitChildren(ASTVisitor visitor) {
+    hiddenNames.accept(visitor);
   }
 }
 /**
@@ -7688,14 +6276,14 @@ abstract class Identifier extends Expression {
   static bool isPrivateName(String name) => name.startsWith("_");
 
   /**
-   * Return the element associated with this identifier based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if this identifier could not be
-   * resolved. One example of the latter case is an identifier that is not defined within the scope
-   * in which it appears.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then `null` will be returned.
    *
-   * @return the element associated with this identifier
+   * @return the best element available for this operator
    */
-  Element get element;
+  Element get bestElement;
 
   /**
    * Return the lexical representation of the identifier.
@@ -7703,6 +6291,16 @@ abstract class Identifier extends Expression {
    * @return the lexical representation of the identifier
    */
   String get name;
+
+  /**
+   * Return the element associated with this identifier based on propagated type information, or
+   * `null` if the AST structure has not been resolved or if this identifier could not be
+   * resolved. One example of the latter case is an identifier that is not defined within the scope
+   * in which it appears.
+   *
+   * @return the element associated with this identifier
+   */
+  Element get propagatedElement;
 
   /**
    * Return the element associated with this identifier based on static type information, or
@@ -7730,12 +6328,12 @@ class IfStatement extends Statement {
   /**
    * The token representing the 'if' keyword.
    */
-  Token _ifKeyword;
+  Token ifKeyword;
 
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The condition used to determine which of the statements is executed next.
@@ -7745,7 +6343,7 @@ class IfStatement extends Statement {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The statement that is executed if the condition evaluates to `true`.
@@ -7755,7 +6353,7 @@ class IfStatement extends Statement {
   /**
    * The token representing the 'else' keyword, or `null` if there is no else statement.
    */
-  Token _elseKeyword;
+  Token elseKeyword;
 
   /**
    * The statement that is executed if the condition evaluates to `false`, or `null` if
@@ -7775,12 +6373,12 @@ class IfStatement extends Statement {
    * @param elseStatement the statement that is executed if the condition evaluates to `false`
    */
   IfStatement.full(Token ifKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement thenStatement, Token elseKeyword, Statement elseStatement) {
-    this._ifKeyword = ifKeyword;
-    this._leftParenthesis = leftParenthesis;
+    this.ifKeyword = ifKeyword;
+    this.leftParenthesis = leftParenthesis;
     this._condition = becomeParentOf(condition);
-    this._rightParenthesis = rightParenthesis;
+    this.rightParenthesis = rightParenthesis;
     this._thenStatement = becomeParentOf(thenStatement);
-    this._elseKeyword = elseKeyword;
+    this.elseKeyword = elseKeyword;
     this._elseStatement = becomeParentOf(elseStatement);
   }
 
@@ -7797,7 +6395,7 @@ class IfStatement extends Statement {
    */
   IfStatement({Token ifKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement thenStatement, Token elseKeyword, Statement elseStatement}) : this.full(ifKeyword, leftParenthesis, condition, rightParenthesis, thenStatement, elseKeyword, elseStatement);
   accept(ASTVisitor visitor) => visitor.visitIfStatement(this);
-  Token get beginToken => _ifKeyword;
+  Token get beginToken => ifKeyword;
 
   /**
    * Return the condition used to determine which of the statements is executed next.
@@ -7805,14 +6403,6 @@ class IfStatement extends Statement {
    * @return the condition used to determine which statement is executed next
    */
   Expression get condition => _condition;
-
-  /**
-   * Return the token representing the 'else' keyword, or `null` if there is no else
-   * statement.
-   *
-   * @return the token representing the 'else' keyword
-   */
-  Token get elseKeyword => _elseKeyword;
 
   /**
    * Return the statement that is executed if the condition evaluates to `false`, or
@@ -7827,27 +6417,6 @@ class IfStatement extends Statement {
     }
     return _thenStatement.endToken;
   }
-
-  /**
-   * Return the token representing the 'if' keyword.
-   *
-   * @return the token representing the 'if' keyword
-   */
-  Token get ifKeyword => _ifKeyword;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
 
   /**
    * Return the statement that is executed if the condition evaluates to `true`.
@@ -7867,15 +6436,6 @@ class IfStatement extends Statement {
   }
 
   /**
-   * Set the token representing the 'else' keyword to the given token.
-   *
-   * @param elseKeyword the token representing the 'else' keyword
-   */
-  void set elseKeyword(Token elseKeyword2) {
-    this._elseKeyword = elseKeyword2;
-  }
-
-  /**
    * Set the statement that is executed if the condition evaluates to `false` to the given
    * statement.
    *
@@ -7883,33 +6443,6 @@ class IfStatement extends Statement {
    */
   void set elseStatement(Statement statement) {
     _elseStatement = becomeParentOf(statement);
-  }
-
-  /**
-   * Set the token representing the 'if' keyword to the given token.
-   *
-   * @param ifKeyword the token representing the 'if' keyword
-   */
-  void set ifKeyword(Token ifKeyword2) {
-    this._ifKeyword = ifKeyword2;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param leftParenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token leftParenthesis2) {
-    this._leftParenthesis = leftParenthesis2;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param rightParenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token rightParenthesis2) {
-    this._rightParenthesis = rightParenthesis2;
   }
 
   /**
@@ -7921,7 +6454,7 @@ class IfStatement extends Statement {
   void set thenStatement(Statement statement) {
     _thenStatement = becomeParentOf(statement);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenStatement, visitor);
     safelyVisitChild(_elseStatement, visitor);
@@ -7943,12 +6476,12 @@ class ImplementsClause extends ASTNode {
   /**
    * The token representing the 'implements' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The interfaces that are being implemented.
    */
-  NodeList<TypeName> _interfaces;
+  NodeList<TypeName> interfaces;
 
   /**
    * Initialize a newly created implements clause.
@@ -7957,9 +6490,9 @@ class ImplementsClause extends ASTNode {
    * @param interfaces the interfaces that are being implemented
    */
   ImplementsClause.full(Token keyword, List<TypeName> interfaces) {
-    this._interfaces = new NodeList<TypeName>(this);
-    this._keyword = keyword;
-    this._interfaces.addAll(interfaces);
+    this.interfaces = new NodeList<TypeName>(this);
+    this.keyword = keyword;
+    this.interfaces.addAll(interfaces);
   }
 
   /**
@@ -7970,33 +6503,10 @@ class ImplementsClause extends ASTNode {
    */
   ImplementsClause({Token keyword, List<TypeName> interfaces}) : this.full(keyword, interfaces);
   accept(ASTVisitor visitor) => visitor.visitImplementsClause(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _interfaces.endToken;
-
-  /**
-   * Return the list of the interfaces that are being implemented.
-   *
-   * @return the list of the interfaces that are being implemented
-   */
-  NodeList<TypeName> get interfaces => _interfaces;
-
-  /**
-   * Return the token representing the 'implements' keyword.
-   *
-   * @return the token representing the 'implements' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Set the token representing the 'implements' keyword to the given token.
-   *
-   * @param keyword the token representing the 'implements' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _interfaces.accept(visitor);
+  Token get beginToken => keyword;
+  Token get endToken => interfaces.endToken;
+  void visitChildren(ASTVisitor visitor) {
+    interfaces.accept(visitor);
   }
 }
 /**
@@ -8010,11 +6520,90 @@ class ImplementsClause extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ImportDirective extends NamespaceDirective {
+  static Comparator<ImportDirective> COMPARATOR = (ImportDirective import1, ImportDirective import2) {
+    StringLiteral uri1 = import1.uri;
+    StringLiteral uri2 = import2.uri;
+    String uriStr1 = uri1.stringValue;
+    String uriStr2 = uri2.stringValue;
+    if (uriStr1 != null || uriStr2 != null) {
+      if (uriStr1 == null) {
+        return -1;
+      } else if (uriStr2 == null) {
+        return 1;
+      } else {
+        int compare = uriStr1.compareTo(uriStr2);
+        if (compare != 0) {
+          return compare;
+        }
+      }
+    }
+    SimpleIdentifier prefix1 = import1.prefix;
+    SimpleIdentifier prefix2 = import2.prefix;
+    String prefixStr1 = prefix1 != null ? prefix1.name : null;
+    String prefixStr2 = prefix2 != null ? prefix2.name : null;
+    if (prefixStr1 != null || prefixStr2 != null) {
+      if (prefixStr1 == null) {
+        return -1;
+      } else if (prefixStr2 == null) {
+        return 1;
+      } else {
+        int compare = prefixStr1.compareTo(prefixStr2);
+        if (compare != 0) {
+          return compare;
+        }
+      }
+    }
+    NodeList<Combinator> combinators1 = import1.combinators;
+    List<String> allHides1 = new List<String>();
+    List<String> allShows1 = new List<String>();
+    for (Combinator combinator in combinators1) {
+      if (combinator is HideCombinator) {
+        NodeList<SimpleIdentifier> hides = ((combinator as HideCombinator)).hiddenNames;
+        for (SimpleIdentifier simpleIdentifier in hides) {
+          allHides1.add(simpleIdentifier.name);
+        }
+      } else {
+        NodeList<SimpleIdentifier> shows = ((combinator as ShowCombinator)).shownNames;
+        for (SimpleIdentifier simpleIdentifier in shows) {
+          allShows1.add(simpleIdentifier.name);
+        }
+      }
+    }
+    NodeList<Combinator> combinators2 = import2.combinators;
+    List<String> allHides2 = new List<String>();
+    List<String> allShows2 = new List<String>();
+    for (Combinator combinator in combinators2) {
+      if (combinator is HideCombinator) {
+        NodeList<SimpleIdentifier> hides = ((combinator as HideCombinator)).hiddenNames;
+        for (SimpleIdentifier simpleIdentifier in hides) {
+          allHides2.add(simpleIdentifier.name);
+        }
+      } else {
+        NodeList<SimpleIdentifier> shows = ((combinator as ShowCombinator)).shownNames;
+        for (SimpleIdentifier simpleIdentifier in shows) {
+          allShows2.add(simpleIdentifier.name);
+        }
+      }
+    }
+    if (allHides1.length != allHides2.length) {
+      return allHides1.length - allHides2.length;
+    }
+    if (allShows1.length != allShows2.length) {
+      return allShows1.length - allShows2.length;
+    }
+    if (!javaCollectionContainsAll(allHides1, allHides2)) {
+      return -1;
+    }
+    if (!javaCollectionContainsAll(allShows1, allShows2)) {
+      return -1;
+    }
+    return 0;
+  };
 
   /**
    * The token representing the 'as' token, or `null` if the imported names are not prefixed.
    */
-  Token _asToken;
+  Token asToken;
 
   /**
    * The prefix to be used with the imported names, or `null` if the imported names are not
@@ -8035,7 +6624,7 @@ class ImportDirective extends NamespaceDirective {
    * @param semicolon the semicolon terminating the directive
    */
   ImportDirective.full(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super.full(comment, metadata, keyword, libraryUri, combinators, semicolon) {
-    this._asToken = asToken;
+    this.asToken = asToken;
     this._prefix = becomeParentOf(prefix);
   }
 
@@ -8053,14 +6642,7 @@ class ImportDirective extends NamespaceDirective {
    */
   ImportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, asToken, prefix, combinators, semicolon);
   accept(ASTVisitor visitor) => visitor.visitImportDirective(this);
-
-  /**
-   * Return the token representing the 'as' token, or `null` if the imported names are not
-   * prefixed.
-   *
-   * @return the token representing the 'as' token
-   */
-  Token get asToken => _asToken;
+  ImportElement get element => super.element as ImportElement;
 
   /**
    * Return the prefix to be used with the imported names, or `null` if the imported names are
@@ -8070,20 +6652,11 @@ class ImportDirective extends NamespaceDirective {
    */
   SimpleIdentifier get prefix => _prefix;
   LibraryElement get uriElement {
-    Element element = this.element;
-    if (element is ImportElement) {
-      return ((element as ImportElement)).importedLibrary;
+    ImportElement element = this.element;
+    if (element == null) {
+      return null;
     }
-    return null;
-  }
-
-  /**
-   * Set the token representing the 'as' token to the given token.
-   *
-   * @param asToken the token representing the 'as' token
-   */
-  void set asToken(Token asToken2) {
-    this._asToken = asToken2;
+    return element.importedLibrary;
   }
 
   /**
@@ -8091,10 +6664,10 @@ class ImportDirective extends NamespaceDirective {
    *
    * @param prefix the prefix to be used with the imported names
    */
-  void set prefix(SimpleIdentifier prefix2) {
-    this._prefix = becomeParentOf(prefix2);
+  void set prefix(SimpleIdentifier prefix) {
+    this._prefix = becomeParentOf(prefix);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_prefix, visitor);
     combinators.accept(visitor);
@@ -8122,7 +6695,7 @@ class IndexExpression extends Expression {
    * The period ("..") before a cascaded index expression, or `null` if this index expression
    * is not part of a cascade expression.
    */
-  Token _period;
+  Token period;
 
   /**
    * The left square bracket.
@@ -8152,6 +6725,13 @@ class IndexExpression extends Expression {
    * resolved.
    */
   MethodElement _propagatedElement;
+
+  /**
+   * If this expression is both in a getter and setter context, the [AuxiliaryElements] will
+   * be set to hold onto the static and propagated information. The auxiliary element will hold onto
+   * the elements from the getter context.
+   */
+  AuxiliaryElements auxiliaryElements = null;
 
   /**
    * Initialize a newly created index expression.
@@ -8187,7 +6767,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forCascade_full(Token period, Token leftBracket, Expression index, Token rightBracket) {
-    this._period = period;
+    this.period = period;
     this._leftBracket = leftBracket;
     this._index = becomeParentOf(index);
     this._rightBracket = rightBracket;
@@ -8207,7 +6787,7 @@ class IndexExpression extends Expression {
     if (_target != null) {
       return _target.beginToken;
     }
-    return _period;
+    return period;
   }
 
   /**
@@ -8240,14 +6820,6 @@ class IndexExpression extends Expression {
    * @return the left square bracket
    */
   Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the period ("..") before a cascaded index expression, or `null` if this index
-   * expression is not part of a cascade expression.
-   *
-   * @return the period ("..") before a cascaded index expression
-   */
-  Token get period => _period;
 
   /**
    * Return the element associated with the operator based on the propagated type of the target, or
@@ -8358,7 +6930,7 @@ class IndexExpression extends Expression {
    *
    * @return `true` if this expression is cascaded
    */
-  bool get isCascaded => _period != null;
+  bool get isCascaded => period != null;
 
   /**
    * Set the expression used to compute the index to the given expression.
@@ -8376,15 +6948,6 @@ class IndexExpression extends Expression {
    */
   void set leftBracket(Token bracket) {
     _leftBracket = bracket;
-  }
-
-  /**
-   * Set the period ("..") before a cascaded index expression to the given token.
-   *
-   * @param period the period ("..") before a cascaded index expression
-   */
-  void set period(Token period2) {
-    this._period = period2;
   }
 
   /**
@@ -8424,7 +6987,7 @@ class IndexExpression extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_index, visitor);
   }
@@ -8487,12 +7050,12 @@ class InstanceCreationExpression extends Expression {
   /**
    * The keyword used to indicate how an object should be created.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The name of the constructor to be invoked.
    */
-  ConstructorName _constructorName;
+  ConstructorName constructorName;
 
   /**
    * The list of arguments to the constructor.
@@ -8503,14 +7066,7 @@ class InstanceCreationExpression extends Expression {
    * The element associated with the constructor based on static type information, or `null`
    * if the AST structure has not been resolved or if the constructor could not be resolved.
    */
-  ConstructorElement _staticElement;
-
-  /**
-   * The element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   */
-  ConstructorElement _propagatedElement;
+  ConstructorElement staticElement;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -8520,8 +7076,8 @@ class InstanceCreationExpression extends Expression {
    * @param argumentList the list of arguments to the constructor
    */
   InstanceCreationExpression.full(Token keyword, ConstructorName constructorName, ArgumentList argumentList) {
-    this._keyword = keyword;
-    this._constructorName = becomeParentOf(constructorName);
+    this.keyword = keyword;
+    this.constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
 
@@ -8541,96 +7097,26 @@ class InstanceCreationExpression extends Expression {
    * @return the list of arguments to the constructor
    */
   ArgumentList get argumentList => _argumentList;
-  Token get beginToken => _keyword;
-
-  /**
-   * Return the name of the constructor to be invoked.
-   *
-   * @return the name of the constructor to be invoked
-   */
-  ConstructorName get constructorName => _constructorName;
-
-  /**
-   * Return the element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the constructor
-   */
-  ConstructorElement get element => _propagatedElement;
+  Token get beginToken => keyword;
   Token get endToken => _argumentList.endToken;
-
-  /**
-   * Return the keyword used to indicate how an object should be created.
-   *
-   * @return the keyword used to indicate how an object should be created
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the element associated with the constructor based on static type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the constructor
-   */
-  ConstructorElement get staticElement => _staticElement;
 
   /**
    * Return `true` if this creation expression is used to invoke a constant constructor.
    *
    * @return `true` if this creation expression is used to invoke a constant constructor
    */
-  bool get isConst => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => keyword is KeywordToken && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
 
   /**
    * Set the list of arguments to the constructor to the given list.
    *
    * @param argumentList the list of arguments to the constructor
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
-
-  /**
-   * Set the name of the constructor to be invoked to the given name.
-   *
-   * @param constructorName the name of the constructor to be invoked
-   */
-  void set constructorName(ConstructorName constructorName2) {
-    this._constructorName = constructorName2;
-  }
-
-  /**
-   * Set the element associated with the constructor based on propagated type information to the
-   * given element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set element(ConstructorElement element2) {
-    this._propagatedElement = element2;
-  }
-
-  /**
-   * Set the keyword used to indicate how an object should be created to the given keyword.
-   *
-   * @param keyword the keyword used to indicate how an object should be created
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the element associated with the constructor based on static type information to the given
-   * element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set staticElement(ConstructorElement element) {
-    this._staticElement = element;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(_constructorName, visitor);
+  void visitChildren(ASTVisitor visitor) {
+    safelyVisitChild(constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
 }
@@ -8657,12 +7143,12 @@ class IntegerLiteral extends Literal {
   /**
    * The token representing the literal.
    */
-  Token _literal;
+  Token literal;
 
   /**
    * The value of the literal.
    */
-  int _value = 0;
+  int value = 0;
 
   /**
    * Initialize a newly created integer literal.
@@ -8671,8 +7157,8 @@ class IntegerLiteral extends Literal {
    * @param value the value of the literal
    */
   IntegerLiteral.full(Token literal, int value) {
-    this._literal = literal;
-    this._value = value;
+    this.literal = literal;
+    this.value = value;
   }
 
   /**
@@ -8683,41 +7169,9 @@ class IntegerLiteral extends Literal {
    */
   IntegerLiteral({Token literal, int value}) : this.full(literal, value);
   accept(ASTVisitor visitor) => visitor.visitIntegerLiteral(this);
-  Token get beginToken => _literal;
-  Token get endToken => _literal;
-
-  /**
-   * Return the token representing the literal.
-   *
-   * @return the token representing the literal
-   */
-  Token get literal => _literal;
-
-  /**
-   * Return the value of the literal.
-   *
-   * @return the value of the literal
-   */
-  int get value => _value;
-
-  /**
-   * Set the token representing the literal to the given token.
-   *
-   * @param literal the token representing the literal
-   */
-  void set literal(Token literal2) {
-    this._literal = literal2;
-  }
-
-  /**
-   * Set the value of the literal to the given value.
-   *
-   * @param value the value of the literal
-   */
-  void set value(int value2) {
-    this._value = value2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => literal;
+  Token get endToken => literal;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -8752,7 +7206,7 @@ class InterpolationExpression extends InterpolationElement {
    * The token used to introduce the interpolation expression; either '$' if the expression is a
    * simple identifier or '${' if the expression is a full expression.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The expression to be evaluated for the value to be converted into a string.
@@ -8762,7 +7216,7 @@ class InterpolationExpression extends InterpolationElement {
   /**
    * The right curly bracket, or `null` if the expression is an identifier without brackets.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created interpolation expression.
@@ -8772,9 +7226,9 @@ class InterpolationExpression extends InterpolationElement {
    * @param rightBracket the right curly bracket
    */
   InterpolationExpression.full(Token leftBracket, Expression expression, Token rightBracket) {
-    this._leftBracket = leftBracket;
+    this.leftBracket = leftBracket;
     this._expression = becomeParentOf(expression);
-    this._rightBracket = rightBracket;
+    this.rightBracket = rightBracket;
   }
 
   /**
@@ -8786,10 +7240,10 @@ class InterpolationExpression extends InterpolationElement {
    */
   InterpolationExpression({Token leftBracket, Expression expression, Token rightBracket}) : this.full(leftBracket, expression, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitInterpolationExpression(this);
-  Token get beginToken => _leftBracket;
+  Token get beginToken => leftBracket;
   Token get endToken {
-    if (_rightBracket != null) {
-      return _rightBracket;
+    if (rightBracket != null) {
+      return rightBracket;
     }
     return _expression.endToken;
   }
@@ -8802,47 +7256,15 @@ class InterpolationExpression extends InterpolationElement {
   Expression get expression => _expression;
 
   /**
-   * Return the left curly bracket.
-   *
-   * @return the left curly bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the right curly bracket.
-   *
-   * @return the right curly bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
    * Set the expression to be evaluated for the value to be converted into a string to the given
    * expression.
    *
    * @param expression the expression to be evaluated for the value to be converted into a string
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Set the left curly bracket to the given token.
-   *
-   * @param leftBracket the left curly bracket
-   */
-  void set leftBracket(Token leftBracket2) {
-    this._leftBracket = leftBracket2;
-  }
-
-  /**
-   * Set the right curly bracket to the given token.
-   *
-   * @param rightBracket the right curly bracket
-   */
-  void set rightBracket(Token rightBracket2) {
-    this._rightBracket = rightBracket2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -8922,7 +7344,7 @@ class InterpolationString extends InterpolationElement {
   void set value(String string) {
     _value = string;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -8945,12 +7367,12 @@ class IsExpression extends Expression {
   /**
    * The is operator.
    */
-  Token _isOperator;
+  Token isOperator;
 
   /**
    * The not operator, or `null` if the sense of the test is not negated.
    */
-  Token _notOperator;
+  Token notOperator;
 
   /**
    * The name of the type being tested for.
@@ -8967,8 +7389,8 @@ class IsExpression extends Expression {
    */
   IsExpression.full(Expression expression, Token isOperator, Token notOperator, TypeName type) {
     this._expression = becomeParentOf(expression);
-    this._isOperator = isOperator;
-    this._notOperator = notOperator;
+    this.isOperator = isOperator;
+    this.notOperator = notOperator;
     this._type = becomeParentOf(type);
   }
 
@@ -8993,20 +7415,6 @@ class IsExpression extends Expression {
   Expression get expression => _expression;
 
   /**
-   * Return the is operator being applied.
-   *
-   * @return the is operator being applied
-   */
-  Token get isOperator => _isOperator;
-
-  /**
-   * Return the not operator being applied.
-   *
-   * @return the not operator being applied
-   */
-  Token get notOperator => _notOperator;
-
-  /**
    * Return the name of the type being tested for.
    *
    * @return the name of the type being tested for
@@ -9019,26 +7427,8 @@ class IsExpression extends Expression {
    *
    * @param expression the expression used to compute the value whose type is being tested
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
-  }
-
-  /**
-   * Set the is operator being applied to the given operator.
-   *
-   * @param isOperator the is operator being applied
-   */
-  void set isOperator(Token isOperator2) {
-    this._isOperator = isOperator2;
-  }
-
-  /**
-   * Set the not operator being applied to the given operator.
-   *
-   * @param notOperator the is operator being applied
-   */
-  void set notOperator(Token notOperator2) {
-    this._notOperator = notOperator2;
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -9049,7 +7439,7 @@ class IsExpression extends Expression {
   void set type(TypeName name) {
     this._type = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     safelyVisitChild(_type, visitor);
   }
@@ -9074,7 +7464,7 @@ class Label extends ASTNode {
   /**
    * The colon that separates the label from the statement.
    */
-  Token _colon;
+  Token colon;
 
   /**
    * Initialize a newly created label.
@@ -9084,7 +7474,7 @@ class Label extends ASTNode {
    */
   Label.full(SimpleIdentifier label, Token colon) {
     this._label = becomeParentOf(label);
-    this._colon = colon;
+    this.colon = colon;
   }
 
   /**
@@ -9096,14 +7486,7 @@ class Label extends ASTNode {
   Label({SimpleIdentifier label, Token colon}) : this.full(label, colon);
   accept(ASTVisitor visitor) => visitor.visitLabel(this);
   Token get beginToken => _label.beginToken;
-
-  /**
-   * Return the colon that separates the label from the statement.
-   *
-   * @return the colon that separates the label from the statement
-   */
-  Token get colon => _colon;
-  Token get endToken => _colon;
+  Token get endToken => colon;
 
   /**
    * Return the label being associated with the statement.
@@ -9113,23 +7496,14 @@ class Label extends ASTNode {
   SimpleIdentifier get label => _label;
 
   /**
-   * Set the colon that separates the label from the statement to the given token.
-   *
-   * @param colon the colon that separates the label from the statement
-   */
-  void set colon(Token colon2) {
-    this._colon = colon2;
-  }
-
-  /**
    * Set the label being associated with the statement to the given label.
    *
    * @param label the label being associated with the statement
    */
-  void set label(SimpleIdentifier label2) {
-    this._label = becomeParentOf(label2);
+  void set label(SimpleIdentifier label) {
+    this._label = becomeParentOf(label);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
@@ -9149,7 +7523,7 @@ class LabeledStatement extends Statement {
   /**
    * The labels being associated with the statement.
    */
-  NodeList<Label> _labels;
+  NodeList<Label> labels;
 
   /**
    * The statement with which the labels are being associated.
@@ -9163,8 +7537,8 @@ class LabeledStatement extends Statement {
    * @param statement the statement with which the labels are being associated
    */
   LabeledStatement.full(List<Label> labels, Statement statement) {
-    this._labels = new NodeList<Label>(this);
-    this._labels.addAll(labels);
+    this.labels = new NodeList<Label>(this);
+    this.labels.addAll(labels);
     this._statement = becomeParentOf(statement);
   }
 
@@ -9177,19 +7551,12 @@ class LabeledStatement extends Statement {
   LabeledStatement({List<Label> labels, Statement statement}) : this.full(labels, statement);
   accept(ASTVisitor visitor) => visitor.visitLabeledStatement(this);
   Token get beginToken {
-    if (!_labels.isEmpty) {
-      return _labels.beginToken;
+    if (!labels.isEmpty) {
+      return labels.beginToken;
     }
     return _statement.beginToken;
   }
   Token get endToken => _statement.endToken;
-
-  /**
-   * Return the labels being associated with the statement.
-   *
-   * @return the labels being associated with the statement
-   */
-  NodeList<Label> get labels => _labels;
 
   /**
    * Return the statement with which the labels are being associated.
@@ -9203,11 +7570,11 @@ class LabeledStatement extends Statement {
    *
    * @param statement the statement with which the labels are being associated
    */
-  void set statement(Statement statement2) {
-    this._statement = becomeParentOf(statement2);
+  void set statement(Statement statement) {
+    this._statement = becomeParentOf(statement);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _labels.accept(visitor);
+  void visitChildren(ASTVisitor visitor) {
+    labels.accept(visitor);
     safelyVisitChild(_statement, visitor);
   }
 }
@@ -9226,7 +7593,7 @@ class LibraryDirective extends Directive {
   /**
    * The token representing the 'library' token.
    */
-  Token _libraryToken;
+  Token libraryToken;
 
   /**
    * The name of the library being defined.
@@ -9236,7 +7603,7 @@ class LibraryDirective extends Directive {
   /**
    * The semicolon terminating the directive.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created library directive.
@@ -9248,9 +7615,9 @@ class LibraryDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   LibraryDirective.full(Comment comment, List<Annotation> metadata, Token libraryToken, LibraryIdentifier name, Token semicolon) : super.full(comment, metadata) {
-    this._libraryToken = libraryToken;
+    this.libraryToken = libraryToken;
     this._name = becomeParentOf(name);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -9264,15 +7631,8 @@ class LibraryDirective extends Directive {
    */
   LibraryDirective({Comment comment, List<Annotation> metadata, Token libraryToken, LibraryIdentifier name, Token semicolon}) : this.full(comment, metadata, libraryToken, name, semicolon);
   accept(ASTVisitor visitor) => visitor.visitLibraryDirective(this);
-  Token get endToken => _semicolon;
-  Token get keyword => _libraryToken;
-
-  /**
-   * Return the token representing the 'library' token.
-   *
-   * @return the token representing the 'library' token
-   */
-  Token get libraryToken => _libraryToken;
+  Token get endToken => semicolon;
+  Token get keyword => libraryToken;
 
   /**
    * Return the name of the library being defined.
@@ -9282,43 +7642,18 @@ class LibraryDirective extends Directive {
   LibraryIdentifier get name => _name;
 
   /**
-   * Return the semicolon terminating the directive.
-   *
-   * @return the semicolon terminating the directive
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Set the token representing the 'library' token to the given token.
-   *
-   * @param libraryToken the token representing the 'library' token
-   */
-  void set libraryToken(Token libraryToken2) {
-    this._libraryToken = libraryToken2;
-  }
-
-  /**
    * Set the name of the library being defined to the given name.
    *
    * @param name the name of the library being defined
    */
-  void set name(LibraryIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(LibraryIdentifier name) {
+    this._name = becomeParentOf(name);
   }
-
-  /**
-   * Set the semicolon terminating the directive to the given token.
-   *
-   * @param semicolon the semicolon terminating the directive
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
   }
-  Token get firstTokenAfterCommentAndMetadata => _libraryToken;
+  Token get firstTokenAfterCommentAndMetadata => libraryToken;
 }
 /**
  * Instances of the class `LibraryIdentifier` represent the identifier for a library.
@@ -9335,7 +7670,7 @@ class LibraryIdentifier extends Identifier {
   /**
    * The components of the identifier.
    */
-  NodeList<SimpleIdentifier> _components;
+  NodeList<SimpleIdentifier> components;
 
   /**
    * Initialize a newly created prefixed identifier.
@@ -9343,8 +7678,8 @@ class LibraryIdentifier extends Identifier {
    * @param components the components of the identifier
    */
   LibraryIdentifier.full(List<SimpleIdentifier> components) {
-    this._components = new NodeList<SimpleIdentifier>(this);
-    this._components.addAll(components);
+    this.components = new NodeList<SimpleIdentifier>(this);
+    this.components.addAll(components);
   }
 
   /**
@@ -9354,20 +7689,13 @@ class LibraryIdentifier extends Identifier {
    */
   LibraryIdentifier({List<SimpleIdentifier> components}) : this.full(components);
   accept(ASTVisitor visitor) => visitor.visitLibraryIdentifier(this);
-  Token get beginToken => _components.beginToken;
-
-  /**
-   * Return the components of the identifier.
-   *
-   * @return the components of the identifier
-   */
-  NodeList<SimpleIdentifier> get components => _components;
-  Element get element => null;
-  Token get endToken => _components.endToken;
+  Token get beginToken => components.beginToken;
+  Element get bestElement => staticElement;
+  Token get endToken => components.endToken;
   String get name {
     JavaStringBuilder builder = new JavaStringBuilder();
     bool needsPeriod = false;
-    for (SimpleIdentifier identifier in _components) {
+    for (SimpleIdentifier identifier in components) {
       if (needsPeriod) {
         builder.append(".");
       } else {
@@ -9377,9 +7705,10 @@ class LibraryIdentifier extends Identifier {
     }
     return builder.toString();
   }
+  Element get propagatedElement => null;
   Element get staticElement => null;
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _components.accept(visitor);
+  void visitChildren(ASTVisitor visitor) {
+    components.accept(visitor);
   }
 }
 /**
@@ -9402,7 +7731,7 @@ class ListLiteral extends TypedLiteral {
   /**
    * The expressions used to compute the elements of the list.
    */
-  NodeList<Expression> _elements;
+  NodeList<Expression> elements;
 
   /**
    * The right square bracket.
@@ -9412,34 +7741,34 @@ class ListLiteral extends TypedLiteral {
   /**
    * Initialize a newly created list literal.
    *
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    * @param leftBracket the left square bracket
    * @param elements the expressions used to compute the elements of the list
    * @param rightBracket the right square bracket
    */
-  ListLiteral.full(Token modifier, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket) : super.full(modifier, typeArguments) {
-    this._elements = new NodeList<Expression>(this);
+  ListLiteral.full(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket) : super.full(constKeyword, typeArguments) {
+    this.elements = new NodeList<Expression>(this);
     this._leftBracket = leftBracket;
-    this._elements.addAll(elements);
+    this.elements.addAll(elements);
     this._rightBracket = rightBracket;
   }
 
   /**
    * Initialize a newly created list literal.
    *
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    * @param leftBracket the left square bracket
    * @param elements the expressions used to compute the elements of the list
    * @param rightBracket the right square bracket
    */
-  ListLiteral({Token modifier, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket}) : this.full(modifier, typeArguments, leftBracket, elements, rightBracket);
+  ListLiteral({Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket}) : this.full(constKeyword, typeArguments, leftBracket, elements, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitListLiteral(this);
   Token get beginToken {
-    Token token = modifier;
+    Token token = constKeyword;
     if (token != null) {
       return token;
     }
@@ -9449,13 +7778,6 @@ class ListLiteral extends TypedLiteral {
     }
     return _leftBracket;
   }
-
-  /**
-   * Return the expressions used to compute the elements of the list.
-   *
-   * @return the expressions used to compute the elements of the list
-   */
-  NodeList<Expression> get elements => _elements;
   Token get endToken => _rightBracket;
 
   /**
@@ -9489,9 +7811,9 @@ class ListLiteral extends TypedLiteral {
   void set rightBracket(Token bracket) {
     _rightBracket = bracket;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
-    _elements.accept(visitor);
+    elements.accept(visitor);
   }
 }
 /**
@@ -9533,7 +7855,7 @@ class MapLiteral extends TypedLiteral {
   /**
    * The entries in the map.
    */
-  NodeList<MapLiteralEntry> _entries;
+  NodeList<MapLiteralEntry> entries;
 
   /**
    * The right curly bracket.
@@ -9543,34 +7865,34 @@ class MapLiteral extends TypedLiteral {
   /**
    * Initialize a newly created map literal.
    *
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    * @param leftBracket the left curly bracket
    * @param entries the entries in the map
    * @param rightBracket the right curly bracket
    */
-  MapLiteral.full(Token modifier, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket) : super.full(modifier, typeArguments) {
-    this._entries = new NodeList<MapLiteralEntry>(this);
+  MapLiteral.full(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket) : super.full(constKeyword, typeArguments) {
+    this.entries = new NodeList<MapLiteralEntry>(this);
     this._leftBracket = leftBracket;
-    this._entries.addAll(entries);
+    this.entries.addAll(entries);
     this._rightBracket = rightBracket;
   }
 
   /**
    * Initialize a newly created map literal.
    *
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    * @param leftBracket the left curly bracket
    * @param entries the entries in the map
    * @param rightBracket the right curly bracket
    */
-  MapLiteral({Token modifier, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket}) : this.full(modifier, typeArguments, leftBracket, entries, rightBracket);
+  MapLiteral({Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket}) : this.full(constKeyword, typeArguments, leftBracket, entries, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitMapLiteral(this);
   Token get beginToken {
-    Token token = modifier;
+    Token token = constKeyword;
     if (token != null) {
       return token;
     }
@@ -9581,13 +7903,6 @@ class MapLiteral extends TypedLiteral {
     return _leftBracket;
   }
   Token get endToken => _rightBracket;
-
-  /**
-   * Return the entries in the map.
-   *
-   * @return the entries in the map
-   */
-  NodeList<MapLiteralEntry> get entries => _entries;
 
   /**
    * Return the left curly bracket.
@@ -9620,9 +7935,9 @@ class MapLiteral extends TypedLiteral {
   void set rightBracket(Token bracket) {
     _rightBracket = bracket;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
-    _entries.accept(visitor);
+    entries.accept(visitor);
   }
 }
 /**
@@ -9646,7 +7961,7 @@ class MapLiteralEntry extends ASTNode {
   /**
    * The colon that separates the key from the value.
    */
-  Token _separator;
+  Token separator;
 
   /**
    * The expression computing the value that will be associated with the key.
@@ -9662,7 +7977,7 @@ class MapLiteralEntry extends ASTNode {
    */
   MapLiteralEntry.full(Expression key, Token separator, Expression value) {
     this._key = becomeParentOf(key);
-    this._separator = separator;
+    this.separator = separator;
     this._value = becomeParentOf(value);
   }
 
@@ -9686,13 +8001,6 @@ class MapLiteralEntry extends ASTNode {
   Expression get key => _key;
 
   /**
-   * Return the colon that separates the key from the value.
-   *
-   * @return the colon that separates the key from the value
-   */
-  Token get separator => _separator;
-
-  /**
    * Return the expression computing the value that will be associated with the key.
    *
    * @return the expression computing the value that will be associated with the key
@@ -9710,15 +8018,6 @@ class MapLiteralEntry extends ASTNode {
   }
 
   /**
-   * Set the colon that separates the key from the value to the given token.
-   *
-   * @param separator the colon that separates the key from the value
-   */
-  void set separator(Token separator2) {
-    this._separator = separator2;
-  }
-
-  /**
    * Set the expression computing the value that will be associated with the key to the given
    * expression.
    *
@@ -9727,7 +8026,7 @@ class MapLiteralEntry extends ASTNode {
   void set value(Expression expression) {
     _value = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_key, visitor);
     safelyVisitChild(_value, visitor);
   }
@@ -9755,13 +8054,13 @@ class MethodDeclaration extends ClassMember {
   /**
    * The token for the 'external' keyword, or `null` if the constructor is not external.
    */
-  Token _externalKeyword;
+  Token externalKeyword;
 
   /**
    * The token representing the 'abstract' or 'static' keyword, or `null` if neither modifier
    * was specified.
    */
-  Token _modifierKeyword;
+  Token modifierKeyword;
 
   /**
    * The return type of the method, or `null` if no return type was declared.
@@ -9772,13 +8071,13 @@ class MethodDeclaration extends ClassMember {
    * The token representing the 'get' or 'set' keyword, or `null` if this is a method
    * declaration rather than a property declaration.
    */
-  Token _propertyKeyword;
+  Token propertyKeyword;
 
   /**
    * The token representing the 'operator' keyword, or `null` if this method does not declare
    * an operator.
    */
-  Token _operatorKeyword;
+  Token operatorKeyword;
 
   /**
    * The name of the method.
@@ -9811,11 +8110,11 @@ class MethodDeclaration extends ClassMember {
    * @param body the body of the method
    */
   MethodDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) : super.full(comment, metadata) {
-    this._externalKeyword = externalKeyword;
-    this._modifierKeyword = modifierKeyword;
+    this.externalKeyword = externalKeyword;
+    this.modifierKeyword = modifierKeyword;
     this._returnType = becomeParentOf(returnType);
-    this._propertyKeyword = propertyKeyword;
-    this._operatorKeyword = operatorKeyword;
+    this.propertyKeyword = propertyKeyword;
+    this.operatorKeyword = operatorKeyword;
     this._name = becomeParentOf(name);
     this._parameters = becomeParentOf(parameters);
     this._body = becomeParentOf(body);
@@ -9854,24 +8153,8 @@ class MethodDeclaration extends ClassMember {
    *
    * @return the element associated with this method
    */
-  ExecutableElement get element => _name != null ? (_name.element as ExecutableElement) : null;
+  ExecutableElement get element => _name != null ? (_name.staticElement as ExecutableElement) : null;
   Token get endToken => _body.endToken;
-
-  /**
-   * Return the token for the 'external' keyword, or `null` if the constructor is not
-   * external.
-   *
-   * @return the token for the 'external' keyword
-   */
-  Token get externalKeyword => _externalKeyword;
-
-  /**
-   * Return the token representing the 'abstract' or 'static' keyword, or `null` if neither
-   * modifier was specified.
-   *
-   * @return the token representing the 'abstract' or 'static' keyword
-   */
-  Token get modifierKeyword => _modifierKeyword;
 
   /**
    * Return the name of the method.
@@ -9881,28 +8164,12 @@ class MethodDeclaration extends ClassMember {
   SimpleIdentifier get name => _name;
 
   /**
-   * Return the token representing the 'operator' keyword, or `null` if this method does not
-   * declare an operator.
-   *
-   * @return the token representing the 'operator' keyword
-   */
-  Token get operatorKeyword => _operatorKeyword;
-
-  /**
    * Return the parameters associated with the method, or `null` if this method declares a
    * getter.
    *
    * @return the parameters associated with the method
    */
   FormalParameterList get parameters => _parameters;
-
-  /**
-   * Return the token representing the 'get' or 'set' keyword, or `null` if this is a method
-   * declaration rather than a property declaration.
-   *
-   * @return the token representing the 'get' or 'set' keyword
-   */
-  Token get propertyKeyword => _propertyKeyword;
 
   /**
    * Return the return type of the method, or `null` if no return type was declared.
@@ -9916,35 +8183,35 @@ class MethodDeclaration extends ClassMember {
    *
    * @return `true` if this method is declared to be an abstract method
    */
-  bool get isAbstract => _externalKeyword == null && (_body is EmptyFunctionBody);
+  bool get isAbstract => externalKeyword == null && (_body is EmptyFunctionBody);
 
   /**
    * Return `true` if this method declares a getter.
    *
    * @return `true` if this method declares a getter
    */
-  bool get isGetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.GET);
+  bool get isGetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.GET);
 
   /**
    * Return `true` if this method declares an operator.
    *
    * @return `true` if this method declares an operator
    */
-  bool get isOperator => _operatorKeyword != null;
+  bool get isOperator => operatorKeyword != null;
 
   /**
    * Return `true` if this method declares a setter.
    *
    * @return `true` if this method declares a setter
    */
-  bool get isSetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
+  bool get isSetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.SET);
 
   /**
    * Return `true` if this method is declared to be a static method.
    *
    * @return `true` if this method is declared to be a static method
    */
-  bool get isStatic => _modifierKeyword != null && identical(((_modifierKeyword as KeywordToken)).keyword, Keyword.STATIC);
+  bool get isStatic => modifierKeyword != null && identical(((modifierKeyword as KeywordToken)).keyword, Keyword.STATIC);
 
   /**
    * Set the body of the method to the given function body.
@@ -9953,24 +8220,6 @@ class MethodDeclaration extends ClassMember {
    */
   void set body(FunctionBody functionBody) {
     _body = becomeParentOf(functionBody);
-  }
-
-  /**
-   * Set the token for the 'external' keyword to the given token.
-   *
-   * @param externalKeyword the token for the 'external' keyword
-   */
-  void set externalKeyword(Token externalKeyword2) {
-    this._externalKeyword = externalKeyword2;
-  }
-
-  /**
-   * Set the token representing the 'abstract' or 'static' keyword to the given token.
-   *
-   * @param modifierKeyword the token representing the 'abstract' or 'static' keyword
-   */
-  void set modifierKeyword(Token modifierKeyword2) {
-    this._modifierKeyword = modifierKeyword2;
   }
 
   /**
@@ -9983,30 +8232,12 @@ class MethodDeclaration extends ClassMember {
   }
 
   /**
-   * Set the token representing the 'operator' keyword to the given token.
-   *
-   * @param operatorKeyword the token representing the 'operator' keyword
-   */
-  void set operatorKeyword(Token operatorKeyword2) {
-    this._operatorKeyword = operatorKeyword2;
-  }
-
-  /**
    * Set the parameters associated with the method to the given list of parameters.
    *
    * @param parameters the parameters associated with the method
    */
-  void set parameters(FormalParameterList parameters2) {
-    this._parameters = becomeParentOf(parameters2);
-  }
-
-  /**
-   * Set the token representing the 'get' or 'set' keyword to the given token.
-   *
-   * @param propertyKeyword the token representing the 'get' or 'set' keyword
-   */
-  void set propertyKeyword(Token propertyKeyword2) {
-    this._propertyKeyword = propertyKeyword2;
+  void set parameters(FormalParameterList parameters) {
+    this._parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -10017,7 +8248,7 @@ class MethodDeclaration extends ClassMember {
   void set returnType(TypeName typeName) {
     _returnType = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
@@ -10025,14 +8256,14 @@ class MethodDeclaration extends ClassMember {
     safelyVisitChild(_body, visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    if (_modifierKeyword != null) {
-      return _modifierKeyword;
+    if (modifierKeyword != null) {
+      return modifierKeyword;
     } else if (_returnType != null) {
       return _returnType.beginToken;
-    } else if (_propertyKeyword != null) {
-      return _propertyKeyword;
-    } else if (_operatorKeyword != null) {
-      return _operatorKeyword;
+    } else if (propertyKeyword != null) {
+      return propertyKeyword;
+    } else if (operatorKeyword != null) {
+      return operatorKeyword;
     }
     return _name.beginToken;
   }
@@ -10063,7 +8294,7 @@ class MethodInvocation extends Expression {
    * The period that separates the target from the method name, or `null` if there is no
    * target.
    */
-  Token _period;
+  Token period;
 
   /**
    * The name of the method being invoked.
@@ -10085,7 +8316,7 @@ class MethodInvocation extends Expression {
    */
   MethodInvocation.full(Expression target, Token period, SimpleIdentifier methodName, ArgumentList argumentList) {
     this._target = becomeParentOf(target);
-    this._period = period;
+    this.period = period;
     this._methodName = becomeParentOf(methodName);
     this._argumentList = becomeParentOf(argumentList);
   }
@@ -10110,8 +8341,8 @@ class MethodInvocation extends Expression {
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
-    } else if (_period != null) {
-      return _period;
+    } else if (period != null) {
+      return period;
     }
     return _methodName.beginToken;
   }
@@ -10123,14 +8354,6 @@ class MethodInvocation extends Expression {
    * @return the name of the method being invoked
    */
   SimpleIdentifier get methodName => _methodName;
-
-  /**
-   * Return the period that separates the target from the method name, or `null` if there is
-   * no target.
-   *
-   * @return the period that separates the target from the method name
-   */
-  Token get period => _period;
 
   /**
    * Return the expression used to compute the receiver of the invocation. If this invocation is not
@@ -10172,15 +8395,15 @@ class MethodInvocation extends Expression {
    *
    * @return `true` if this expression is cascaded
    */
-  bool get isCascaded => _period != null && identical(_period.type, TokenType.PERIOD_PERIOD);
+  bool get isCascaded => period != null && identical(period.type, TokenType.PERIOD_PERIOD);
 
   /**
    * Set the list of arguments to the method to the given list.
    *
    * @param argumentList the list of arguments to the method
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -10193,15 +8416,6 @@ class MethodInvocation extends Expression {
   }
 
   /**
-   * Set the period that separates the target from the method name to the given token.
-   *
-   * @param period the period that separates the target from the method name
-   */
-  void set period(Token period2) {
-    this._period = period2;
-  }
-
-  /**
    * Set the expression producing the object on which the method is defined to the given expression.
    *
    * @param expression the expression producing the object on which the method is defined
@@ -10209,7 +8423,7 @@ class MethodInvocation extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_methodName, visitor);
     safelyVisitChild(_argumentList, visitor);
@@ -10267,7 +8481,7 @@ class NamedExpression extends Expression {
    * @return the element representing the parameter being named by this expression
    */
   ParameterElement get element {
-    Element element = _name.label.element;
+    Element element = _name.label.staticElement;
     if (element is ParameterElement) {
       return element as ParameterElement;
     }
@@ -10294,8 +8508,8 @@ class NamedExpression extends Expression {
    *
    * @param expression the expression with which the name is associated
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -10306,7 +8520,7 @@ class NamedExpression extends Expression {
   void set name(Label identifier) {
     _name = becomeParentOf(identifier);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_expression, visitor);
   }
@@ -10333,12 +8547,12 @@ abstract class NamespaceDirective extends UriBasedDirective {
   /**
    * The combinators used to control which names are imported or exported.
    */
-  NodeList<Combinator> _combinators;
+  NodeList<Combinator> combinators;
 
   /**
    * The semicolon terminating the directive.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created namespace directive.
@@ -10351,10 +8565,10 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * @param semicolon the semicolon terminating the directive
    */
   NamespaceDirective.full(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super.full(comment, metadata, libraryUri) {
-    this._combinators = new NodeList<Combinator>(this);
+    this.combinators = new NodeList<Combinator>(this);
     this._keyword = keyword;
-    this._combinators.addAll(combinators);
-    this._semicolon = semicolon;
+    this.combinators.addAll(combinators);
+    this.semicolon = semicolon;
   }
 
   /**
@@ -10368,22 +8582,8 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * @param semicolon the semicolon terminating the directive
    */
   NamespaceDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
-
-  /**
-   * Return the combinators used to control how names are imported or exported.
-   *
-   * @return the combinators used to control how names are imported or exported
-   */
-  NodeList<Combinator> get combinators => _combinators;
-  Token get endToken => _semicolon;
+  Token get endToken => semicolon;
   Token get keyword => _keyword;
-
-  /**
-   * Return the semicolon terminating the directive.
-   *
-   * @return the semicolon terminating the directive
-   */
-  Token get semicolon => _semicolon;
   LibraryElement get uriElement;
 
   /**
@@ -10393,15 +8593,6 @@ abstract class NamespaceDirective extends UriBasedDirective {
    */
   void set keyword(Token exportToken) {
     this._keyword = exportToken;
-  }
-
-  /**
-   * Set the semicolon terminating the directive to the given token.
-   *
-   * @param semicolon the semicolon terminating the directive
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
   }
   Token get firstTokenAfterCommentAndMetadata => _keyword;
 }
@@ -10421,12 +8612,12 @@ class NativeClause extends ASTNode {
   /**
    * The token representing the 'native' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The name of the native object that implements the class.
    */
-  StringLiteral _name;
+  StringLiteral name;
 
   /**
    * Initialize a newly created native clause.
@@ -10435,8 +8626,8 @@ class NativeClause extends ASTNode {
    * @param name the name of the native object that implements the class.
    */
   NativeClause.full(Token keyword, StringLiteral name) {
-    this._keyword = keyword;
-    this._name = name;
+    this.keyword = keyword;
+    this.name = name;
   }
 
   /**
@@ -10447,42 +8638,10 @@ class NativeClause extends ASTNode {
    */
   NativeClause({Token keyword, StringLiteral name}) : this.full(keyword, name);
   accept(ASTVisitor visitor) => visitor.visitNativeClause(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _name.endToken;
-
-  /**
-   * Return the token representing the 'native' keyword.
-   *
-   * @return the token representing the 'native' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the name of the native object that implements the class.
-   *
-   * @return the name of the native object that implements the class
-   */
-  StringLiteral get name => _name;
-
-  /**
-   * Set the token representing the 'native' keyword to the given token.
-   *
-   * @param keyword the token representing the 'native' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Sets the name of the native object that implements the class.
-   *
-   * @param name the name of the native object that implements the class.
-   */
-  void set name(StringLiteral name2) {
-    this._name = name2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(_name, visitor);
+  Token get beginToken => keyword;
+  Token get endToken => name.endToken;
+  void visitChildren(ASTVisitor visitor) {
+    safelyVisitChild(name, visitor);
   }
 }
 /**
@@ -10501,17 +8660,17 @@ class NativeFunctionBody extends FunctionBody {
   /**
    * The token representing 'native' that marks the start of the function body.
    */
-  Token _nativeToken;
+  Token nativeToken;
 
   /**
    * The string literal, after the 'native' token.
    */
-  StringLiteral _stringLiteral;
+  StringLiteral stringLiteral;
 
   /**
    * The token representing the semicolon that marks the end of the function body.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created function body consisting of the 'native' token, a string literal,
@@ -10522,9 +8681,9 @@ class NativeFunctionBody extends FunctionBody {
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
   NativeFunctionBody.full(Token nativeToken, StringLiteral stringLiteral, Token semicolon) {
-    this._nativeToken = nativeToken;
-    this._stringLiteral = becomeParentOf(stringLiteral);
-    this._semicolon = semicolon;
+    this.nativeToken = nativeToken;
+    this.stringLiteral = becomeParentOf(stringLiteral);
+    this.semicolon = semicolon;
   }
 
   /**
@@ -10537,31 +8696,10 @@ class NativeFunctionBody extends FunctionBody {
    */
   NativeFunctionBody({Token nativeToken, StringLiteral stringLiteral, Token semicolon}) : this.full(nativeToken, stringLiteral, semicolon);
   accept(ASTVisitor visitor) => visitor.visitNativeFunctionBody(this);
-  Token get beginToken => _nativeToken;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the simple identifier representing the 'native' token.
-   *
-   * @return the simple identifier representing the 'native' token
-   */
-  Token get nativeToken => _nativeToken;
-
-  /**
-   * Return the token representing the semicolon that marks the end of the function body.
-   *
-   * @return the token representing the semicolon that marks the end of the function body
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Return the string literal representing the string after the 'native' token.
-   *
-   * @return the string literal representing the string after the 'native' token
-   */
-  StringLiteral get stringLiteral => _stringLiteral;
-  void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(_stringLiteral, visitor);
+  Token get beginToken => nativeToken;
+  Token get endToken => semicolon;
+  void visitChildren(ASTVisitor visitor) {
+    safelyVisitChild(stringLiteral, visitor);
   }
 }
 /**
@@ -10588,7 +8726,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   /**
    * The annotations associated with this parameter.
    */
-  NodeList<Annotation> _metadata;
+  NodeList<Annotation> metadata;
 
   /**
    * The name of the parameter being declared.
@@ -10603,9 +8741,9 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @param identifier the name of the parameter being declared
    */
   NormalFormalParameter.full(Comment comment, List<Annotation> metadata, SimpleIdentifier identifier) {
-    this._metadata = new NodeList<Annotation>(this);
+    this.metadata = new NodeList<Annotation>(this);
     this._comment = becomeParentOf(comment);
-    this._metadata.addAll(metadata);
+    this.metadata.addAll(metadata);
     this._identifier = becomeParentOf(identifier);
   }
 
@@ -10635,19 +8773,12 @@ abstract class NormalFormalParameter extends FormalParameter {
   }
 
   /**
-   * Return the annotations associated with this parameter.
-   *
-   * @return the annotations associated with this parameter
-   */
-  NodeList<Annotation> get metadata => _metadata;
-
-  /**
    * Set the documentation comment associated with this parameter to the given comment
    *
    * @param comment the documentation comment to be associated with this parameter
    */
-  void set documentationComment(Comment comment2) {
-    this._comment = becomeParentOf(comment2);
+  void set documentationComment(Comment comment) {
+    this._comment = becomeParentOf(comment);
   }
 
   /**
@@ -10655,13 +8786,13 @@ abstract class NormalFormalParameter extends FormalParameter {
    *
    * @param identifier the name of the parameter being declared
    */
-  void set identifier(SimpleIdentifier identifier2) {
-    this._identifier = becomeParentOf(identifier2);
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
-      _metadata.accept(visitor);
+      metadata.accept(visitor);
     } else {
       for (ASTNode child in sortedCommentAndAnnotations) {
         child.accept(visitor);
@@ -10675,10 +8806,10 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @return `true` if the comment is lexically before any annotations
    */
   bool commentIsBeforeAnnotations() {
-    if (_comment == null || _metadata.isEmpty) {
+    if (_comment == null || metadata.isEmpty) {
       return true;
     }
-    Annotation firstAnnotation = _metadata[0];
+    Annotation firstAnnotation = metadata[0];
     return _comment.offset < firstAnnotation.offset;
   }
 
@@ -10692,7 +8823,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   List<ASTNode> get sortedCommentAndAnnotations {
     List<ASTNode> childList = new List<ASTNode>();
     childList.add(_comment);
-    childList.addAll(_metadata);
+    childList.addAll(metadata);
     List<ASTNode> children = new List.from(childList);
     children.sort(ASTNode.LEXICAL_ORDER);
     return children;
@@ -10713,7 +8844,7 @@ class NullLiteral extends Literal {
   /**
    * The token representing the literal.
    */
-  Token _literal;
+  Token literal;
 
   /**
    * Initialize a newly created null literal.
@@ -10721,7 +8852,7 @@ class NullLiteral extends Literal {
    * @param token the token representing the literal
    */
   NullLiteral.full(Token token) {
-    this._literal = token;
+    this.literal = token;
   }
 
   /**
@@ -10731,25 +8862,9 @@ class NullLiteral extends Literal {
    */
   NullLiteral({Token token}) : this.full(token);
   accept(ASTVisitor visitor) => visitor.visitNullLiteral(this);
-  Token get beginToken => _literal;
-  Token get endToken => _literal;
-
-  /**
-   * Return the token representing the literal.
-   *
-   * @return the token representing the literal
-   */
-  Token get literal => _literal;
-
-  /**
-   * Set the token representing the literal to the given token.
-   *
-   * @param literal the token representing the literal
-   */
-  void set literal(Token literal2) {
-    this._literal = literal2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => literal;
+  Token get endToken => literal;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -10830,8 +8945,8 @@ class ParenthesizedExpression extends Expression {
    *
    * @param expression the expression within the parentheses
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
 
   /**
@@ -10851,7 +8966,7 @@ class ParenthesizedExpression extends Expression {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -10870,12 +8985,12 @@ class PartDirective extends UriBasedDirective {
   /**
    * The token representing the 'part' token.
    */
-  Token _partToken;
+  Token partToken;
 
   /**
    * The semicolon terminating the directive.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created part directive.
@@ -10887,8 +9002,8 @@ class PartDirective extends UriBasedDirective {
    * @param semicolon the semicolon terminating the directive
    */
   PartDirective.full(Comment comment, List<Annotation> metadata, Token partToken, StringLiteral partUri, Token semicolon) : super.full(comment, metadata, partUri) {
-    this._partToken = partToken;
-    this._semicolon = semicolon;
+    this.partToken = partToken;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -10902,42 +9017,10 @@ class PartDirective extends UriBasedDirective {
    */
   PartDirective({Comment comment, List<Annotation> metadata, Token partToken, StringLiteral partUri, Token semicolon}) : this.full(comment, metadata, partToken, partUri, semicolon);
   accept(ASTVisitor visitor) => visitor.visitPartDirective(this);
-  Token get endToken => _semicolon;
-  Token get keyword => _partToken;
-
-  /**
-   * Return the token representing the 'part' token.
-   *
-   * @return the token representing the 'part' token
-   */
-  Token get partToken => _partToken;
-
-  /**
-   * Return the semicolon terminating the directive.
-   *
-   * @return the semicolon terminating the directive
-   */
-  Token get semicolon => _semicolon;
+  Token get endToken => semicolon;
+  Token get keyword => partToken;
   CompilationUnitElement get uriElement => element as CompilationUnitElement;
-
-  /**
-   * Set the token representing the 'part' token to the given token.
-   *
-   * @param partToken the token representing the 'part' token
-   */
-  void set partToken(Token partToken2) {
-    this._partToken = partToken2;
-  }
-
-  /**
-   * Set the semicolon terminating the directive to the given token.
-   *
-   * @param semicolon the semicolon terminating the directive
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  Token get firstTokenAfterCommentAndMetadata => _partToken;
+  Token get firstTokenAfterCommentAndMetadata => partToken;
 }
 /**
  * Instances of the class `PartOfDirective` represent a part-of directive.
@@ -10954,12 +9037,12 @@ class PartOfDirective extends Directive {
   /**
    * The token representing the 'part' token.
    */
-  Token _partToken;
+  Token partToken;
 
   /**
    * The token representing the 'of' token.
    */
-  Token _ofToken;
+  Token ofToken;
 
   /**
    * The name of the library that the containing compilation unit is part of.
@@ -10969,7 +9052,7 @@ class PartOfDirective extends Directive {
   /**
    * The semicolon terminating the directive.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created part-of directive.
@@ -10982,10 +9065,10 @@ class PartOfDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   PartOfDirective.full(Comment comment, List<Annotation> metadata, Token partToken, Token ofToken, LibraryIdentifier libraryName, Token semicolon) : super.full(comment, metadata) {
-    this._partToken = partToken;
-    this._ofToken = ofToken;
+    this.partToken = partToken;
+    this.ofToken = ofToken;
     this._libraryName = becomeParentOf(libraryName);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -11000,8 +9083,8 @@ class PartOfDirective extends Directive {
    */
   PartOfDirective({Comment comment, List<Annotation> metadata, Token partToken, Token ofToken, LibraryIdentifier libraryName, Token semicolon}) : this.full(comment, metadata, partToken, ofToken, libraryName, semicolon);
   accept(ASTVisitor visitor) => visitor.visitPartOfDirective(this);
-  Token get endToken => _semicolon;
-  Token get keyword => _partToken;
+  Token get endToken => semicolon;
+  Token get keyword => partToken;
 
   /**
    * Return the name of the library that the containing compilation unit is part of.
@@ -11011,66 +9094,18 @@ class PartOfDirective extends Directive {
   LibraryIdentifier get libraryName => _libraryName;
 
   /**
-   * Return the token representing the 'of' token.
-   *
-   * @return the token representing the 'of' token
-   */
-  Token get ofToken => _ofToken;
-
-  /**
-   * Return the token representing the 'part' token.
-   *
-   * @return the token representing the 'part' token
-   */
-  Token get partToken => _partToken;
-
-  /**
-   * Return the semicolon terminating the directive.
-   *
-   * @return the semicolon terminating the directive
-   */
-  Token get semicolon => _semicolon;
-
-  /**
    * Set the name of the library that the containing compilation unit is part of to the given name.
    *
    * @param libraryName the name of the library that the containing compilation unit is part of
    */
-  void set libraryName(LibraryIdentifier libraryName2) {
-    this._libraryName = becomeParentOf(libraryName2);
+  void set libraryName(LibraryIdentifier libraryName) {
+    this._libraryName = becomeParentOf(libraryName);
   }
-
-  /**
-   * Set the token representing the 'of' token to the given token.
-   *
-   * @param ofToken the token representing the 'of' token
-   */
-  void set ofToken(Token ofToken2) {
-    this._ofToken = ofToken2;
-  }
-
-  /**
-   * Set the token representing the 'part' token to the given token.
-   *
-   * @param partToken the token representing the 'part' token
-   */
-  void set partToken(Token partToken2) {
-    this._partToken = partToken2;
-  }
-
-  /**
-   * Set the semicolon terminating the directive to the given token.
-   *
-   * @param semicolon the semicolon terminating the directive
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_libraryName, visitor);
   }
-  Token get firstTokenAfterCommentAndMetadata => _partToken;
+  Token get firstTokenAfterCommentAndMetadata => partToken;
 }
 /**
  * Instances of the class `PostfixExpression` represent a postfix unary expression.
@@ -11092,7 +9127,7 @@ class PostfixExpression extends Expression {
   /**
    * The postfix operator being applied to the operand.
    */
-  Token _operator;
+  Token operator;
 
   /**
    * The element associated with this the operator based on the propagated type of the operand, or
@@ -11116,7 +9151,7 @@ class PostfixExpression extends Expression {
    */
   PostfixExpression.full(Expression operand, Token operator) {
     this._operand = becomeParentOf(operand);
-    this._operator = operator;
+    this.operator = operator;
   }
 
   /**
@@ -11144,7 +9179,7 @@ class PostfixExpression extends Expression {
     }
     return element;
   }
-  Token get endToken => _operator;
+  Token get endToken => operator;
 
   /**
    * Return the expression computing the operand for the operator.
@@ -11152,13 +9187,6 @@ class PostfixExpression extends Expression {
    * @return the expression computing the operand for the operator
    */
   Expression get operand => _operand;
-
-  /**
-   * Return the postfix operator being applied to the operand.
-   *
-   * @return the postfix operator being applied to the operand
-   */
-  Token get operator => _operator;
 
   /**
    * Return the element associated with the operator based on the propagated type of the operand, or
@@ -11190,15 +9218,6 @@ class PostfixExpression extends Expression {
   }
 
   /**
-   * Set the postfix operator being applied to the operand to the given operator.
-   *
-   * @param operator the postfix operator being applied to the operand
-   */
-  void set operator(Token operator2) {
-    this._operator = operator2;
-  }
-
-  /**
    * Set the element associated with the operator based on the propagated type of the operand to the
    * given element.
    *
@@ -11217,7 +9236,7 @@ class PostfixExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
 
@@ -11278,7 +9297,7 @@ class PrefixExpression extends Expression {
   /**
    * The prefix operator being applied to the operand.
    */
-  Token _operator;
+  Token operator;
 
   /**
    * The expression computing the operand for the operator.
@@ -11306,7 +9325,7 @@ class PrefixExpression extends Expression {
    * @param operand the expression computing the operand for the operator
    */
   PrefixExpression.full(Token operator, Expression operand) {
-    this._operator = operator;
+    this.operator = operator;
     this._operand = becomeParentOf(operand);
   }
 
@@ -11318,7 +9337,7 @@ class PrefixExpression extends Expression {
    */
   PrefixExpression({Token operator, Expression operand}) : this.full(operator, operand);
   accept(ASTVisitor visitor) => visitor.visitPrefixExpression(this);
-  Token get beginToken => _operator;
+  Token get beginToken => operator;
 
   /**
    * Return the best element available for this operator. If resolution was able to find a better
@@ -11343,13 +9362,6 @@ class PrefixExpression extends Expression {
    * @return the expression computing the operand for the operator
    */
   Expression get operand => _operand;
-
-  /**
-   * Return the prefix operator being applied to the operand.
-   *
-   * @return the prefix operator being applied to the operand
-   */
-  Token get operator => _operator;
 
   /**
    * Return the element associated with the operator based on the propagated type of the operand, or
@@ -11381,15 +9393,6 @@ class PrefixExpression extends Expression {
   }
 
   /**
-   * Set the prefix operator being applied to the operand to the given operator.
-   *
-   * @param operator the prefix operator being applied to the operand
-   */
-  void set operator(Token operator2) {
-    this._operator = operator2;
-  }
-
-  /**
    * Set the element associated with the operator based on the propagated type of the operand to the
    * given element.
    *
@@ -11408,7 +9411,7 @@ class PrefixExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
 
@@ -11476,7 +9479,7 @@ class PrefixedIdentifier extends Identifier {
   /**
    * The period used to separate the prefix from the identifier.
    */
-  Token _period;
+  Token period;
 
   /**
    * The identifier being prefixed.
@@ -11492,7 +9495,7 @@ class PrefixedIdentifier extends Identifier {
    */
   PrefixedIdentifier.full(SimpleIdentifier prefix, Token period, SimpleIdentifier identifier) {
     this._prefix = becomeParentOf(prefix);
-    this._period = period;
+    this.period = period;
     this._identifier = becomeParentOf(identifier);
   }
 
@@ -11506,11 +9509,11 @@ class PrefixedIdentifier extends Identifier {
   PrefixedIdentifier({SimpleIdentifier prefix, Token period, SimpleIdentifier identifier}) : this.full(prefix, period, identifier);
   accept(ASTVisitor visitor) => visitor.visitPrefixedIdentifier(this);
   Token get beginToken => _prefix.beginToken;
-  Element get element {
+  Element get bestElement {
     if (_identifier == null) {
       return null;
     }
-    return _identifier.element;
+    return _identifier.bestElement;
   }
   Token get endToken => _identifier.endToken;
 
@@ -11523,18 +9526,17 @@ class PrefixedIdentifier extends Identifier {
   String get name => "${_prefix.name}.${_identifier.name}";
 
   /**
-   * Return the period used to separate the prefix from the identifier.
-   *
-   * @return the period used to separate the prefix from the identifier
-   */
-  Token get period => _period;
-
-  /**
    * Return the prefix associated with the library in which the identifier is defined.
    *
    * @return the prefix associated with the library in which the identifier is defined
    */
   SimpleIdentifier get prefix => _prefix;
+  Element get propagatedElement {
+    if (_identifier == null) {
+      return null;
+    }
+    return _identifier.propagatedElement;
+  }
   Element get staticElement {
     if (_identifier == null) {
       return null;
@@ -11547,17 +9549,8 @@ class PrefixedIdentifier extends Identifier {
    *
    * @param identifier the identifier being prefixed
    */
-  void set identifier(SimpleIdentifier identifier2) {
-    this._identifier = becomeParentOf(identifier2);
-  }
-
-  /**
-   * Set the period used to separate the prefix from the identifier to the given token.
-   *
-   * @param period the period used to separate the prefix from the identifier
-   */
-  void set period(Token period2) {
-    this._period = period2;
+  void set identifier(SimpleIdentifier identifier) {
+    this._identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -11569,7 +9562,7 @@ class PrefixedIdentifier extends Identifier {
   void set prefix(SimpleIdentifier identifier) {
     _prefix = becomeParentOf(identifier);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_prefix, visitor);
     safelyVisitChild(_identifier, visitor);
   }
@@ -11598,7 +9591,7 @@ class PropertyAccess extends Expression {
   /**
    * The property access operator.
    */
-  Token _operator;
+  Token operator;
 
   /**
    * The name of the property being accessed.
@@ -11614,7 +9607,7 @@ class PropertyAccess extends Expression {
    */
   PropertyAccess.full(Expression target, Token operator, SimpleIdentifier propertyName) {
     this._target = becomeParentOf(target);
-    this._operator = operator;
+    this.operator = operator;
     this._propertyName = becomeParentOf(propertyName);
   }
 
@@ -11631,16 +9624,9 @@ class PropertyAccess extends Expression {
     if (_target != null) {
       return _target.beginToken;
     }
-    return _operator;
+    return operator;
   }
   Token get endToken => _propertyName.endToken;
-
-  /**
-   * Return the property access operator.
-   *
-   * @return the property access operator
-   */
-  Token get operator => _operator;
 
   /**
    * Return the name of the property being accessed.
@@ -11689,16 +9675,7 @@ class PropertyAccess extends Expression {
    *
    * @return `true` if this expression is cascaded
    */
-  bool get isCascaded => _operator != null && identical(_operator.type, TokenType.PERIOD_PERIOD);
-
-  /**
-   * Set the property access operator to the given token.
-   *
-   * @param operator the property access operator
-   */
-  void set operator(Token operator2) {
-    this._operator = operator2;
-  }
+  bool get isCascaded => operator != null && identical(operator.type, TokenType.PERIOD_PERIOD);
 
   /**
    * Set the name of the property being accessed to the given identifier.
@@ -11718,7 +9695,7 @@ class PropertyAccess extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_propertyName, visitor);
   }
@@ -11739,13 +9716,13 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   /**
    * The token for the 'this' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The token for the period before the name of the constructor that is being invoked, or
    * `null` if the unnamed constructor is being invoked.
    */
-  Token _period;
+  Token period;
 
   /**
    * The name of the constructor that is being invoked, or `null` if the unnamed constructor
@@ -11762,14 +9739,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * The element associated with the constructor based on static type information, or `null`
    * if the AST structure has not been resolved or if the constructor could not be resolved.
    */
-  ConstructorElement _staticElement;
-
-  /**
-   * The element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   */
-  ConstructorElement _propagatedElement;
+  ConstructorElement staticElement;
 
   /**
    * Initialize a newly created redirecting invocation to invoke the constructor with the given name
@@ -11781,8 +9751,8 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   RedirectingConstructorInvocation.full(Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this._keyword = keyword;
-    this._period = period;
+    this.keyword = keyword;
+    this.period = period;
     this._constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
@@ -11805,7 +9775,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @return the list of arguments to the constructor
    */
   ArgumentList get argumentList => _argumentList;
-  Token get beginToken => _keyword;
+  Token get beginToken => keyword;
 
   /**
    * Return the name of the constructor that is being invoked, or `null` if the unnamed
@@ -11814,48 +9784,15 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @return the name of the constructor that is being invoked
    */
   SimpleIdentifier get constructorName => _constructorName;
-
-  /**
-   * Return the element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the super constructor
-   */
-  ConstructorElement get element => _propagatedElement;
   Token get endToken => _argumentList.endToken;
-
-  /**
-   * Return the token for the 'this' keyword.
-   *
-   * @return the token for the 'this' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the token for the period before the name of the constructor that is being invoked, or
-   * `null` if the unnamed constructor is being invoked.
-   *
-   * @return the token for the period before the name of the constructor that is being invoked
-   */
-  Token get period => _period;
-
-  /**
-   * Return the element associated with the constructor based on static type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the constructor
-   */
-  ConstructorElement get staticElement => _staticElement;
 
   /**
    * Set the list of arguments to the constructor to the given list.
    *
    * @param argumentList the list of arguments to the constructor
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -11866,46 +9803,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   void set constructorName(SimpleIdentifier identifier) {
     _constructorName = becomeParentOf(identifier);
   }
-
-  /**
-   * Set the element associated with the constructor based on propagated type information to the
-   * given element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set element(ConstructorElement element2) {
-    _propagatedElement = element2;
-  }
-
-  /**
-   * Set the token for the 'this' keyword to the given token.
-   *
-   * @param keyword the token for the 'this' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the token for the period before the name of the constructor that is being invoked to the
-   * given token.
-   *
-   * @param period the token for the period before the name of the constructor that is being invoked
-   */
-  void set period(Token period2) {
-    this._period = period2;
-  }
-
-  /**
-   * Set the element associated with the constructor based on static type information to the given
-   * element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set staticElement(ConstructorElement element) {
-    this._staticElement = element;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -11925,7 +9823,7 @@ class RethrowExpression extends Expression {
   /**
    * The token representing the 'rethrow' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * Initialize a newly created rethrow expression.
@@ -11933,7 +9831,7 @@ class RethrowExpression extends Expression {
    * @param keyword the token representing the 'rethrow' keyword
    */
   RethrowExpression.full(Token keyword) {
-    this._keyword = keyword;
+    this.keyword = keyword;
   }
 
   /**
@@ -11943,25 +9841,9 @@ class RethrowExpression extends Expression {
    */
   RethrowExpression({Token keyword}) : this.full(keyword);
   accept(ASTVisitor visitor) => visitor.visitRethrowExpression(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _keyword;
-
-  /**
-   * Return the token representing the 'rethrow' keyword.
-   *
-   * @return the token representing the 'rethrow' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Set the token representing the 'rethrow' keyword to the given token.
-   *
-   * @param keyword the token representing the 'rethrow' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => keyword;
+  Token get endToken => keyword;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -11979,7 +9861,7 @@ class ReturnStatement extends Statement {
   /**
    * The token representing the 'return' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The expression computing the value to be returned, or `null` if no explicit value was
@@ -11990,7 +9872,7 @@ class ReturnStatement extends Statement {
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created return statement.
@@ -12000,9 +9882,9 @@ class ReturnStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ReturnStatement.full(Token keyword, Expression expression, Token semicolon) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._expression = becomeParentOf(expression);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -12014,8 +9896,8 @@ class ReturnStatement extends Statement {
    */
   ReturnStatement({Token keyword, Expression expression, Token semicolon}) : this.full(keyword, expression, semicolon);
   accept(ASTVisitor visitor) => visitor.visitReturnStatement(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _semicolon;
+  Token get beginToken => keyword;
+  Token get endToken => semicolon;
 
   /**
    * Return the expression computing the value to be returned, or `null` if no explicit value
@@ -12026,46 +9908,14 @@ class ReturnStatement extends Statement {
   Expression get expression => _expression;
 
   /**
-   * Return the token representing the 'return' keyword.
-   *
-   * @return the token representing the 'return' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
-
-  /**
    * Set the expression computing the value to be returned to the given expression.
    *
    * @param expression the expression computing the value to be returned
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Set the token representing the 'return' keyword to the given token.
-   *
-   * @param keyword the token representing the 'return' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -12085,7 +9935,7 @@ class ScriptTag extends ASTNode {
   /**
    * The token representing this script tag.
    */
-  Token _scriptTag;
+  Token scriptTag;
 
   /**
    * Initialize a newly created script tag.
@@ -12093,7 +9943,7 @@ class ScriptTag extends ASTNode {
    * @param scriptTag the token representing this script tag
    */
   ScriptTag.full(Token scriptTag) {
-    this._scriptTag = scriptTag;
+    this.scriptTag = scriptTag;
   }
 
   /**
@@ -12103,25 +9953,9 @@ class ScriptTag extends ASTNode {
    */
   ScriptTag({Token scriptTag}) : this.full(scriptTag);
   accept(ASTVisitor visitor) => visitor.visitScriptTag(this);
-  Token get beginToken => _scriptTag;
-  Token get endToken => _scriptTag;
-
-  /**
-   * Return the token representing this script tag.
-   *
-   * @return the token representing this script tag
-   */
-  Token get scriptTag => _scriptTag;
-
-  /**
-   * Set the token representing this script tag to the given script tag.
-   *
-   * @param scriptTag the token representing this script tag
-   */
-  void set scriptTag(Token scriptTag2) {
-    this._scriptTag = scriptTag2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => scriptTag;
+  Token get endToken => scriptTag;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -12140,7 +9974,7 @@ class ShowCombinator extends Combinator {
   /**
    * The list of names from the library that are made visible by this combinator.
    */
-  NodeList<SimpleIdentifier> _shownNames;
+  NodeList<SimpleIdentifier> shownNames;
 
   /**
    * Initialize a newly created import show combinator.
@@ -12149,8 +9983,8 @@ class ShowCombinator extends Combinator {
    * @param shownNames the list of names from the library that are made visible by this combinator
    */
   ShowCombinator.full(Token keyword, List<SimpleIdentifier> shownNames) : super.full(keyword) {
-    this._shownNames = new NodeList<SimpleIdentifier>(this);
-    this._shownNames.addAll(shownNames);
+    this.shownNames = new NodeList<SimpleIdentifier>(this);
+    this.shownNames.addAll(shownNames);
   }
 
   /**
@@ -12161,16 +9995,9 @@ class ShowCombinator extends Combinator {
    */
   ShowCombinator({Token keyword, List<SimpleIdentifier> shownNames}) : this.full(keyword, shownNames);
   accept(ASTVisitor visitor) => visitor.visitShowCombinator(this);
-  Token get endToken => _shownNames.endToken;
-
-  /**
-   * Return the list of names from the library that are made visible by this combinator.
-   *
-   * @return the list of names from the library that are made visible by this combinator
-   */
-  NodeList<SimpleIdentifier> get shownNames => _shownNames;
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _shownNames.accept(visitor);
+  Token get endToken => shownNames.endToken;
+  void visitChildren(ASTVisitor visitor) {
+    shownNames.accept(visitor);
   }
 }
 /**
@@ -12189,7 +10016,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * The token representing either the 'final', 'const' or 'var' keyword, or `null` if no
    * keyword was used.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The name of the declared type of the parameter, or `null` if the parameter does not have
@@ -12207,7 +10034,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * @param identifier the name of the parameter being declared
    */
   SimpleFormalParameter.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier) : super.full(comment, metadata, identifier) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._type = becomeParentOf(type);
   }
 
@@ -12223,8 +10050,8 @@ class SimpleFormalParameter extends NormalFormalParameter {
   SimpleFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
   accept(ASTVisitor visitor) => visitor.visitSimpleFormalParameter(this);
   Token get beginToken {
-    if (_keyword != null) {
-      return _keyword;
+    if (keyword != null) {
+      return keyword;
     } else if (_type != null) {
       return _type.beginToken;
     }
@@ -12233,30 +10060,14 @@ class SimpleFormalParameter extends NormalFormalParameter {
   Token get endToken => identifier.endToken;
 
   /**
-   * Return the token representing either the 'final', 'const' or 'var' keyword.
-   *
-   * @return the token representing either the 'final', 'const' or 'var' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
    * Return the name of the declared type of the parameter, or `null` if the parameter does
    * not have a declared type.
    *
    * @return the name of the declared type of the parameter
    */
   TypeName get type => _type;
-  bool get isConst => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
-  bool get isFinal => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
-
-  /**
-   * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
-   *
-   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
+  bool get isConst => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isFinal => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the name of the declared type of the parameter to the given type name.
@@ -12266,7 +10077,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
@@ -12291,7 +10102,7 @@ class SimpleIdentifier extends Identifier {
   /**
    * The token representing the identifier.
    */
-  Token _token;
+  Token token;
 
   /**
    * The element associated with this identifier based on static type information, or `null`
@@ -12307,12 +10118,19 @@ class SimpleIdentifier extends Identifier {
   Element _propagatedElement;
 
   /**
+   * If this expression is both in a getter and setter context, the [AuxiliaryElements] will
+   * be set to hold onto the static and propagated information. The auxiliary element will hold onto
+   * the elements from the getter context.
+   */
+  AuxiliaryElements auxiliaryElements = null;
+
+  /**
    * Initialize a newly created identifier.
    *
    * @param token the token representing the identifier
    */
   SimpleIdentifier.full(Token token) {
-    this._token = token;
+    this.token = token;
   }
 
   /**
@@ -12322,18 +10140,17 @@ class SimpleIdentifier extends Identifier {
    */
   SimpleIdentifier({Token token}) : this.full(token);
   accept(ASTVisitor visitor) => visitor.visitSimpleIdentifier(this);
-  Token get beginToken => _token;
-  Element get element => _propagatedElement;
-  Token get endToken => _token;
-  String get name => _token.lexeme;
+  Token get beginToken => token;
+  Element get bestElement {
+    if (_propagatedElement == null) {
+      return _staticElement;
+    }
+    return _propagatedElement;
+  }
+  Token get endToken => token;
+  String get name => token.lexeme;
+  Element get propagatedElement => _propagatedElement;
   Element get staticElement => _staticElement;
-
-  /**
-   * Return the token representing the identifier.
-   *
-   * @return the token representing the identifier
-   */
-  Token get token => _token;
 
   /**
    * Return `true` if this identifier is the name being declared in a declaration.
@@ -12446,7 +10263,7 @@ class SimpleIdentifier extends Identifier {
     }
     return false;
   }
-  bool get isSynthetic => _token.isSynthetic;
+  bool get isSynthetic => token.isSynthetic;
 
   /**
    * Set the element associated with this identifier based on propagated type information to the
@@ -12454,8 +10271,8 @@ class SimpleIdentifier extends Identifier {
    *
    * @param element the element to be associated with this identifier
    */
-  void set element(Element element2) {
-    _propagatedElement = element2;
+  void set propagatedElement(Element element) {
+    _propagatedElement = validateElement2(element);
   }
 
   /**
@@ -12465,18 +10282,58 @@ class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    */
   void set staticElement(Element element) {
-    _staticElement = element;
+    _staticElement = validateElement2(element);
+  }
+  void visitChildren(ASTVisitor visitor) {
   }
 
   /**
-   * Set the token representing the identifier to the given token.
+   * Return the given element if it is an appropriate element based on the parent of this
+   * identifier, or `null` if it is not appropriate.
    *
-   * @param token the token representing the literal
+   * @param element the element to be associated with this identifier
+   * @return the element to be associated with this identifier
    */
-  void set token(Token token2) {
-    this._token = token2;
+  Element validateElement(ASTNode parent, Type expectedClass, Element element) {
+    if (!isInstanceOf(element, expectedClass)) {
+      AnalysisEngine.instance.logger.logInformation2("Internal error: attempting to set the name of a ${parent.runtimeType.toString()} to a ${element.runtimeType.toString()}", new JavaException());
+      return null;
+    }
+    return element;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+
+  /**
+   * Return the given element if it is an appropriate element based on the parent of this
+   * identifier, or `null` if it is not appropriate.
+   *
+   * @param element the element to be associated with this identifier
+   * @return the element to be associated with this identifier
+   */
+  Element validateElement2(Element element) {
+    if (element == null) {
+      return null;
+    }
+    ASTNode parent = this.parent;
+    if (parent is ClassDeclaration && identical(((parent as ClassDeclaration)).name, this)) {
+      return validateElement(parent, ClassElement, element);
+    } else if (parent is ClassTypeAlias && identical(((parent as ClassTypeAlias)).name, this)) {
+      return validateElement(parent, ClassElement, element);
+    } else if (parent is DeclaredIdentifier && identical(((parent as DeclaredIdentifier)).identifier, this)) {
+      return validateElement(parent, LocalVariableElement, element);
+    } else if (parent is FormalParameter && identical(((parent as FormalParameter)).identifier, this)) {
+      return validateElement(parent, ParameterElement, element);
+    } else if (parent is FunctionDeclaration && identical(((parent as FunctionDeclaration)).name, this)) {
+      return validateElement(parent, ExecutableElement, element);
+    } else if (parent is FunctionTypeAlias && identical(((parent as FunctionTypeAlias)).name, this)) {
+      return validateElement(parent, FunctionTypeAliasElement, element);
+    } else if (parent is MethodDeclaration && identical(((parent as MethodDeclaration)).name, this)) {
+      return validateElement(parent, ExecutableElement, element);
+    } else if (parent is TypeParameter && identical(((parent as TypeParameter)).name, this)) {
+      return validateElement(parent, TypeParameterElement, element);
+    } else if (parent is VariableDeclaration && identical(((parent as VariableDeclaration)).name, this)) {
+      return validateElement(parent, VariableElement, element);
+    }
+    return element;
   }
 }
 /**
@@ -12511,7 +10368,7 @@ class SimpleStringLiteral extends StringLiteral {
   /**
    * The token representing the literal.
    */
-  Token _literal;
+  Token literal;
 
   /**
    * The value of the literal.
@@ -12525,7 +10382,7 @@ class SimpleStringLiteral extends StringLiteral {
    * @param value the value of the literal
    */
   SimpleStringLiteral.full(Token literal, String value) {
-    this._literal = literal;
+    this.literal = literal;
     this._value = StringUtilities.intern(value);
   }
 
@@ -12537,15 +10394,8 @@ class SimpleStringLiteral extends StringLiteral {
    */
   SimpleStringLiteral({Token literal, String value}) : this.full(literal, value);
   accept(ASTVisitor visitor) => visitor.visitSimpleStringLiteral(this);
-  Token get beginToken => _literal;
-  Token get endToken => _literal;
-
-  /**
-   * Return the token representing the literal.
-   *
-   * @return the token representing the literal
-   */
-  Token get literal => _literal;
+  Token get beginToken => literal;
+  Token get endToken => literal;
 
   /**
    * Return the value of the literal.
@@ -12572,16 +10422,7 @@ class SimpleStringLiteral extends StringLiteral {
    * @return `true` if this string literal is a raw string
    */
   bool get isRaw => _value.codeUnitAt(0) == 0x40;
-  bool get isSynthetic => _literal.isSynthetic;
-
-  /**
-   * Set the token representing the literal to the given token.
-   *
-   * @param literal the token representing the literal
-   */
-  void set literal(Token literal2) {
-    this._literal = literal2;
-  }
+  bool get isSynthetic => literal.isSynthetic;
 
   /**
    * Set the value of the literal to the given string.
@@ -12591,7 +10432,7 @@ class SimpleStringLiteral extends StringLiteral {
   void set value(String string) {
     _value = StringUtilities.intern(_value);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
   }
   void appendStringValue(JavaStringBuilder builder) {
     builder.append(value);
@@ -12639,7 +10480,7 @@ class StringInterpolation extends StringLiteral {
   /**
    * The elements that will be composed to produce the resulting string.
    */
-  NodeList<InterpolationElement> _elements;
+  NodeList<InterpolationElement> elements;
 
   /**
    * Initialize a newly created string interpolation expression.
@@ -12647,8 +10488,8 @@ class StringInterpolation extends StringLiteral {
    * @param elements the elements that will be composed to produce the resulting string
    */
   StringInterpolation.full(List<InterpolationElement> elements) {
-    this._elements = new NodeList<InterpolationElement>(this);
-    this._elements.addAll(elements);
+    this.elements = new NodeList<InterpolationElement>(this);
+    this.elements.addAll(elements);
   }
 
   /**
@@ -12658,17 +10499,10 @@ class StringInterpolation extends StringLiteral {
    */
   StringInterpolation({List<InterpolationElement> elements}) : this.full(elements);
   accept(ASTVisitor visitor) => visitor.visitStringInterpolation(this);
-  Token get beginToken => _elements.beginToken;
-
-  /**
-   * Return the elements that will be composed to produce the resulting string.
-   *
-   * @return the elements that will be composed to produce the resulting string
-   */
-  NodeList<InterpolationElement> get elements => _elements;
-  Token get endToken => _elements.endToken;
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _elements.accept(visitor);
+  Token get beginToken => elements.beginToken;
+  Token get endToken => elements.endToken;
+  void visitChildren(ASTVisitor visitor) {
+    elements.accept(visitor);
   }
   void appendStringValue(JavaStringBuilder builder) {
     throw new IllegalArgumentException();
@@ -12729,13 +10563,13 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   /**
    * The token for the 'super' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The token for the period before the name of the constructor that is being invoked, or
    * `null` if the unnamed constructor is being invoked.
    */
-  Token _period;
+  Token period;
 
   /**
    * The name of the constructor that is being invoked, or `null` if the unnamed constructor
@@ -12752,13 +10586,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * The element associated with the constructor based on static type information, or `null`
    * if the AST structure has not been resolved or if the constructor could not be resolved.
    */
-  ConstructorElement _staticElement;
-
-  /**
-   * The element associated with the constructor based on propagated type information, or `null` if the AST structure has not been
-   * resolved or if the constructor could not be resolved.
-   */
-  ConstructorElement _propagatedElement;
+  ConstructorElement staticElement;
 
   /**
    * Initialize a newly created super invocation to invoke the inherited constructor with the given
@@ -12770,8 +10598,8 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   SuperConstructorInvocation.full(Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this._keyword = keyword;
-    this._period = period;
+    this.keyword = keyword;
+    this.period = period;
     this._constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
@@ -12794,7 +10622,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @return the list of arguments to the constructor
    */
   ArgumentList get argumentList => _argumentList;
-  Token get beginToken => _keyword;
+  Token get beginToken => keyword;
 
   /**
    * Return the name of the constructor that is being invoked, or `null` if the unnamed
@@ -12803,48 +10631,15 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @return the name of the constructor that is being invoked
    */
   SimpleIdentifier get constructorName => _constructorName;
-
-  /**
-   * Return the element associated with the constructor based on propagated type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the super constructor
-   */
-  ConstructorElement get element => _propagatedElement;
   Token get endToken => _argumentList.endToken;
-
-  /**
-   * Return the token for the 'super' keyword.
-   *
-   * @return the token for the 'super' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the token for the period before the name of the constructor that is being invoked, or
-   * `null` if the unnamed constructor is being invoked.
-   *
-   * @return the token for the period before the name of the constructor that is being invoked
-   */
-  Token get period => _period;
-
-  /**
-   * Return the element associated with the constructor based on static type information, or
-   * `null` if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   *
-   * @return the element associated with the constructor
-   */
-  ConstructorElement get staticElement => _staticElement;
 
   /**
    * Set the list of arguments to the constructor to the given list.
    *
    * @param argumentList the list of arguments to the constructor
    */
-  void set argumentList(ArgumentList argumentList2) {
-    this._argumentList = becomeParentOf(argumentList2);
+  void set argumentList(ArgumentList argumentList) {
+    this._argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -12855,46 +10650,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   void set constructorName(SimpleIdentifier identifier) {
     _constructorName = becomeParentOf(identifier);
   }
-
-  /**
-   * Set the element associated with the constructor based on propagated type information to the
-   * given element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set element(ConstructorElement element2) {
-    _propagatedElement = element2;
-  }
-
-  /**
-   * Set the token for the 'super' keyword to the given token.
-   *
-   * @param keyword the token for the 'super' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the token for the period before the name of the constructor that is being invoked to the
-   * given token.
-   *
-   * @param period the token for the period before the name of the constructor that is being invoked
-   */
-  void set period(Token period2) {
-    this._period = period2;
-  }
-
-  /**
-   * Set the element associated with the constructor based on static type information to the given
-   * element.
-   *
-   * @param element the element to be associated with the constructor
-   */
-  void set staticElement(ConstructorElement element) {
-    this._staticElement = element;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
@@ -12914,7 +10670,7 @@ class SuperExpression extends Expression {
   /**
    * The token representing the keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * Initialize a newly created super expression.
@@ -12922,7 +10678,7 @@ class SuperExpression extends Expression {
    * @param keyword the token representing the keyword
    */
   SuperExpression.full(Token keyword) {
-    this._keyword = keyword;
+    this.keyword = keyword;
   }
 
   /**
@@ -12932,25 +10688,9 @@ class SuperExpression extends Expression {
    */
   SuperExpression({Token keyword}) : this.full(keyword);
   accept(ASTVisitor visitor) => visitor.visitSuperExpression(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _keyword;
-
-  /**
-   * Return the token representing the keyword.
-   *
-   * @return the token representing the keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Set the token representing the keyword to the given token.
-   *
-   * @param keyword the token representing the keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => keyword;
+  Token get endToken => keyword;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -13007,10 +10747,10 @@ class SwitchCase extends SwitchMember {
    *
    * @param expression the expression controlling whether the statements will be executed
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
     safelyVisitChild(_expression, visitor);
     statements.accept(visitor);
@@ -13048,7 +10788,7 @@ class SwitchDefault extends SwitchMember {
    */
   SwitchDefault({List<Label> labels, Token keyword, Token colon, List<Statement> statements}) : this.full(labels, keyword, colon, statements);
   accept(ASTVisitor visitor) => visitor.visitSwitchDefault(this);
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
     statements.accept(visitor);
   }
@@ -13070,22 +10810,22 @@ abstract class SwitchMember extends ASTNode {
   /**
    * The labels associated with the switch member.
    */
-  NodeList<Label> _labels;
+  NodeList<Label> labels;
 
   /**
    * The token representing the 'case' or 'default' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The colon separating the keyword or the expression from the statements.
    */
-  Token _colon;
+  Token colon;
 
   /**
    * The statements that will be executed if this switch member is selected.
    */
-  NodeList<Statement> _statements;
+  NodeList<Statement> statements;
 
   /**
    * Initialize a newly created switch member.
@@ -13096,12 +10836,12 @@ abstract class SwitchMember extends ASTNode {
    * @param statements the statements that will be executed if this switch member is selected
    */
   SwitchMember.full(List<Label> labels, Token keyword, Token colon, List<Statement> statements) {
-    this._labels = new NodeList<Label>(this);
-    this._statements = new NodeList<Statement>(this);
-    this._labels.addAll(labels);
-    this._keyword = keyword;
-    this._colon = colon;
-    this._statements.addAll(statements);
+    this.labels = new NodeList<Label>(this);
+    this.statements = new NodeList<Statement>(this);
+    this.labels.addAll(labels);
+    this.keyword = keyword;
+    this.colon = colon;
+    this.statements.addAll(statements);
   }
 
   /**
@@ -13114,62 +10854,16 @@ abstract class SwitchMember extends ASTNode {
    */
   SwitchMember({List<Label> labels, Token keyword, Token colon, List<Statement> statements}) : this.full(labels, keyword, colon, statements);
   Token get beginToken {
-    if (!_labels.isEmpty) {
-      return _labels.beginToken;
+    if (!labels.isEmpty) {
+      return labels.beginToken;
     }
-    return _keyword;
+    return keyword;
   }
-
-  /**
-   * Return the colon separating the keyword or the expression from the statements.
-   *
-   * @return the colon separating the keyword or the expression from the statements
-   */
-  Token get colon => _colon;
   Token get endToken {
-    if (!_statements.isEmpty) {
-      return _statements.endToken;
+    if (!statements.isEmpty) {
+      return statements.endToken;
     }
-    return _colon;
-  }
-
-  /**
-   * Return the token representing the 'case' or 'default' keyword.
-   *
-   * @return the token representing the 'case' or 'default' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the labels associated with the switch member.
-   *
-   * @return the labels associated with the switch member
-   */
-  NodeList<Label> get labels => _labels;
-
-  /**
-   * Return the statements that will be executed if this switch member is selected.
-   *
-   * @return the statements that will be executed if this switch member is selected
-   */
-  NodeList<Statement> get statements => _statements;
-
-  /**
-   * Set the colon separating the keyword or the expression from the statements to the given token.
-   *
-   * @param colon the colon separating the keyword or the expression from the statements
-   */
-  void set colon(Token colon2) {
-    this._colon = colon2;
-  }
-
-  /**
-   * Set the token representing the 'case' or 'default' keyword to the given token.
-   *
-   * @param keyword the token representing the 'case' or 'default' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
+    return colon;
   }
 }
 /**
@@ -13187,12 +10881,12 @@ class SwitchStatement extends Statement {
   /**
    * The token representing the 'switch' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The expression used to determine which of the switch members will be selected.
@@ -13202,22 +10896,22 @@ class SwitchStatement extends Statement {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The left curly bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The switch members that can be selected by the expression.
    */
-  NodeList<SwitchMember> _members;
+  NodeList<SwitchMember> members;
 
   /**
    * The right curly bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created switch statement.
@@ -13231,14 +10925,14 @@ class SwitchStatement extends Statement {
    * @param rightBracket the right curly bracket
    */
   SwitchStatement.full(Token keyword, Token leftParenthesis, Expression expression, Token rightParenthesis, Token leftBracket, List<SwitchMember> members, Token rightBracket) {
-    this._members = new NodeList<SwitchMember>(this);
-    this._keyword = keyword;
-    this._leftParenthesis = leftParenthesis;
+    this.members = new NodeList<SwitchMember>(this);
+    this.keyword = keyword;
+    this.leftParenthesis = leftParenthesis;
     this._expression = becomeParentOf(expression);
-    this._rightParenthesis = rightParenthesis;
-    this._leftBracket = leftBracket;
-    this._members.addAll(members);
-    this._rightBracket = rightBracket;
+    this.rightParenthesis = rightParenthesis;
+    this.leftBracket = leftBracket;
+    this.members.addAll(members);
+    this.rightBracket = rightBracket;
   }
 
   /**
@@ -13254,8 +10948,8 @@ class SwitchStatement extends Statement {
    */
   SwitchStatement({Token keyword, Token leftParenthesis, Expression expression, Token rightParenthesis, Token leftBracket, List<SwitchMember> members, Token rightBracket}) : this.full(keyword, leftParenthesis, expression, rightParenthesis, leftBracket, members, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitSwitchStatement(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _rightBracket;
+  Token get beginToken => keyword;
+  Token get endToken => rightBracket;
 
   /**
    * Return the expression used to determine which of the switch members will be selected.
@@ -13265,104 +10959,17 @@ class SwitchStatement extends Statement {
   Expression get expression => _expression;
 
   /**
-   * Return the token representing the 'switch' keyword.
-   *
-   * @return the token representing the 'switch' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the left curly bracket.
-   *
-   * @return the left curly bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the switch members that can be selected by the expression.
-   *
-   * @return the switch members that can be selected by the expression
-   */
-  NodeList<SwitchMember> get members => _members;
-
-  /**
-   * Return the right curly bracket.
-   *
-   * @return the right curly bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
-
-  /**
    * Set the expression used to determine which of the switch members will be selected to the given
    * expression.
    *
    * @param expression the expression used to determine which of the switch members will be selected
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Set the token representing the 'switch' keyword to the given token.
-   *
-   * @param keyword the token representing the 'switch' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the left curly bracket to the given token.
-   *
-   * @param leftBracket the left curly bracket
-   */
-  void set leftBracket(Token leftBracket2) {
-    this._leftBracket = leftBracket2;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param leftParenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token leftParenthesis2) {
-    this._leftParenthesis = leftParenthesis2;
-  }
-
-  /**
-   * Set the right curly bracket to the given token.
-   *
-   * @param rightBracket the right curly bracket
-   */
-  void set rightBracket(Token rightBracket2) {
-    this._rightBracket = rightBracket2;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param rightParenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token rightParenthesis2) {
-    this._rightParenthesis = rightParenthesis2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
-    _members.accept(visitor);
+    members.accept(visitor);
   }
 }
 /**
@@ -13380,12 +10987,12 @@ class SymbolLiteral extends Literal {
   /**
    * The token introducing the literal.
    */
-  Token _poundSign;
+  Token poundSign;
 
   /**
    * The components of the literal.
    */
-  List<Token> _components;
+  List<Token> components;
 
   /**
    * Initialize a newly created symbol literal.
@@ -13394,8 +11001,8 @@ class SymbolLiteral extends Literal {
    * @param components the components of the literal
    */
   SymbolLiteral.full(Token poundSign, List<Token> components) {
-    this._poundSign = poundSign;
-    this._components = components;
+    this.poundSign = poundSign;
+    this.components = components;
   }
 
   /**
@@ -13406,32 +11013,9 @@ class SymbolLiteral extends Literal {
    */
   SymbolLiteral({Token poundSign, List<Token> components}) : this.full(poundSign, components);
   accept(ASTVisitor visitor) => visitor.visitSymbolLiteral(this);
-  Token get beginToken => _poundSign;
-
-  /**
-   * Return the components of the literal.
-   *
-   * @return the components of the literal
-   */
-  List<Token> get components => _components;
-  Token get endToken => _components[_components.length - 1];
-
-  /**
-   * Return the token introducing the literal.
-   *
-   * @return the token introducing the literal
-   */
-  Token get poundSign => _poundSign;
-
-  /**
-   * Set the token introducing the literal to the given token.
-   *
-   * @param poundSign the token introducing the literal
-   */
-  void set poundSign(Token poundSign2) {
-    this._poundSign = poundSign2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => poundSign;
+  Token get endToken => components[components.length - 1];
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -13449,7 +11033,7 @@ class ThisExpression extends Expression {
   /**
    * The token representing the keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * Initialize a newly created this expression.
@@ -13457,7 +11041,7 @@ class ThisExpression extends Expression {
    * @param keyword the token representing the keyword
    */
   ThisExpression.full(Token keyword) {
-    this._keyword = keyword;
+    this.keyword = keyword;
   }
 
   /**
@@ -13467,25 +11051,9 @@ class ThisExpression extends Expression {
    */
   ThisExpression({Token keyword}) : this.full(keyword);
   accept(ASTVisitor visitor) => visitor.visitThisExpression(this);
-  Token get beginToken => _keyword;
-  Token get endToken => _keyword;
-
-  /**
-   * Return the token representing the keyword.
-   *
-   * @return the token representing the keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Set the token representing the keyword to the given token.
-   *
-   * @param keyword the token representing the keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  Token get beginToken => keyword;
+  Token get endToken => keyword;
+  void visitChildren(ASTVisitor visitor) {
   }
 }
 /**
@@ -13503,7 +11071,7 @@ class ThrowExpression extends Expression {
   /**
    * The token representing the 'throw' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The expression computing the exception to be thrown.
@@ -13517,7 +11085,7 @@ class ThrowExpression extends Expression {
    * @param expression the expression computing the exception to be thrown
    */
   ThrowExpression.full(Token keyword, Expression expression) {
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._expression = becomeParentOf(expression);
   }
 
@@ -13529,12 +11097,12 @@ class ThrowExpression extends Expression {
    */
   ThrowExpression({Token keyword, Expression expression}) : this.full(keyword, expression);
   accept(ASTVisitor visitor) => visitor.visitThrowExpression(this);
-  Token get beginToken => _keyword;
+  Token get beginToken => keyword;
   Token get endToken {
     if (_expression != null) {
       return _expression.endToken;
     }
-    return _keyword;
+    return keyword;
   }
 
   /**
@@ -13545,30 +11113,14 @@ class ThrowExpression extends Expression {
   Expression get expression => _expression;
 
   /**
-   * Return the token representing the 'throw' keyword.
-   *
-   * @return the token representing the 'throw' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
    * Set the expression computing the exception to be thrown to the given expression.
    *
    * @param expression the expression computing the exception to be thrown
    */
-  void set expression(Expression expression2) {
-    this._expression = becomeParentOf(expression2);
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Set the token representing the 'throw' keyword to the given token.
-   *
-   * @param keyword the token representing the 'throw' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
@@ -13594,7 +11146,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
   /**
    * The semicolon terminating the declaration.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created top-level variable declaration.
@@ -13606,7 +11158,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    */
   TopLevelVariableDeclaration.full(Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, Token semicolon) : super.full(comment, metadata) {
     this._variableList = becomeParentOf(variableList);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -13620,14 +11172,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
   TopLevelVariableDeclaration({Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, Token semicolon}) : this.full(comment, metadata, variableList, semicolon);
   accept(ASTVisitor visitor) => visitor.visitTopLevelVariableDeclaration(this);
   Element get element => null;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the semicolon terminating the declaration.
-   *
-   * @return the semicolon terminating the declaration
-   */
-  Token get semicolon => _semicolon;
+  Token get endToken => semicolon;
 
   /**
    * Return the top-level variables being declared.
@@ -13637,15 +11182,6 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
   VariableDeclarationList get variables => _variableList;
 
   /**
-   * Set the semicolon terminating the declaration to the given token.
-   *
-   * @param semicolon the semicolon terminating the declaration
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-
-  /**
    * Set the top-level variables being declared to the given list of variables.
    *
    * @param variableList the top-level variables being declared
@@ -13653,7 +11189,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
   void set variables(VariableDeclarationList variableList) {
     variableList = becomeParentOf(variableList);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_variableList, visitor);
   }
@@ -13677,7 +11213,7 @@ class TryStatement extends Statement {
   /**
    * The token representing the 'try' keyword.
    */
-  Token _tryKeyword;
+  Token tryKeyword;
 
   /**
    * The body of the statement.
@@ -13687,19 +11223,19 @@ class TryStatement extends Statement {
   /**
    * The catch clauses contained in the try statement.
    */
-  NodeList<CatchClause> _catchClauses;
+  NodeList<CatchClause> catchClauses;
 
   /**
    * The token representing the 'finally' keyword, or `null` if the statement does not contain
    * a finally clause.
    */
-  Token _finallyKeyword;
+  Token finallyKeyword;
 
   /**
-   * The finally clause contained in the try statement, or `null` if the statement does not
+   * The finally block contained in the try statement, or `null` if the statement does not
    * contain a finally clause.
    */
-  Block _finallyClause;
+  Block _finallyBlock;
 
   /**
    * Initialize a newly created try statement.
@@ -13708,15 +11244,15 @@ class TryStatement extends Statement {
    * @param body the body of the statement
    * @param catchClauses the catch clauses contained in the try statement
    * @param finallyKeyword the token representing the 'finally' keyword
-   * @param finallyClause the finally clause contained in the try statement
+   * @param finallyBlock the finally block contained in the try statement
    */
-  TryStatement.full(Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyClause) {
-    this._catchClauses = new NodeList<CatchClause>(this);
-    this._tryKeyword = tryKeyword;
+  TryStatement.full(Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyBlock) {
+    this.catchClauses = new NodeList<CatchClause>(this);
+    this.tryKeyword = tryKeyword;
     this._body = becomeParentOf(body);
-    this._catchClauses.addAll(catchClauses);
-    this._finallyKeyword = finallyKeyword;
-    this._finallyClause = becomeParentOf(finallyClause);
+    this.catchClauses.addAll(catchClauses);
+    this.finallyKeyword = finallyKeyword;
+    this._finallyBlock = becomeParentOf(finallyBlock);
   }
 
   /**
@@ -13726,11 +11262,11 @@ class TryStatement extends Statement {
    * @param body the body of the statement
    * @param catchClauses the catch clauses contained in the try statement
    * @param finallyKeyword the token representing the 'finally' keyword
-   * @param finallyClause the finally clause contained in the try statement
+   * @param finallyBlock the finally block contained in the try statement
    */
-  TryStatement({Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyClause}) : this.full(tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
+  TryStatement({Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyBlock}) : this.full(tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
   accept(ASTVisitor visitor) => visitor.visitTryStatement(this);
-  Token get beginToken => _tryKeyword;
+  Token get beginToken => tryKeyword;
 
   /**
    * Return the body of the statement.
@@ -13738,46 +11274,24 @@ class TryStatement extends Statement {
    * @return the body of the statement
    */
   Block get body => _body;
-
-  /**
-   * Return the catch clauses contained in the try statement.
-   *
-   * @return the catch clauses contained in the try statement
-   */
-  NodeList<CatchClause> get catchClauses => _catchClauses;
   Token get endToken {
-    if (_finallyClause != null) {
-      return _finallyClause.endToken;
-    } else if (_finallyKeyword != null) {
-      return _finallyKeyword;
-    } else if (!_catchClauses.isEmpty) {
-      return _catchClauses.endToken;
+    if (_finallyBlock != null) {
+      return _finallyBlock.endToken;
+    } else if (finallyKeyword != null) {
+      return finallyKeyword;
+    } else if (!catchClauses.isEmpty) {
+      return catchClauses.endToken;
     }
     return _body.endToken;
   }
 
   /**
-   * Return the finally clause contained in the try statement, or `null` if the statement does
+   * Return the finally block contained in the try statement, or `null` if the statement does
    * not contain a finally clause.
    *
-   * @return the finally clause contained in the try statement
+   * @return the finally block contained in the try statement
    */
-  Block get finallyClause => _finallyClause;
-
-  /**
-   * Return the token representing the 'finally' keyword, or `null` if the statement does not
-   * contain a finally clause.
-   *
-   * @return the token representing the 'finally' keyword
-   */
-  Token get finallyKeyword => _finallyKeyword;
-
-  /**
-   * Return the token representing the 'try' keyword.
-   *
-   * @return the token representing the 'try' keyword
-   */
-  Token get tryKeyword => _tryKeyword;
+  Block get finallyBlock => _finallyBlock;
 
   /**
    * Set the body of the statement to the given block.
@@ -13789,35 +11303,17 @@ class TryStatement extends Statement {
   }
 
   /**
-   * Set the finally clause contained in the try statement to the given block.
+   * Set the finally block contained in the try statement to the given block.
    *
-   * @param block the finally clause contained in the try statement
+   * @param block the finally block contained in the try statement
    */
-  void set finallyClause(Block block) {
-    _finallyClause = becomeParentOf(block);
+  void set finallyBlock(Block block) {
+    _finallyBlock = becomeParentOf(block);
   }
-
-  /**
-   * Set the token representing the 'finally' keyword to the given token.
-   *
-   * @param finallyKeyword the token representing the 'finally' keyword
-   */
-  void set finallyKeyword(Token finallyKeyword2) {
-    this._finallyKeyword = finallyKeyword2;
-  }
-
-  /**
-   * Set the token representing the 'try' keyword to the given token.
-   *
-   * @param tryKeyword the token representing the 'try' keyword
-   */
-  void set tryKeyword(Token tryKeyword2) {
-    this._tryKeyword = tryKeyword2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_body, visitor);
-    _catchClauses.accept(visitor);
-    safelyVisitChild(_finallyClause, visitor);
+    catchClauses.accept(visitor);
+    safelyVisitChild(_finallyBlock, visitor);
   }
 }
 /**
@@ -13839,12 +11335,12 @@ abstract class TypeAlias extends CompilationUnitMember {
   /**
    * The token representing the 'typedef' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The semicolon terminating the declaration.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created type alias.
@@ -13855,8 +11351,8 @@ abstract class TypeAlias extends CompilationUnitMember {
    * @param semicolon the semicolon terminating the declaration
    */
   TypeAlias.full(Comment comment, List<Annotation> metadata, Token keyword, Token semicolon) : super.full(comment, metadata) {
-    this._keyword = keyword;
-    this._semicolon = semicolon;
+    this.keyword = keyword;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -13868,40 +11364,8 @@ abstract class TypeAlias extends CompilationUnitMember {
    * @param semicolon the semicolon terminating the declaration
    */
   TypeAlias({Comment comment, List<Annotation> metadata, Token keyword, Token semicolon}) : this.full(comment, metadata, keyword, semicolon);
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the token representing the 'typedef' keyword.
-   *
-   * @return the token representing the 'typedef' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the semicolon terminating the declaration.
-   *
-   * @return the semicolon terminating the declaration
-   */
-  Token get semicolon => _semicolon;
-
-  /**
-   * Set the token representing the 'typedef' keyword to the given token.
-   *
-   * @param keyword the token representing the 'typedef' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the semicolon terminating the declaration to the given token.
-   *
-   * @param semicolon the semicolon terminating the declaration
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-  Token get firstTokenAfterCommentAndMetadata => _keyword;
+  Token get endToken => semicolon;
+  Token get firstTokenAfterCommentAndMetadata => keyword;
 }
 /**
  * Instances of the class `TypeArgumentList` represent a list of type arguments.
@@ -13918,17 +11382,17 @@ class TypeArgumentList extends ASTNode {
   /**
    * The left bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The type arguments associated with the type.
    */
-  NodeList<TypeName> _arguments;
+  NodeList<TypeName> arguments;
 
   /**
    * The right bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created list of type arguments.
@@ -13938,10 +11402,10 @@ class TypeArgumentList extends ASTNode {
    * @param rightBracket the right bracket
    */
   TypeArgumentList.full(Token leftBracket, List<TypeName> arguments, Token rightBracket) {
-    this._arguments = new NodeList<TypeName>(this);
-    this._leftBracket = leftBracket;
-    this._arguments.addAll(arguments);
-    this._rightBracket = rightBracket;
+    this.arguments = new NodeList<TypeName>(this);
+    this.leftBracket = leftBracket;
+    this.arguments.addAll(arguments);
+    this.rightBracket = rightBracket;
   }
 
   /**
@@ -13953,49 +11417,10 @@ class TypeArgumentList extends ASTNode {
    */
   TypeArgumentList({Token leftBracket, List<TypeName> arguments, Token rightBracket}) : this.full(leftBracket, arguments, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitTypeArgumentList(this);
-
-  /**
-   * Return the type arguments associated with the type.
-   *
-   * @return the type arguments associated with the type
-   */
-  NodeList<TypeName> get arguments => _arguments;
-  Token get beginToken => _leftBracket;
-  Token get endToken => _rightBracket;
-
-  /**
-   * Return the left bracket.
-   *
-   * @return the left bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the right bracket.
-   *
-   * @return the right bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Set the left bracket to the given token.
-   *
-   * @param leftBracket the left bracket
-   */
-  void set leftBracket(Token leftBracket2) {
-    this._leftBracket = leftBracket2;
-  }
-
-  /**
-   * Set the right bracket to the given token.
-   *
-   * @param rightBracket the right bracket
-   */
-  void set rightBracket(Token rightBracket2) {
-    this._rightBracket = rightBracket2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _arguments.accept(visitor);
+  Token get beginToken => leftBracket;
+  Token get endToken => rightBracket;
+  void visitChildren(ASTVisitor visitor) {
+    arguments.accept(visitor);
   }
 }
 /**
@@ -14024,7 +11449,7 @@ class TypeName extends ASTNode {
   /**
    * The type being named, or `null` if the AST structure has not been resolved.
    */
-  Type2 _type;
+  Type2 type;
 
   /**
    * Initialize a newly created type name.
@@ -14063,13 +11488,6 @@ class TypeName extends ASTNode {
   Identifier get name => _name;
 
   /**
-   * Return the type being named, or `null` if the AST structure has not been resolved.
-   *
-   * @return the type being named
-   */
-  Type2 get type => _type;
-
-  /**
    * Return the type arguments associated with the type, or `null` if there are no type
    * arguments.
    *
@@ -14088,23 +11506,14 @@ class TypeName extends ASTNode {
   }
 
   /**
-   * Set the type being named to the given type.
-   *
-   * @param type the type being named
-   */
-  void set type(Type2 type2) {
-    this._type = type2;
-  }
-
-  /**
    * Set the type arguments associated with the type to the given type arguments.
    *
    * @param typeArguments the type arguments associated with the type
    */
-  void set typeArguments(TypeArgumentList typeArguments2) {
-    this._typeArguments = becomeParentOf(typeArguments2);
+  void set typeArguments(TypeArgumentList typeArguments) {
+    this._typeArguments = becomeParentOf(typeArguments);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeArguments, visitor);
   }
@@ -14130,7 +11539,7 @@ class TypeParameter extends Declaration {
    * The token representing the 'extends' keyword, or `null` if there was no explicit upper
    * bound.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The name of the upper bound for legal arguments, or `null` if there was no explicit upper
@@ -14149,7 +11558,7 @@ class TypeParameter extends Declaration {
    */
   TypeParameter.full(Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token keyword, TypeName bound) : super.full(comment, metadata) {
     this._name = becomeParentOf(name);
-    this._keyword = keyword;
+    this.keyword = keyword;
     this._bound = becomeParentOf(bound);
   }
 
@@ -14172,21 +11581,13 @@ class TypeParameter extends Declaration {
    * @return the name of the upper bound for legal arguments
    */
   TypeName get bound => _bound;
-  TypeVariableElement get element => _name != null ? (_name.element as TypeVariableElement) : null;
+  TypeParameterElement get element => _name != null ? (_name.staticElement as TypeParameterElement) : null;
   Token get endToken {
     if (_bound == null) {
       return _name.endToken;
     }
     return _bound.endToken;
   }
-
-  /**
-   * Return the token representing the 'extends' keyword, or `null` if there was no explicit
-   * upper bound.
-   *
-   * @return the token representing the 'extends' keyword
-   */
-  Token get keyword => _keyword;
 
   /**
    * Return the name of the type parameter.
@@ -14205,15 +11606,6 @@ class TypeParameter extends Declaration {
   }
 
   /**
-   * Set the token representing the 'extends' keyword to the given token.
-   *
-   * @param keyword the token representing the 'extends' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
    * Set the name of the type parameter to the given identifier.
    *
    * @param identifier the name of the type parameter
@@ -14221,7 +11613,7 @@ class TypeParameter extends Declaration {
   void set name(SimpleIdentifier identifier) {
     _name = becomeParentOf(identifier);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_bound, visitor);
@@ -14243,17 +11635,17 @@ class TypeParameterList extends ASTNode {
   /**
    * The left angle bracket.
    */
-  Token _leftBracket;
+  Token leftBracket;
 
   /**
    * The type parameters in the list.
    */
-  NodeList<TypeParameter> _typeParameters;
+  NodeList<TypeParameter> typeParameters;
 
   /**
    * The right angle bracket.
    */
-  Token _rightBracket;
+  Token rightBracket;
 
   /**
    * Initialize a newly created list of type parameters.
@@ -14263,10 +11655,10 @@ class TypeParameterList extends ASTNode {
    * @param rightBracket the right angle bracket
    */
   TypeParameterList.full(Token leftBracket, List<TypeParameter> typeParameters, Token rightBracket) {
-    this._typeParameters = new NodeList<TypeParameter>(this);
-    this._leftBracket = leftBracket;
-    this._typeParameters.addAll(typeParameters);
-    this._rightBracket = rightBracket;
+    this.typeParameters = new NodeList<TypeParameter>(this);
+    this.leftBracket = leftBracket;
+    this.typeParameters.addAll(typeParameters);
+    this.rightBracket = rightBracket;
   }
 
   /**
@@ -14278,31 +11670,10 @@ class TypeParameterList extends ASTNode {
    */
   TypeParameterList({Token leftBracket, List<TypeParameter> typeParameters, Token rightBracket}) : this.full(leftBracket, typeParameters, rightBracket);
   accept(ASTVisitor visitor) => visitor.visitTypeParameterList(this);
-  Token get beginToken => _leftBracket;
-  Token get endToken => _rightBracket;
-
-  /**
-   * Return the left angle bracket.
-   *
-   * @return the left angle bracket
-   */
-  Token get leftBracket => _leftBracket;
-
-  /**
-   * Return the right angle bracket.
-   *
-   * @return the right angle bracket
-   */
-  Token get rightBracket => _rightBracket;
-
-  /**
-   * Return the type parameters for the type.
-   *
-   * @return the type parameters for the type
-   */
-  NodeList<TypeParameter> get typeParameters => _typeParameters;
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _typeParameters.accept(visitor);
+  Token get beginToken => leftBracket;
+  Token get endToken => rightBracket;
+  void visitChildren(ASTVisitor visitor) {
+    typeParameters.accept(visitor);
   }
 }
 /**
@@ -14320,72 +11691,38 @@ class TypeParameterList extends ASTNode {
 abstract class TypedLiteral extends Literal {
 
   /**
-   * The const modifier associated with this literal, or `null` if the literal is not a
-   * constant.
+   * The token representing the 'const' keyword, or `null` if the literal is not a constant.
    */
-  Token _modifier;
+  Token constKeyword;
 
   /**
    * The type argument associated with this literal, or `null` if no type arguments were
    * declared.
    */
-  TypeArgumentList _typeArguments;
+  TypeArgumentList typeArguments;
 
   /**
    * Initialize a newly created typed literal.
    *
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    */
-  TypedLiteral.full(Token modifier, TypeArgumentList typeArguments) {
-    this._modifier = modifier;
-    this._typeArguments = becomeParentOf(typeArguments);
+  TypedLiteral.full(Token constKeyword, TypeArgumentList typeArguments) {
+    this.constKeyword = constKeyword;
+    this.typeArguments = becomeParentOf(typeArguments);
   }
 
   /**
    * Initialize a newly created typed literal.
    *
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    */
-  TypedLiteral({Token modifier, TypeArgumentList typeArguments}) : this.full(modifier, typeArguments);
-
-  /**
-   * Return the const modifier associated with this literal.
-   *
-   * @return the const modifier associated with this literal
-   */
-  Token get modifier => _modifier;
-
-  /**
-   * Return the type argument associated with this literal, or `null` if no type arguments
-   * were declared.
-   *
-   * @return the type argument associated with this literal
-   */
-  TypeArgumentList get typeArguments => _typeArguments;
-
-  /**
-   * Set the modifiers associated with this literal to the given modifiers.
-   *
-   * @param modifiers the modifiers associated with this literal
-   */
-  void set modifier(Token modifier2) {
-    this._modifier = modifier2;
-  }
-
-  /**
-   * Set the type argument associated with this literal to the given arguments.
-   *
-   * @param typeArguments the type argument associated with this literal
-   */
-  void set typeArguments(TypeArgumentList typeArguments2) {
-    this._typeArguments = typeArguments2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(_typeArguments, visitor);
+  TypedLiteral({Token constKeyword, TypeArgumentList typeArguments}) : this.full(constKeyword, typeArguments);
+  void visitChildren(ASTVisitor visitor) {
+    safelyVisitChild(typeArguments, visitor);
   }
 }
 /**
@@ -14449,10 +11786,10 @@ abstract class UriBasedDirective extends Directive {
    *
    * @param uri the URI referenced by this directive
    */
-  void set uri(StringLiteral uri2) {
-    this._uri = becomeParentOf(uri2);
+  void set uri(StringLiteral uri) {
+    this._uri = becomeParentOf(uri);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_uri, visitor);
   }
@@ -14480,7 +11817,7 @@ class VariableDeclaration extends Declaration {
    * The equal sign separating the variable name from the initial value, or `null` if the
    * initial value was not specified.
    */
-  Token _equals;
+  Token equals;
 
   /**
    * The expression used to compute the initial value for the variable, or `null` if the
@@ -14499,7 +11836,7 @@ class VariableDeclaration extends Declaration {
    */
   VariableDeclaration.full(Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token equals, Expression initializer) : super.full(comment, metadata) {
     this._name = becomeParentOf(name);
-    this._equals = equals;
+    this.equals = equals;
     this._initializer = becomeParentOf(initializer);
   }
 
@@ -14531,21 +11868,13 @@ class VariableDeclaration extends Declaration {
     }
     return comment;
   }
-  VariableElement get element => _name != null ? (_name.element as VariableElement) : null;
+  VariableElement get element => _name != null ? (_name.staticElement as VariableElement) : null;
   Token get endToken {
     if (_initializer != null) {
       return _initializer.endToken;
     }
     return _name.endToken;
   }
-
-  /**
-   * Return the equal sign separating the variable name from the initial value, or `null` if
-   * the initial value was not specified.
-   *
-   * @return the equal sign separating the variable name from the initial value
-   */
-  Token get equals => _equals;
 
   /**
    * Return the expression used to compute the initial value for the variable, or `null` if
@@ -14585,21 +11914,12 @@ class VariableDeclaration extends Declaration {
   }
 
   /**
-   * Set the equal sign separating the variable name from the initial value to the given token.
-   *
-   * @param equals the equal sign separating the variable name from the initial value
-   */
-  void set equals(Token equals2) {
-    this._equals = equals2;
-  }
-
-  /**
    * Set the expression used to compute the initial value for the variable to the given expression.
    *
    * @param initializer the expression used to compute the initial value for the variable
    */
-  void set initializer(Expression initializer2) {
-    this._initializer = becomeParentOf(initializer2);
+  void set initializer(Expression initializer) {
+    this._initializer = becomeParentOf(initializer);
   }
 
   /**
@@ -14607,10 +11927,10 @@ class VariableDeclaration extends Declaration {
    *
    * @param name the name of the variable being declared
    */
-  void set name(SimpleIdentifier name2) {
-    this._name = becomeParentOf(name2);
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_initializer, visitor);
@@ -14640,7 +11960,7 @@ class VariableDeclarationList extends AnnotatedNode {
    * The token representing the 'final', 'const' or 'var' keyword, or `null` if no keyword was
    * included.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The type of the variables being declared, or `null` if no type was provided.
@@ -14650,7 +11970,7 @@ class VariableDeclarationList extends AnnotatedNode {
   /**
    * A list containing the individual variables being declared.
    */
-  NodeList<VariableDeclaration> _variables;
+  NodeList<VariableDeclaration> variables;
 
   /**
    * Initialize a newly created variable declaration list.
@@ -14662,10 +11982,10 @@ class VariableDeclarationList extends AnnotatedNode {
    * @param variables a list containing the individual variables being declared
    */
   VariableDeclarationList.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables) : super.full(comment, metadata) {
-    this._variables = new NodeList<VariableDeclaration>(this);
-    this._keyword = keyword;
+    this.variables = new NodeList<VariableDeclaration>(this);
+    this.keyword = keyword;
     this._type = becomeParentOf(type);
-    this._variables.addAll(variables);
+    this.variables.addAll(variables);
   }
 
   /**
@@ -14679,15 +11999,7 @@ class VariableDeclarationList extends AnnotatedNode {
    */
   VariableDeclarationList({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables}) : this.full(comment, metadata, keyword, type, variables);
   accept(ASTVisitor visitor) => visitor.visitVariableDeclarationList(this);
-  Token get endToken => _variables.endToken;
-
-  /**
-   * Return the token representing the 'final', 'const' or 'var' keyword, or `null` if no
-   * keyword was included.
-   *
-   * @return the token representing the 'final', 'const' or 'var' keyword
-   */
-  Token get keyword => _keyword;
+  Token get endToken => variables.endToken;
 
   /**
    * Return the type of the variables being declared, or `null` if no type was provided.
@@ -14697,18 +12009,11 @@ class VariableDeclarationList extends AnnotatedNode {
   TypeName get type => _type;
 
   /**
-   * Return a list containing the individual variables being declared.
-   *
-   * @return a list containing the individual variables being declared
-   */
-  NodeList<VariableDeclaration> get variables => _variables;
-
-  /**
    * Return `true` if the variables in this list were declared with the 'const' modifier.
    *
    * @return `true` if the variables in this list were declared with the 'const' modifier
    */
-  bool get isConst => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => keyword is KeywordToken && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
 
   /**
    * Return `true` if the variables in this list were declared with the 'final' modifier.
@@ -14717,16 +12022,7 @@ class VariableDeclarationList extends AnnotatedNode {
    *
    * @return `true` if the variables in this list were declared with the 'final' modifier
    */
-  bool get isFinal => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
-
-  /**
-   * Set the token representing the 'final', 'const' or 'var' keyword to the given token.
-   *
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
+  bool get isFinal => keyword is KeywordToken && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the type of the variables being declared to the given type name.
@@ -14736,17 +12032,17 @@ class VariableDeclarationList extends AnnotatedNode {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
-    _variables.accept(visitor);
+    variables.accept(visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
-    if (_keyword != null) {
-      return _keyword;
+    if (keyword != null) {
+      return keyword;
     } else if (_type != null) {
       return _type.beginToken;
     }
-    return _variables.beginToken;
+    return variables.beginToken;
   }
 }
 /**
@@ -14770,7 +12066,7 @@ class VariableDeclarationStatement extends Statement {
   /**
    * The semicolon terminating the statement.
    */
-  Token _semicolon;
+  Token semicolon;
 
   /**
    * Initialize a newly created variable declaration statement.
@@ -14780,7 +12076,7 @@ class VariableDeclarationStatement extends Statement {
    */
   VariableDeclarationStatement.full(VariableDeclarationList variableList, Token semicolon) {
     this._variableList = becomeParentOf(variableList);
-    this._semicolon = semicolon;
+    this.semicolon = semicolon;
   }
 
   /**
@@ -14792,14 +12088,7 @@ class VariableDeclarationStatement extends Statement {
   VariableDeclarationStatement({VariableDeclarationList variableList, Token semicolon}) : this.full(variableList, semicolon);
   accept(ASTVisitor visitor) => visitor.visitVariableDeclarationStatement(this);
   Token get beginToken => _variableList.beginToken;
-  Token get endToken => _semicolon;
-
-  /**
-   * Return the semicolon terminating the statement.
-   *
-   * @return the semicolon terminating the statement
-   */
-  Token get semicolon => _semicolon;
+  Token get endToken => semicolon;
 
   /**
    * Return the variables being declared.
@@ -14809,23 +12098,14 @@ class VariableDeclarationStatement extends Statement {
   VariableDeclarationList get variables => _variableList;
 
   /**
-   * Set the semicolon terminating the statement to the given token.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  void set semicolon(Token semicolon2) {
-    this._semicolon = semicolon2;
-  }
-
-  /**
    * Set the variables being declared to the given list of variables.
    *
    * @param variableList the variables being declared
    */
-  void set variables(VariableDeclarationList variableList2) {
-    this._variableList = becomeParentOf(variableList2);
+  void set variables(VariableDeclarationList variableList) {
+    this._variableList = becomeParentOf(variableList);
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
   }
 }
@@ -14844,12 +12124,12 @@ class WhileStatement extends Statement {
   /**
    * The token representing the 'while' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The left parenthesis.
    */
-  Token _leftParenthesis;
+  Token leftParenthesis;
 
   /**
    * The expression used to determine whether to execute the body of the loop.
@@ -14859,7 +12139,7 @@ class WhileStatement extends Statement {
   /**
    * The right parenthesis.
    */
-  Token _rightParenthesis;
+  Token rightParenthesis;
 
   /**
    * The body of the loop.
@@ -14876,10 +12156,10 @@ class WhileStatement extends Statement {
    * @param body the body of the loop
    */
   WhileStatement.full(Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement body) {
-    this._keyword = keyword;
-    this._leftParenthesis = leftParenthesis;
+    this.keyword = keyword;
+    this.leftParenthesis = leftParenthesis;
     this._condition = becomeParentOf(condition);
-    this._rightParenthesis = rightParenthesis;
+    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
 
@@ -14894,7 +12174,7 @@ class WhileStatement extends Statement {
    */
   WhileStatement({Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement body}) : this.full(keyword, leftParenthesis, condition, rightParenthesis, body);
   accept(ASTVisitor visitor) => visitor.visitWhileStatement(this);
-  Token get beginToken => _keyword;
+  Token get beginToken => keyword;
 
   /**
    * Return the body of the loop.
@@ -14910,27 +12190,6 @@ class WhileStatement extends Statement {
    */
   Expression get condition => _condition;
   Token get endToken => _body.endToken;
-
-  /**
-   * Return the token representing the 'while' keyword.
-   *
-   * @return the token representing the 'while' keyword
-   */
-  Token get keyword => _keyword;
-
-  /**
-   * Return the left parenthesis.
-   *
-   * @return the left parenthesis
-   */
-  Token get leftParenthesis => _leftParenthesis;
-
-  /**
-   * Return the right parenthesis.
-   *
-   * @return the right parenthesis
-   */
-  Token get rightParenthesis => _rightParenthesis;
 
   /**
    * Set the body of the loop to the given statement.
@@ -14950,34 +12209,7 @@ class WhileStatement extends Statement {
   void set condition(Expression expression) {
     _condition = becomeParentOf(expression);
   }
-
-  /**
-   * Set the token representing the 'while' keyword to the given token.
-   *
-   * @param keyword the token representing the 'while' keyword
-   */
-  void set keyword(Token keyword2) {
-    this._keyword = keyword2;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   *
-   * @param leftParenthesis the left parenthesis
-   */
-  void set leftParenthesis(Token leftParenthesis2) {
-    this._leftParenthesis = leftParenthesis2;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   *
-   * @param rightParenthesis the right parenthesis
-   */
-  void set rightParenthesis(Token rightParenthesis2) {
-    this._rightParenthesis = rightParenthesis2;
-  }
-  void visitChildren(ASTVisitor<Object> visitor) {
+  void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -14997,12 +12229,12 @@ class WithClause extends ASTNode {
   /**
    * The token representing the 'with' keyword.
    */
-  Token _withKeyword;
+  Token withKeyword;
 
   /**
    * The names of the mixins that were specified.
    */
-  NodeList<TypeName> _mixinTypes;
+  NodeList<TypeName> mixinTypes;
 
   /**
    * Initialize a newly created with clause.
@@ -15011,9 +12243,9 @@ class WithClause extends ASTNode {
    * @param mixinTypes the names of the mixins that were specified
    */
   WithClause.full(Token withKeyword, List<TypeName> mixinTypes) {
-    this._mixinTypes = new NodeList<TypeName>(this);
-    this._withKeyword = withKeyword;
-    this._mixinTypes.addAll(mixinTypes);
+    this.mixinTypes = new NodeList<TypeName>(this);
+    this.withKeyword = withKeyword;
+    this.mixinTypes.addAll(mixinTypes);
   }
 
   /**
@@ -15024,33 +12256,19 @@ class WithClause extends ASTNode {
    */
   WithClause({Token withKeyword, List<TypeName> mixinTypes}) : this.full(withKeyword, mixinTypes);
   accept(ASTVisitor visitor) => visitor.visitWithClause(this);
-  Token get beginToken => _withKeyword;
-  Token get endToken => _mixinTypes.endToken;
-
-  /**
-   * Return the names of the mixins that were specified.
-   *
-   * @return the names of the mixins that were specified
-   */
-  NodeList<TypeName> get mixinTypes => _mixinTypes;
-
-  /**
-   * Return the token representing the 'with' keyword.
-   *
-   * @return the token representing the 'with' keyword
-   */
-  Token get withKeyword => _withKeyword;
+  Token get beginToken => withKeyword;
+  Token get endToken => mixinTypes.endToken;
 
   /**
    * Set the token representing the 'with' keyword to the given token.
    *
    * @param withKeyword the token representing the 'with' keyword
    */
-  void set mixinKeyword(Token withKeyword2) {
-    this._withKeyword = withKeyword2;
+  void set mixinKeyword(Token withKeyword) {
+    this.withKeyword = withKeyword;
   }
-  void visitChildren(ASTVisitor<Object> visitor) {
-    _mixinTypes.accept(visitor);
+  void visitChildren(ASTVisitor visitor) {
+    mixinTypes.accept(visitor);
   }
 }
 /**
@@ -15101,12 +12319,12 @@ class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
     return null;
   }
   BreadthFirstVisitor() {
-    this._childVisitor = new GeneralizingASTVisitor_1(this);
+    this._childVisitor = new GeneralizingASTVisitor_2(this);
   }
 }
-class GeneralizingASTVisitor_1 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_2 extends GeneralizingASTVisitor<Object> {
   final BreadthFirstVisitor BreadthFirstVisitor_this;
-  GeneralizingASTVisitor_1(this.BreadthFirstVisitor_this) : super();
+  GeneralizingASTVisitor_2(this.BreadthFirstVisitor_this) : super();
   Object visitNode(ASTNode node) {
     BreadthFirstVisitor_this._queue.add(node);
     return null;
@@ -15123,7 +12341,7 @@ class GeneralizingASTVisitor_1 extends GeneralizingASTVisitor<Object> {
  * to a numeric, string or boolean value or to `null`.
  * * `null`.
  * * A reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, a class or a type variable.
+ * * An identifier expression that denotes a constant variable, a class or a type parameter.
  * * A constant constructor invocation.
  * * A constant list literal.
  * * A constant map literal.
@@ -15213,7 +12431,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.EQ_EQ) {
         if (leftOperand is bool && rightOperand is bool) {
-          return identical(((leftOperand as bool)), ((rightOperand as bool)));
+          return identical(leftOperand as bool, rightOperand as bool);
         } else if (leftOperand is int && rightOperand is int) {
           return ((leftOperand as int)) == rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
@@ -15223,15 +12441,15 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.GT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) > 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) > 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) > 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) >= 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) >= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) >= 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
         if (leftOperand is int && rightOperand is int) {
@@ -15239,15 +12457,15 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.LT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) < 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) < 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) < 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo((rightOperand as int)) <= 0;
+          return ((leftOperand as int)).compareTo(rightOperand as int) <= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo((rightOperand as double)) <= 0;
+          return ((leftOperand as double)).compareTo(rightOperand as double) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
         if (leftOperand is int && rightOperand is int) {
@@ -15261,7 +12479,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.PERCENT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).remainder((rightOperand as int));
+          return ((leftOperand as int)).remainder(rightOperand as int);
         } else if (leftOperand is double && rightOperand is double) {
           return ((leftOperand as double)) % ((rightOperand as double));
         }
@@ -15447,9 +12665,9 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
       if (identical(returnType, node)) {
         SimpleIdentifier name = decl.name;
         if (name != null) {
-          return name.element;
+          return name.bestElement;
         }
-        Element element = node.element;
+        Element element = node.bestElement;
         if (element is ClassElement) {
           return ((element as ClassElement)).unnamedConstructor;
         }
@@ -15464,7 +12682,7 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
         }
       }
     }
-    Element element = node.element;
+    Element element = node.bestElement;
     if (element == null) {
       element = node.staticElement;
     }
@@ -15472,12 +12690,12 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   }
   Element visitImportDirective(ImportDirective node) => node.element;
   Element visitIndexExpression(IndexExpression node) => node.bestElement;
-  Element visitInstanceCreationExpression(InstanceCreationExpression node) => node.element;
+  Element visitInstanceCreationExpression(InstanceCreationExpression node) => node.staticElement;
   Element visitLibraryDirective(LibraryDirective node) => node.element;
   Element visitMethodDeclaration(MethodDeclaration node) => node.element;
-  Element visitMethodInvocation(MethodInvocation node) => node.methodName.element;
+  Element visitMethodInvocation(MethodInvocation node) => node.methodName.bestElement;
   Element visitPostfixExpression(PostfixExpression node) => node.bestElement;
-  Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.element;
+  Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.bestElement;
   Element visitPrefixExpression(PrefixExpression node) => node.bestElement;
   Element visitStringLiteral(StringLiteral node) {
     ASTNode parent = node.parent;
@@ -15644,7 +12862,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
  *
  * @coverage dart.engine.ast
  */
-class NodeLocator extends GeneralizingASTVisitor<Object> {
+class NodeLocator extends UnifyingASTVisitor<Object> {
 
   /**
    * The start offset of the range used to identify the node.
@@ -15660,7 +12878,7 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * The element that was found that corresponds to the given source range, or `null` if there
    * is no such element.
    */
-  ASTNode _foundNode;
+  ASTNode foundNode;
 
   /**
    * Initialize a newly created locator to locate one or more [ASTNode] by locating
@@ -15684,14 +12902,6 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
   }
 
   /**
-   * Return the node that was found that corresponds to the given source range, or `null` if
-   * there is no such node.
-   *
-   * @return the node that was found
-   */
-  ASTNode get foundNode => _foundNode;
-
-  /**
    * Search within the given AST node for an identifier representing a [DartElement] in the specified source range. Return the element that was found, or `null` if
    * no element was found.
    *
@@ -15705,11 +12915,11 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
     try {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
-    } catch (exception) {
+    } on JavaException catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
       return null;
     }
-    return _foundNode;
+    return foundNode;
   }
   Object visitNode(ASTNode node) {
     int start = node.offset;
@@ -15724,11 +12934,11 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
       node.visitChildren(this);
     } on NodeLocator_NodeFoundException catch (exception) {
       throw exception;
-    } catch (exception) {
+    } on JavaException catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }
     if (start <= _startOffset && _endOffset <= end) {
-      _foundNode = node;
+      foundNode = node;
       throw new NodeLocator_NodeFoundException();
     }
     return null;
@@ -16406,7 +13616,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    _writer.print("typedef ");
+    _writer.print("class ");
     visit(node.name);
     visit(node.typeParameters);
     _writer.print(" = ");
@@ -16530,7 +13740,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitFieldDeclaration(FieldDeclaration node) {
-    visit5(node.keyword, " ");
+    visit5(node.staticKeyword, " ");
     visit(node.fields);
     _writer.print(";");
     return null;
@@ -16544,8 +13754,13 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
     _writer.print("for (");
-    visit(node.loopVariable);
+    if (loopVariable == null) {
+      visit(node.identifier);
+    } else {
+      visit(loopVariable);
+    }
     _writer.print(" in ");
     visit(node.iterator);
     _writer.print(") ");
@@ -16726,8 +13941,8 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitListLiteral(ListLiteral node) {
-    if (node.modifier != null) {
-      _writer.print(node.modifier.lexeme);
+    if (node.constKeyword != null) {
+      _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
     visit2(node.typeArguments, " ");
@@ -16737,8 +13952,8 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitMapLiteral(MapLiteral node) {
-    if (node.modifier != null) {
-      _writer.print(node.modifier.lexeme);
+    if (node.constKeyword != null) {
+      _writer.print(node.constKeyword.lexeme);
       _writer.print(' ');
     }
     visit2(node.typeArguments, " ");
@@ -16948,7 +14163,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print("try ");
     visit(node.body);
     visitList4(" ", node.catchClauses, " ");
-    visit3(" finally ", node.finallyClause);
+    visit3(" finally ", node.finallyBlock);
     return null;
   }
   Object visitTypeArgumentList(TypeArgumentList node) {
@@ -17138,6 +14353,127 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   }
 }
 /**
+ * Instances of the class `UnifyingASTVisitor` implement an AST visitor that will recursively
+ * visit all of the nodes in an AST structure (like instances of the class
+ * [RecursiveASTVisitor]). In addition, every node will also be visited by using a single
+ * unified [visitNode] method.
+ *
+ * Subclasses that override a visit method must either invoke the overridden visit method or
+ * explicitly invoke the more general [visitNode] method. Failure to do so will
+ * cause the children of the visited node to not be visited.
+ *
+ * @coverage dart.engine.ast
+ */
+class UnifyingASTVisitor<R> implements ASTVisitor<R> {
+  R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
+  R visitAnnotation(Annotation node) => visitNode(node);
+  R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => visitNode(node);
+  R visitArgumentList(ArgumentList node) => visitNode(node);
+  R visitAsExpression(AsExpression node) => visitNode(node);
+  R visitAssertStatement(AssertStatement node) => visitNode(node);
+  R visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
+  R visitBinaryExpression(BinaryExpression node) => visitNode(node);
+  R visitBlock(Block node) => visitNode(node);
+  R visitBlockFunctionBody(BlockFunctionBody node) => visitNode(node);
+  R visitBooleanLiteral(BooleanLiteral node) => visitNode(node);
+  R visitBreakStatement(BreakStatement node) => visitNode(node);
+  R visitCascadeExpression(CascadeExpression node) => visitNode(node);
+  R visitCatchClause(CatchClause node) => visitNode(node);
+  R visitClassDeclaration(ClassDeclaration node) => visitNode(node);
+  R visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
+  R visitComment(Comment node) => visitNode(node);
+  R visitCommentReference(CommentReference node) => visitNode(node);
+  R visitCompilationUnit(CompilationUnit node) => visitNode(node);
+  R visitConditionalExpression(ConditionalExpression node) => visitNode(node);
+  R visitConstructorDeclaration(ConstructorDeclaration node) => visitNode(node);
+  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) => visitNode(node);
+  R visitConstructorName(ConstructorName node) => visitNode(node);
+  R visitContinueStatement(ContinueStatement node) => visitNode(node);
+  R visitDeclaredIdentifier(DeclaredIdentifier node) => visitNode(node);
+  R visitDefaultFormalParameter(DefaultFormalParameter node) => visitNode(node);
+  R visitDoStatement(DoStatement node) => visitNode(node);
+  R visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
+  R visitEmptyFunctionBody(EmptyFunctionBody node) => visitNode(node);
+  R visitEmptyStatement(EmptyStatement node) => visitNode(node);
+  R visitExportDirective(ExportDirective node) => visitNode(node);
+  R visitExpressionFunctionBody(ExpressionFunctionBody node) => visitNode(node);
+  R visitExpressionStatement(ExpressionStatement node) => visitNode(node);
+  R visitExtendsClause(ExtendsClause node) => visitNode(node);
+  R visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
+  R visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
+  R visitForEachStatement(ForEachStatement node) => visitNode(node);
+  R visitFormalParameterList(FormalParameterList node) => visitNode(node);
+  R visitForStatement(ForStatement node) => visitNode(node);
+  R visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);
+  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => visitNode(node);
+  R visitFunctionExpression(FunctionExpression node) => visitNode(node);
+  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => visitNode(node);
+  R visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
+  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => visitNode(node);
+  R visitHideCombinator(HideCombinator node) => visitNode(node);
+  R visitIfStatement(IfStatement node) => visitNode(node);
+  R visitImplementsClause(ImplementsClause node) => visitNode(node);
+  R visitImportDirective(ImportDirective node) => visitNode(node);
+  R visitIndexExpression(IndexExpression node) => visitNode(node);
+  R visitInstanceCreationExpression(InstanceCreationExpression node) => visitNode(node);
+  R visitIntegerLiteral(IntegerLiteral node) => visitNode(node);
+  R visitInterpolationExpression(InterpolationExpression node) => visitNode(node);
+  R visitInterpolationString(InterpolationString node) => visitNode(node);
+  R visitIsExpression(IsExpression node) => visitNode(node);
+  R visitLabel(Label node) => visitNode(node);
+  R visitLabeledStatement(LabeledStatement node) => visitNode(node);
+  R visitLibraryDirective(LibraryDirective node) => visitNode(node);
+  R visitLibraryIdentifier(LibraryIdentifier node) => visitNode(node);
+  R visitListLiteral(ListLiteral node) => visitNode(node);
+  R visitMapLiteral(MapLiteral node) => visitNode(node);
+  R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
+  R visitMethodDeclaration(MethodDeclaration node) => visitNode(node);
+  R visitMethodInvocation(MethodInvocation node) => visitNode(node);
+  R visitNamedExpression(NamedExpression node) => visitNode(node);
+  R visitNativeClause(NativeClause node) => visitNode(node);
+  R visitNativeFunctionBody(NativeFunctionBody node) => visitNode(node);
+  R visitNode(ASTNode node) {
+    node.visitChildren(this);
+    return null;
+  }
+  R visitNullLiteral(NullLiteral node) => visitNode(node);
+  R visitParenthesizedExpression(ParenthesizedExpression node) => visitNode(node);
+  R visitPartDirective(PartDirective node) => visitNode(node);
+  R visitPartOfDirective(PartOfDirective node) => visitNode(node);
+  R visitPostfixExpression(PostfixExpression node) => visitNode(node);
+  R visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
+  R visitPrefixExpression(PrefixExpression node) => visitNode(node);
+  R visitPropertyAccess(PropertyAccess node) => visitNode(node);
+  R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => visitNode(node);
+  R visitRethrowExpression(RethrowExpression node) => visitNode(node);
+  R visitReturnStatement(ReturnStatement node) => visitNode(node);
+  R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+  R visitShowCombinator(ShowCombinator node) => visitNode(node);
+  R visitSimpleFormalParameter(SimpleFormalParameter node) => visitNode(node);
+  R visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
+  R visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
+  R visitStringInterpolation(StringInterpolation node) => visitNode(node);
+  R visitSuperConstructorInvocation(SuperConstructorInvocation node) => visitNode(node);
+  R visitSuperExpression(SuperExpression node) => visitNode(node);
+  R visitSwitchCase(SwitchCase node) => visitNode(node);
+  R visitSwitchDefault(SwitchDefault node) => visitNode(node);
+  R visitSwitchStatement(SwitchStatement node) => visitNode(node);
+  R visitSymbolLiteral(SymbolLiteral node) => visitNode(node);
+  R visitThisExpression(ThisExpression node) => visitNode(node);
+  R visitThrowExpression(ThrowExpression node) => visitNode(node);
+  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => visitNode(node);
+  R visitTryStatement(TryStatement node) => visitNode(node);
+  R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
+  R visitTypeName(TypeName node) => visitNode(node);
+  R visitTypeParameter(TypeParameter node) => visitNode(node);
+  R visitTypeParameterList(TypeParameterList node) => visitNode(node);
+  R visitVariableDeclaration(VariableDeclaration node) => visitNode(node);
+  R visitVariableDeclarationList(VariableDeclarationList node) => visitNode(node);
+  R visitVariableDeclarationStatement(VariableDeclarationStatement node) => visitNode(node);
+  R visitWhileStatement(WhileStatement node) => visitNode(node);
+  R visitWithClause(WithClause node) => visitNode(node);
+}
+/**
  * Instances of the class `ASTCloner` implement an object that will clone any AST structure
  * that it visits. The cloner will only clone the structure, it will not preserve any resolution
  * results or properties associated with the nodes.
@@ -17175,8 +14511,6 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
     CompilationUnit clone = new CompilationUnit.full(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
     clone.lineInfo = node.lineInfo;
-    clone.parsingErrors = node.parsingErrors;
-    clone.resolutionErrors = node.resolutionErrors;
     return clone;
   }
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
@@ -17194,9 +14528,15 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(node.functionDefinition, clone2(node.expression), node.semicolon);
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone2(node.expression), node.semicolon);
   ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(node.keyword, clone2(node.superclass));
-  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.fields), node.semicolon);
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.staticKeyword, clone2(node.fields), node.semicolon);
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier), clone2(node.parameters));
-  ForEachStatement visitForEachStatement(ForEachStatement node) => new ForEachStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+  ForEachStatement visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (loopVariable == null) {
+      return new ForEachStatement.con2_full(node.forKeyword, node.leftParenthesis, clone2(node.identifier), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+    }
+    return new ForEachStatement.con1_full(node.forKeyword, node.leftParenthesis, clone2(loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+  }
   FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
   ForStatement visitForStatement(ForStatement node) => new ForStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, clone2(node.returnType), node.propertyKeyword, clone2(node.name), clone2(node.functionExpression));
@@ -17226,8 +14566,8 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone3(node.labels), clone2(node.statement));
   LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.libraryToken, clone2(node.name), node.semicolon);
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier.full(clone3(node.components));
-  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral.full(node.modifier, clone2(node.typeArguments), node.leftBracket, clone3(node.elements), node.rightBracket);
-  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral.full(node.modifier, clone2(node.typeArguments), node.leftBracket, clone3(node.entries), node.rightBracket);
+  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral.full(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.elements), node.rightBracket);
+  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral.full(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.entries), node.rightBracket);
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone2(node.key), node.separator, clone2(node.value));
   MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.modifierKeyword, clone2(node.returnType), node.propertyKeyword, node.operatorKeyword, clone2(node.name), clone2(node.parameters), clone2(node.body));
   MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation.full(clone2(node.target), node.period, clone2(node.methodName), clone2(node.argumentList));
@@ -17260,7 +14600,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression.full(node.keyword);
   ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression.full(node.keyword, clone2(node.expression));
   TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.variables), node.semicolon);
-  TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(node.tryKeyword, clone2(node.body), clone3(node.catchClauses), node.finallyKeyword, clone2(node.finallyClause));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(node.tryKeyword, clone2(node.body), clone3(node.catchClauses), node.finallyKeyword, clone2(node.finallyBlock));
   TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(node.leftBracket, clone3(node.arguments), node.rightBracket);
   TypeName visitTypeName(TypeName node) => new TypeName.full(clone2(node.name), clone2(node.typeArguments));
   TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.keyword, clone2(node.bound));
@@ -17279,7 +14619,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   List clone3(NodeList nodes) {
     List clonedNodes = new List();
     for (ASTNode node in nodes) {
-      clonedNodes.add((node.accept(this) as ASTNode));
+      clonedNodes.add(node.accept(this) as ASTNode);
     }
     return clonedNodes;
   }
@@ -17295,16 +14635,14 @@ class ASTCloner implements ASTVisitor<ASTNode> {
  * @coverage com.google.dart.engine.services.completion
  */
 class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
-  Declaration _declarationNode;
+  Declaration declaration;
   ASTNode _immediateChild;
-  Map<String, SimpleIdentifier> _locals = new Map<String, SimpleIdentifier>();
+  final Map<String, SimpleIdentifier> locals = new Map<String, SimpleIdentifier>();
   int _position = 0;
   bool _referenceIsWithinLocalFunction = false;
   ScopedNameFinder(int position) {
     this._position = position;
   }
-  Declaration get declaration => _declarationNode;
-  Map<String, SimpleIdentifier> get locals => _locals;
   Object visitBlock(Block node) {
     checkStatements(node.statements);
     return super.visitBlock(node);
@@ -17318,15 +14656,18 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     if (_immediateChild != node.parameters) {
       addParameters(node.parameters.parameters);
     }
-    _declarationNode = node;
+    declaration = node;
     return null;
   }
   Object visitFieldDeclaration(FieldDeclaration node) {
-    _declarationNode = node;
+    declaration = node;
     return null;
   }
   Object visitForEachStatement(ForEachStatement node) {
-    addToScope(node.loopVariable.identifier);
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (loopVariable != null) {
+      addToScope(loopVariable.identifier);
+    }
     return super.visitForEachStatement(node);
   }
   Object visitForStatement(ForStatement node) {
@@ -17337,7 +14678,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   }
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is! FunctionDeclarationStatement) {
-      _declarationNode = node;
+      declaration = node;
       return null;
     }
     return super.visitFunctionDeclaration(node);
@@ -17347,19 +14688,19 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     return super.visitFunctionDeclarationStatement(node);
   }
   Object visitFunctionExpression(FunctionExpression node) {
-    if (_immediateChild != node.parameters) {
+    if (node.parameters != null && _immediateChild != node.parameters) {
       addParameters(node.parameters.parameters);
     }
     return super.visitFunctionExpression(node);
   }
   Object visitMethodDeclaration(MethodDeclaration node) {
+    declaration = node;
     if (node.parameters == null) {
       return null;
     }
     if (_immediateChild != node.parameters) {
       addParameters(node.parameters.parameters);
     }
-    _declarationNode = node;
     return null;
   }
   Object visitNode(ASTNode node) {
@@ -17375,11 +14716,11 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     return super.visitSwitchMember(node);
   }
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _declarationNode = node;
+    declaration = node;
     return null;
   }
   Object visitTypeAlias(TypeAlias node) {
-    _declarationNode = node;
+    declaration = node;
     return null;
   }
   void addParameters(NodeList<FormalParameter> vars) {
@@ -17390,8 +14731,8 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   void addToScope(SimpleIdentifier identifier) {
     if (identifier != null && isInRange(identifier)) {
       String name = identifier.name;
-      if (!_locals.containsKey(name)) {
-        _locals[name] = identifier;
+      if (!locals.containsKey(name)) {
+        locals[name] = identifier;
       }
     }
   }
@@ -17428,67 +14769,132 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
 /**
  * Instances of the class {@code NodeList} represent a list of AST nodes that have a common parent.
  */
-class NodeList<E extends ASTNode> extends ListWrapper<E> {
+class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
+  /**
+   * Create an empty list with the given owner. This is a convenience method that allows the
+   * compiler to determine the correct value of the type argument [E] without needing to
+   * explicitly specify it.
+   *
+   * @param owner the node that is the parent of each of the elements in the list
+   * @return the list that was created
+   */
+  static NodeList create(ASTNode owner) => new NodeList(owner);
+
   /**
    * The node that is the parent of each of the elements in the list.
    */
   ASTNode owner;
+
   /**
-   * The elements of the list.
+   * The elements contained in the list.
    */
-  List<E> elements = new List<E>();
+  List<E> _elements = <E> [];
+
   /**
    * Initialize a newly created list of nodes to be empty.
+   *
    * @param owner the node that is the parent of each of the elements in the list
    */
-  NodeList(ASTNode this.owner);
+  NodeList(this.owner);
+
   /**
    * Use the given visitor to visit each of the nodes in this list.
+   *
    * @param visitor the visitor to be used to visit the elements of this list
    */
   accept(ASTVisitor visitor) {
-    for (E element in elements) {
+    for (E element in _elements) {
       element.accept(visitor);
     }
   }
   void add(E node) {
+    insert(length, node);
+  }
+  void insert(int index, E node) {
+    int length = _elements.length;
+    if (index < 0 || index > length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
     owner.becomeParentOf(node);
-    elements.add(node);
+    if (length == 0) {
+      _elements = <E> [node];
+    } else {
+      List<E> newElements = new List<E>(length + 1);
+      JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
+      newElements[index] = node;
+      JavaSystem.arraycopy(_elements, index, newElements, index + 1, length - index);
+      _elements = newElements;
+    }
   }
   bool addAll(Iterable<E> nodes) {
-    if (nodes != null) {
+    if (nodes != null && !nodes.isEmpty) {
+      int oldCount = _elements.length;
+      int newCount = nodes.length;
+      List<E> newElements = new List<E>(oldCount + newCount);
+      JavaSystem.arraycopy(_elements, 0, newElements, 0, oldCount);
+      int index = oldCount;
       for (E node in nodes) {
-        add(node);
+        owner.becomeParentOf(node);
+        newElements[index++] = node;
       }
+      _elements = newElements;
       return true;
     }
     return false;
   }
+  E operator[](int index) {
+    if (index < 0 || index >= _elements.length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
+    return _elements[index] as E;
+  }
+
   /**
    * Return the first token included in this node's source range.
+   *
    * @return the first token included in this node's source range
    */
   Token get beginToken {
-    if (elements.isEmpty) {
+    if (_elements.length == 0) {
       return null;
     }
-    return elements[0].beginToken;
+    return _elements[0].beginToken;
   }
+
   /**
    * Return the last token included in this node list's source range.
+   *
    * @return the last token included in this node list's source range
    */
   Token get endToken {
-    if (elements.isEmpty) {
+    if (_elements.length == 0) {
       return null;
     }
-    return elements[elements.length - 1].endToken;
+    return _elements[_elements.length - 1].endToken;
   }
-  /**
-   * Return the node that is the parent of each of the elements in the list.
-   * @return the node that is the parent of each of the elements in the list
-   */
-  ASTNode getOwner() {
-    return owner;
+  E removeAt(int index) {
+    if (index < 0 || index >= _elements.length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
+    E removedNode = _elements[index] as E;
+    int length = _elements.length;
+    if (length == 1) {
+      _elements = ASTNode.EMPTY_ARRAY;
+      return removedNode;
+    }
+    List<E> newElements = new List<E>(length - 1);
+    JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
+    JavaSystem.arraycopy(_elements, index + 1, newElements, index, length - index - 1);
+    _elements = newElements;
+    return removedNode;
   }
+  void operator[]=(int index, E node) {
+    if (index < 0 || index >= _elements.length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
+    _elements[index] as E;
+    owner.becomeParentOf(node);
+    _elements[index] = node;
+  }
+  int get length => _elements.length;
 }

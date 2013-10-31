@@ -21,7 +21,7 @@
 // TODO(jmesserly): this behavior is not ideal. It's really powerful to be able
 // to get all changes in one "transaction". We should look at alternate
 // approaches.
-library observe;
+library web_ui.observe;
 
 export 'observe/list.dart';
 export 'observe/map.dart';

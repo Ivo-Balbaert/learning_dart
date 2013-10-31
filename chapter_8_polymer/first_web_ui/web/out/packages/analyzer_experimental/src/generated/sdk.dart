@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 library engine.sdk;
-import 'java_core.dart';
-import 'java_engine.dart';
 import 'source.dart' show ContentCache, Source, UriKind;
 import 'engine.dart' show AnalysisContext;
 /**
@@ -159,8 +157,8 @@ class SdkLibraryImpl implements SdkLibrary {
    *
    * @param category the name of the category containing the library
    */
-  void set category(String category2) {
-    this._category = category2;
+  void set category(String category) {
+    this._category = category;
   }
 
   /**
@@ -175,8 +173,8 @@ class SdkLibraryImpl implements SdkLibrary {
    *
    * @param documented `true` if the library is documented
    */
-  void set documented(bool documented2) {
-    this._documented = documented2;
+  void set documented(bool documented) {
+    this._documented = documented;
   }
 
   /**
@@ -184,8 +182,8 @@ class SdkLibraryImpl implements SdkLibrary {
    *
    * @param implementation `true` if the library is an implementation library
    */
-  void set implementation(bool implementation2) {
-    this._implementation = implementation2;
+  void set implementation(bool implementation) {
+    this._implementation = implementation;
   }
 
   /**
@@ -194,8 +192,8 @@ class SdkLibraryImpl implements SdkLibrary {
    *
    * @param path the path to the file defining the library
    */
-  void set path(String path2) {
-    this._path = path2;
+  void set path(String path) {
+    this._path = path;
   }
 
   /**

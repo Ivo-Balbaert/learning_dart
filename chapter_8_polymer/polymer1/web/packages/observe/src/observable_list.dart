@@ -9,7 +9,7 @@ part of observe;
  * removed, or replaced, then observers that are listening to [changes]
  * will be notified.
  */
-class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
+class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   List<ListChangeRecord> _listRecords;
 
   /** The inner [List<E>] with the actual storage. */
@@ -34,9 +34,9 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
   factory ObservableList.from(Iterable<E> other) =>
       new ObservableList<E>()..addAll(other);
 
-  int get length => _list.length;
+  @reflectable int get length => _list.length;
 
-  set length(int value) {
+  @reflectable set length(int value) {
     int len = _list.length;
     if (len == value) return;
 
@@ -54,9 +54,9 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
     _list.length = value;
   }
 
-  E operator [](int index) => _list[index];
+  @reflectable E operator [](int index) => _list[index];
 
-  void operator []=(int index, E value) {
+  @reflectable void operator []=(int index, E value) {
     var oldValue = _list[index];
     if (hasObservers) {
       _recordChange(new ListChangeRecord(index, addedCount: 1,
@@ -181,7 +181,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
   void _recordChange(ListChangeRecord record) {
     if (_listRecords == null) {
       _listRecords = [];
-      runAsync(deliverChanges);
+      scheduleMicrotask(deliverChanges);
     }
     _listRecords.add(record);
   }
@@ -225,7 +225,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
     }
 
     if (length != oldLength) {
-      notifyPropertyChange(const Symbol('length'), oldLength, length);
+      notifyPropertyChange(#length, oldLength, length);
     }
 
     if (_listRecords.length == 1) {

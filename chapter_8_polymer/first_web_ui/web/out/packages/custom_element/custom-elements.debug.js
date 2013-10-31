@@ -25,102 +25,6 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-(function() {
-
-var scope = window.PolymerLoader = {};
-var flags = {};
-
-// convert url arguments to flags
-
-if (!flags.noOpts) {
-  location.search.slice(1).split('&').forEach(function(o) {
-    o = o.split('=');
-    o[0] && (flags[o[0]] = o[1] || true);
-  });
-}
-
-// process global logFlags
-
-parseLogFlags(flags);
-
-function load(scopeName) {
-  // imports
-
-  var scope = window[scopeName];
-  var entryPointName = scope.entryPointName;
-  var processFlags = scope.processFlags;
-
-  // acquire attributes and base path from entry point
-
-  var entryPoint = findScript(entryPointName);
-  var base = entryPoint.basePath;
-
-  // acquire common flags
-  var flags = scope.flags;
-
-  // convert attributes to flags
-  var flags = PolymerLoader.flags;
-  for (var i=0, a; (a=entryPoint.attributes[i]); i++) {
-    if (a.name !== 'src') {
-      flags[a.name] = a.value || true;
-    }
-  }
-
-  // parse log flags into global
-  parseLogFlags(flags);
-
-  // exports
-
-  scope.basePath = base;
-  scope.flags = flags;
-
-  // process flags for dynamic dependencies
-
-  if (processFlags) {
-    processFlags.call(scope, flags);
-  }
-
-  // post-process imports
-
-  var modules = scope.modules || [];
-  var sheets = scope.sheets || [];
-
-  // write script tags for dependencies
-
-  modules.forEach(function(src) {
-    document.write('<script src="' + base + src + '"></script>');
-  });
-
-  // write link tags for styles
-
-  sheets.forEach(function(src) {
-    document.write('<link rel="stylesheet" href="' + base + src + '">');
-  });
-}
-
-// utility method
-
-function findScript(fileName) {
-  var script = document.querySelector('script[src*="' + fileName + '"]');
-  var src = script.attributes.src.value;
-  script.basePath = src.slice(0, src.indexOf(fileName));
-  return script;
-}
-
-function parseLogFlags(flags) {
-  var logFlags = window.logFlags = window.logFlags || {};
-  if (flags.log) {
-    flags.log.split(',').forEach(function(f) {
-      logFlags[f] = true;
-    });
-  }
-}
-
-scope.flags = flags;
-scope.load = load;
-
-})();
-
 window.CustomElements = {flags:{}};
 // SideTable is a weak map where possible. If WeakMap is not available the
 // association is stored as an expando property.
@@ -131,8 +35,7 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
 } else {
   (function() {
     var defineProperty = Object.defineProperty;
-    var hasOwnProperty = Object.hasOwnProperty;
-    var counter = new Date().getTime() % 1e9;
+    var counter = Date.now() % 1e9;
 
     SideTable = function() {
       this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
@@ -140,10 +43,16 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
 
     SideTable.prototype = {
       set: function(key, value) {
-        defineProperty(key, this.name, {value: value, writable: true});
+        var entry = key[this.name];
+        if (entry && entry[0] === key)
+          entry[1] = value;
+        else
+          defineProperty(key, this.name, {value: [key, value], writable: true});
       },
       get: function(key) {
-        return hasOwnProperty.call(key, this.name) ? key[this.name] : undefined;
+        var entry;
+        return (entry = key[this.name]) && entry[0] === key ?
+            entry[1] : undefined;
       },
       delete: function(key) {
         this.set(key, undefined);
@@ -700,15 +609,7 @@ if (!window.MutationObserver) {
 
 (function(scope){
 
-/*
-if (HTMLElement.prototype.webkitShadowRoot) {
-  Object.defineProperty(HTMLElement.prototype, 'shadowRoot', {
-    get: function() {
-      return this.webkitShadowRoot;
-    }
-  };
-}
-*/
+var logFlags = window.logFlags || {};
 
 // walk the subtree rooted at node, applying 'find(element, data)' function
 // to each element
@@ -732,7 +633,7 @@ function findAll(node, find, data) {
 
 // walk all shadowRoots on a given node.
 function forRoots(node, cb) {
-  var root = node.webkitShadowRoot;
+  var root = node.shadowRoot;
   while(root) {
     forSubtree(root, cb);
     root = root.olderShadowRoot;
@@ -799,9 +700,50 @@ function insertedNode(node) {
   }
 }
 
-// TODO(sjmiles): if there are descents into trees that can never have inDocument(*) true, fix this
+
+// TODO(sorvell): on platforms without MutationObserver, mutations may not be
+// reliable and therefore entered/leftView are not reliable.
+// To make these callbacks less likely to fail, we defer all inserts and removes
+// to give a chance for elements to be inserted into dom.
+// This ensures enteredViewCallback fires for elements that are created and
+// immediately added to dom.
+var hasPolyfillMutations = (!window.MutationObserver ||
+    (window.MutationObserver === window.JsMutationObserver));
+scope.hasPolyfillMutations = hasPolyfillMutations;
+
+var isPendingMutations = false;
+var pendingMutations = [];
+function deferMutation(fn) {
+  pendingMutations.push(fn);
+  if (!isPendingMutations) {
+    isPendingMutations = true;
+    var async = (window.Platform && window.Platform.endOfMicrotask) ||
+        setTimeout;
+    async(takeMutations);
+  }
+}
+
+function takeMutations() {
+  isPendingMutations = false;
+  var $p = pendingMutations;
+  for (var i=0, l=$p.length, p; (i<l) && (p=$p[i]); i++) {
+    p();
+  }
+  pendingMutations = [];
+}
 
 function inserted(element) {
+  if (hasPolyfillMutations) {
+    deferMutation(function() {
+      _inserted(element);
+    });
+  } else {
+    _inserted(element);
+  }
+}
+
+// TODO(sjmiles): if there are descents into trees that can never have inDocument(*) true, fix this
+function _inserted(element) {
   // TODO(sjmiles): it's possible we were inserted and removed in the space
   // of one microtask, in which case we won't be 'inDocument' here
   // But there are other cases where we are testing for inserted without
@@ -812,7 +754,7 @@ function inserted(element) {
   // TODO(sjmiles): when logging, do work on all custom elements so we can
   // track behavior even when callbacks not defined
   //console.log('inserted: ', element.localName);
-  if (element.enteredDocumentCallback || (element.__upgraded__ && logFlags.dom)) {
+  if (element.enteredViewCallback || (element.__upgraded__ && logFlags.dom)) {
     logFlags.dom && console.group('inserted:', element.localName);
     if (inDocument(element)) {
       element.__inserted = (element.__inserted || 0) + 1;
@@ -824,9 +766,9 @@ function inserted(element) {
       if (element.__inserted > 1) {
         logFlags.dom && console.warn('inserted:', element.localName,
           'insert/remove count:', element.__inserted)
-      } else if (element.enteredDocumentCallback) {
+      } else if (element.enteredViewCallback) {
         logFlags.dom && console.log('inserted:', element.localName);
-        element.enteredDocumentCallback();
+        element.enteredViewCallback();
       }
     }
     logFlags.dom && console.groupEnd();
@@ -840,10 +782,21 @@ function removedNode(node) {
   });
 }
 
+
+function removed(element) {
+  if (hasPolyfillMutations) {
+    deferMutation(function() {
+      _removed(element);
+    });
+  } else {
+    _removed(element);
+  }
+}
+
 function removed(element) {
   // TODO(sjmiles): temporary: do work on all custom elements so we can track
   // behavior even when callbacks not defined
-  if (element.leftDocumentCallback || (element.__upgraded__ && logFlags.dom)) {
+  if (element.leftViewCallback || (element.__upgraded__ && logFlags.dom)) {
     logFlags.dom && console.log('removed:', element.localName);
     if (!inDocument(element)) {
       element.__inserted = (element.__inserted || 0) - 1;
@@ -855,8 +808,8 @@ function removed(element) {
       if (element.__inserted < 0) {
         logFlags.dom && console.warn('removed:', element.localName,
             'insert/remove count:', element.__inserted)
-      } else if (element.leftDocumentCallback) {
-        element.leftDocumentCallback();
+      } else if (element.leftViewCallback) {
+        element.leftViewCallback();
       }
     }
   }
@@ -864,8 +817,10 @@ function removed(element) {
 
 function inDocument(element) {
   var p = element;
+  var doc = window.ShadowDOMPolyfill &&
+      window.ShadowDOMPolyfill.wrapIfNeeded(document) || document;
   while (p) {
-    if (p == element.ownerDocument) {
+    if (p == doc) {
       return true;
     }
     p = p.parentNode || p.host;
@@ -873,10 +828,10 @@ function inDocument(element) {
 }
 
 function watchShadow(node) {
-  if (node.webkitShadowRoot && !node.webkitShadowRoot.__watched) {
+  if (node.shadowRoot && !node.shadowRoot.__watched) {
     logFlags.dom && console.log('watching shadow-root for: ', node.localName);
     // watch all unwatched roots...
-    var root = node.webkitShadowRoot;
+    var root = node.shadowRoot;
     while (root) {
       watchRoot(root);
       root = root.olderShadowRoot;
@@ -889,13 +844,6 @@ function watchRoot(root) {
     observe(root);
     root.__watched = true;
   }
-}
-
-function watchAllShadows(node) {
-  watchShadow(node);
-  forSubtree(node, function(e) {
-    watchShadow(node);
-  });
 }
 
 function filter(inNode) {
@@ -933,11 +881,6 @@ function handler(mutations) {
         if (filter(n)) {
           return;
         }
-        // watch shadow-roots on nodes that have had them attached manually
-        // TODO(sjmiles): remove if createShadowRoot is overridden
-        // TODO(sjmiles): removed as an optimization, manual shadow roots
-        // must be watched explicitly
-        //watchAllShadows(n);
         // nodes added may need lifecycle management
         addedNode(n);
       });
@@ -960,6 +903,7 @@ var observer = new MutationObserver(handler);
 function takeRecords() {
   // TODO(sjmiles): ask Raf why we have to call handler ourselves
   handler(observer.takeRecords());
+  takeMutations();
 }
 
 var forEach = Array.prototype.forEach.call.bind(Array.prototype.forEach);
@@ -981,8 +925,6 @@ function upgradeDocument(document) {
 // exports
 
 scope.watchShadow = watchShadow;
-scope.watchAllShadows = watchAllShadows;
-
 scope.upgradeAll = addedNode;
 scope.upgradeSubtree = addedSubtree;
 
@@ -1014,13 +956,10 @@ var flags = scope.flags;
 
 // native document.register?
 
-var hasNative = Boolean(document.webkitRegister || document.register);
+var hasNative = Boolean(document.register);
 var useNative = !flags.register && hasNative;
 
 if (useNative) {
-
-  // normalize
-  document.register = document.register || document.webkitRegister;
 
   // stub
   var nop = function() {};
@@ -1030,7 +969,6 @@ if (useNative) {
   scope.upgradeElement = nop;
 
   scope.watchShadow = nop;
-  scope.watchAllShadows = nop;
   scope.upgrade = nop;
   scope.upgradeAll = nop;
   scope.upgradeSubtree = nop;
@@ -1045,23 +983,23 @@ if (useNative) {
    *
    * When a registered element is created, a `readyCallback` method is called
    * in the scope of the element. The `readyCallback` method can be specified on
-   * either `inOptions.prototype` or `inOptions.lifecycle` with the latter taking
+   * either `options.prototype` or `options.lifecycle` with the latter taking
    * precedence.
    *
    * @method register
-   * @param {String} inName The tag name to register. Must include a dash ('-'),
+   * @param {String} name The tag name to register. Must include a dash ('-'),
    *    for example 'x-component'.
-   * @param {Object} inOptions
-   *    @param {String} [inOptions.extends]
+   * @param {Object} options
+   *    @param {String} [options.extends]
    *      (_off spec_) Tag name of an element to extend (or blank for a new
    *      element). This parameter is not part of the specification, but instead
    *      is a hint for the polyfill because the extendee is difficult to infer.
    *      Remember that the input prototype must chain to the extended element's
    *      prototype (or HTMLElement.prototype) regardless of the value of
    *      `extends`.
-   *    @param {Object} inOptions.prototype The prototype to use for the new
+   *    @param {Object} options.prototype The prototype to use for the new
    *      element. The prototype must inherit from HTMLElement.
-   *    @param {Object} [inOptions.lifecycle]
+   *    @param {Object} [options.lifecycle]
    *      Callbacks that fire at important phases in the life of the custom
    *      element.
    *
@@ -1078,18 +1016,23 @@ if (useNative) {
    *      });
    * @return {Function} Constructor for the newly registered type.
    */
-  function register(inName, inOptions) {
-    //console.warn('document.register("' + inName + '", ', inOptions, ')');
+  function register(name, options) {
+    //console.warn('document.register("' + name + '", ', options, ')');
     // construct a defintion out of options
-    // TODO(sjmiles): probably should clone inOptions instead of mutating it
-    var definition = inOptions || {};
-    if (!inName) {
+    // TODO(sjmiles): probably should clone options instead of mutating it
+    var definition = options || {};
+    if (!name) {
       // TODO(sjmiles): replace with more appropriate error (EricB can probably
       // offer guidance)
-      throw new Error('Name argument must not be empty');
+      throw new Error('document.register: first argument `name` must not be empty');
+    }
+    if (name.indexOf('-') < 0) {
+      // TODO(sjmiles): replace with more appropriate error (EricB can probably
+      // offer guidance)
+      throw new Error('document.register: first argument (\'name\') must contain a dash (\'-\'). Argument provided was \'' + String(name) + '\'.');
     }
     // record name
-    definition.name = inName;
+    definition.name = name;
     // must have a prototype, default to an extension of HTMLElement
     // TODO(sjmiles): probably should throw if no prototype, check spec
     if (!definition.prototype) {
@@ -1112,7 +1055,7 @@ if (useNative) {
     // overrides to implement attributeChanged callback
     overrideAttributeApi(definition.prototype);
     // 7.1.5: Register the DEFINITION with DOCUMENT
-    registerDefinition(inName, definition);
+    registerDefinition(name, definition);
     // 7.1.7. Run custom element constructor generation algorithm with PROTOTYPE
     // 7.1.8. Return the output of the previous step.
     definition.ctor = generateConstructor(definition);
@@ -1120,105 +1063,105 @@ if (useNative) {
     // force our .constructor to be our actual constructor
     definition.prototype.constructor = definition.ctor;
     // if initial parsing is complete
-    if (scope.ready) {
+    if (scope.ready || scope.performedInitialDocumentUpgrade) {
       // upgrade any pre-existing nodes of this type
       scope.upgradeAll(document);
     }
     return definition.ctor;
   }
 
-  function ancestry(inExtends) {
-    var extendee = registry[inExtends];
+  function ancestry(extnds) {
+    var extendee = registry[extnds];
     if (extendee) {
       return ancestry(extendee.extends).concat([extendee]);
     }
     return [];
   }
 
-  function resolveTagName(inDefinition) {
+  function resolveTagName(definition) {
     // if we are explicitly extending something, that thing is our
     // baseTag, unless it represents a custom component
-    var baseTag = inDefinition.extends;
+    var baseTag = definition.extends;
     // if our ancestry includes custom components, we only have a
     // baseTag if one of them does
-    for (var i=0, a; (a=inDefinition.ancestry[i]); i++) {
+    for (var i=0, a; (a=definition.ancestry[i]); i++) {
       baseTag = a.is && a.tag;
     }
     // our tag is our baseTag, if it exists, and otherwise just our name
-    inDefinition.tag = baseTag || inDefinition.name;
+    definition.tag = baseTag || definition.name;
     if (baseTag) {
       // if there is a base tag, use secondary 'is' specifier
-      inDefinition.is = inDefinition.name;
+      definition.is = definition.name;
     }
   }
 
-  function resolvePrototypeChain(inDefinition) {
+  function resolvePrototypeChain(definition) {
     // if we don't support __proto__ we need to locate the native level
     // prototype for precise mixing in
     if (!Object.__proto__) {
       // default prototype
-      var native = HTMLElement.prototype;
+      var nativePrototype = HTMLElement.prototype;
       // work out prototype when using type-extension
-      if (inDefinition.is) {
-        var inst = document.createElement(inDefinition.tag);
-        native = Object.getPrototypeOf(inst);
+      if (definition.is) {
+        var inst = document.createElement(definition.tag);
+        nativePrototype = Object.getPrototypeOf(inst);
       }
       // ensure __proto__ reference is installed at each point on the prototype
       // chain.
       // NOTE: On platforms without __proto__, a mixin strategy is used instead
       // of prototype swizzling. In this case, this generated __proto__ provides
       // limited support for prototype traversal.
-      var proto = inDefinition.prototype, ancestor;
-      while (proto && (proto !== native)) {
+      var proto = definition.prototype, ancestor;
+      while (proto && (proto !== nativePrototype)) {
         var ancestor = Object.getPrototypeOf(proto);
         proto.__proto__ = ancestor;
         proto = ancestor;
       }
     }
     // cache this in case of mixin
-    inDefinition.native = native;
+    definition.native = nativePrototype;
   }
 
   // SECTION 4
 
-  function instantiate(inDefinition) {
+  function instantiate(definition) {
     // 4.a.1. Create a new object that implements PROTOTYPE
     // 4.a.2. Let ELEMENT by this new object
     //
     // the custom element instantiation algorithm must also ensure that the
     // output is a valid DOM element with the proper wrapper in place.
     //
-    return upgrade(domCreateElement(inDefinition.tag), inDefinition);
+    return upgrade(domCreateElement(definition.tag), definition);
   }
 
-  function upgrade(inElement, inDefinition) {
+  function upgrade(element, definition) {
     // some definitions specify an 'is' attribute
-    if (inDefinition.is) {
-      inElement.setAttribute('is', inDefinition.is);
+    if (definition.is) {
+      element.setAttribute('is', definition.is);
     }
-    // make 'element' implement inDefinition.prototype
-    implement(inElement, inDefinition);
+    // make 'element' implement definition.prototype
+    implement(element, definition);
     // flag as upgraded
-    inElement.__upgraded__ = true;
-    // there should never be a shadow root on inElement at this point
+    element.__upgraded__ = true;
+    // there should never be a shadow root on element at this point
     // we require child nodes be upgraded before `created`
-    scope.upgradeSubtree(inElement);
+    scope.upgradeSubtree(element);
     // lifecycle management
-    created(inElement);
+    created(element);
     // OUTPUT
-    return inElement;
+    return element;
   }
 
-  function implement(inElement, inDefinition) {
+  function implement(element, definition) {
     // prototype swizzling is best
     if (Object.__proto__) {
-      inElement.__proto__ = inDefinition.prototype;
+      element.__proto__ = definition.prototype;
     } else {
       // where above we can re-acquire inPrototype via
       // getPrototypeOf(Element), we cannot do so when
       // we use mixin, so we install a magic reference
-      customMixin(inElement, inDefinition.prototype, inDefinition.native);
-      inElement.__proto__ = inDefinition.prototype;
+      customMixin(element, definition.prototype, definition.native);
+      element.__proto__ = definition.prototype;
     }
   }
 
@@ -1233,7 +1176,7 @@ if (useNative) {
     // HTMLElement.prototype, so we add a test
     // the idea is to avoid mixing in native prototypes, so adding
     // the second test is WLOG
-    while (p !== inNative && p !== HTMLUnknownElement.prototype) {
+    while (p && p !== inNative && p !== HTMLUnknownElement.prototype) {
       var keys = Object.getOwnPropertyNames(p);
       for (var i=0, k; k=keys[i]; i++) {
         if (!used[k]) {
@@ -1246,10 +1189,10 @@ if (useNative) {
     }
   }
 
-  function created(inElement) {
+  function created(element) {
     // invoke createdCallback
-    if (inElement.createdCallback) {
-      inElement.createdCallback();
+    if (element.createdCallback) {
+      element.createdCallback();
     }
   }
 
@@ -1264,8 +1207,8 @@ if (useNative) {
       changeAttribute.call(this, name, value, setAttribute);
     }
     var removeAttribute = prototype.removeAttribute;
-    prototype.removeAttribute = function(name, value) {
-      changeAttribute.call(this, name, value, removeAttribute);
+    prototype.removeAttribute = function(name) {
+      changeAttribute.call(this, name, null, removeAttribute);
     }
   }
 
@@ -1274,7 +1217,7 @@ if (useNative) {
     operation.apply(this, arguments);
     if (this.attributeChangedCallback
         && (this.getAttribute(name) !== oldValue)) {
-      this.attributeChangedCallback(name, oldValue);
+      this.attributeChangedCallback(name, oldValue, value);
     }
   }
 
@@ -1282,34 +1225,55 @@ if (useNative) {
 
   var registry = {};
 
-  function registerDefinition(inName, inDefinition) {
-    if (registry[inName]) {
+  function registerDefinition(name, definition) {
+    if (registry[name]) {
       throw new Error('Cannot register a tag more than once');
     }
-    registry[inName] = inDefinition;
+    registry[name] = definition;
   }
 
-  function generateConstructor(inDefinition) {
+  function generateConstructor(definition) {
     return function() {
-      return instantiate(inDefinition);
+      return instantiate(definition);
     };
   }
 
   function createElement(tag, typeExtension) {
-    // TODO(sjmiles): ignore 'tag' when using 'typeExtension', we could
-    // error check it, or perhaps there should only ever be one argument
     var definition = registry[typeExtension || tag];
     if (definition) {
-      return new definition.ctor();
+      if (tag == definition.tag && typeExtension == definition.is) {
+        return new definition.ctor();
+      }
+      // Handle empty string for type extension.
+      if (!typeExtension && !definition.is) {
+        return new definition.ctor();
+      }
     }
-    return domCreateElement(tag);
+
+    if (typeExtension) {
+      var element = createElement(tag);
+      element.setAttribute('is', typeExtension);
+      return element;
+    }
+    var element = domCreateElement(tag);
+    // Custom tags should be HTMLElements even if not upgraded.
+    if (tag.indexOf('-') >= 0) {
+      implement(element, HTMLElement);
+    }
+    return element;
   }
 
-  function upgradeElement(inElement) {
-    if (!inElement.__upgraded__ && (inElement.nodeType === Node.ELEMENT_NODE)) {
-      var type = inElement.getAttribute('is') || inElement.localName;
-      var definition = registry[type];
-      return definition && upgrade(inElement, definition);
+  function upgradeElement(element) {
+    if (!element.__upgraded__ && (element.nodeType === Node.ELEMENT_NODE)) {
+      var is = element.getAttribute('is');
+      var definition = registry[is || element.localName];
+      if (definition) {
+        if (is && definition.tag == element.localName) {
+          return upgrade(element, definition);
+        } else if (!is && !definition.extends) {
+          return upgrade(element, definition);
+        }
+      }
     }
   }
 
@@ -1345,7 +1309,7 @@ if (useNative) {
    * if it matches no registered custom tag name.
    *
    * @method ugprade
-   * @param {Element} inElement The element to upgrade.
+   * @param {Element} element The element to upgrade.
    * @return {Element} The upgraded element.
    */
   scope.upgrade = upgradeElement;
@@ -1416,14 +1380,17 @@ CustomElements.parser = parser;
 (function(){
 
 // bootstrap parsing
-
 function bootstrap() {
-  // go async so call stack can unwind
-  setTimeout(function() {
-    // parse document
-    CustomElements.parser.parse(document);
-    // one more pass before register is 'live'
-    CustomElements.upgradeDocument(document);
+  // parse document
+  CustomElements.parser.parse(document);
+  // one more pass before register is 'live'
+  CustomElements.upgradeDocument(document);
+  CustomElements.performedInitialDocumentUpgrade = true;
+  // choose async
+  var async = window.Platform && Platform.endOfMicrotask ?
+    Platform.endOfMicrotask :
+    setTimeout;
+  async(function() {
     // set internal 'ready' flag, now document.register will trigger
     // synchronous upgrades
     CustomElements.ready = true;
@@ -1436,7 +1403,7 @@ function bootstrap() {
     document.body.dispatchEvent(
       new CustomEvent('WebComponentsReady', {bubbles: true})
     );
-  }, 0);
+  });
 }
 
 // CustomEvent shim for IE
@@ -1451,8 +1418,52 @@ if (typeof window.CustomEvent !== 'function') {
 if (document.readyState === 'complete') {
   bootstrap();
 } else {
-  var loadEvent = window.HTMLImports ? 'HTMLImportsLoaded' : 'DOMContentLoaded';
+  var loadEvent = window.HTMLImports ? 'HTMLImportsLoaded' :
+      document.readyState == 'loading' ? 'DOMContentLoaded' : 'load';
   window.addEventListener(loadEvent, bootstrap);
+}
+
+})();
+
+(function() {
+// Patch to allow custom element and shadow dom to work together, from:
+// https://github.com/Polymer/platform/blob/master/src/patches-shadowdom-polyfill.js
+// include .host reference
+if (HTMLElement.prototype.createShadowRoot) {
+  var originalCreateShadowRoot = HTMLElement.prototype.createShadowRoot;
+  HTMLElement.prototype.createShadowRoot = function() {
+    var root = originalCreateShadowRoot.call(this);
+    root.host = this;
+    return root;
+  }
+}
+
+
+// Patch to allow custom elements and shadow dom to work together, from:
+// https://github.com/Polymer/platform/blob/master/src/patches-custom-elements.js
+if (window.ShadowDOMPolyfill) {
+  function nop() {};
+
+  // disable shadow dom watching
+  CustomElements.watchShadow = nop;
+  CustomElements.watchAllShadows = nop;
+
+  // ensure wrapped inputs for these functions
+  var fns = ['upgradeAll', 'upgradeSubtree', 'observeDocument',
+      'upgradeDocument'];
+
+  // cache originals
+  var original = {};
+  fns.forEach(function(fn) {
+    original[fn] = CustomElements[fn];
+  });
+
+  // override
+  fns.forEach(function(fn) {
+    CustomElements[fn] = function(inNode) {
+      return original[fn](ShadowDOMPolyfill.wrapIfNeeded(inNode));
+    };
+  });
 }
 
 })();

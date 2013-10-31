@@ -152,7 +152,6 @@ class ObservableList<E> extends ListMixinWorkaround with Observable
 
   Iterable expand(Iterable f(E)) {
     throw new UnimplementedError();
-    return null;
   }
 
   String toString() {
