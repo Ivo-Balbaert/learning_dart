@@ -1,7 +1,7 @@
 library bank_terminal;
 
 import 'dart:html';
-import 'dart:json';
+import 'dart:convert';
 import 'package:rikulo_ui/effect.dart';
 import 'package:rikulo_ui/event.dart';
 import 'package:rikulo_ui/gesture.dart';
@@ -70,7 +70,7 @@ readData() {
   }
   // read data from local storage:
   String acc_json = window.localStorage[key];
-  bac = new BankAccount.fromJson(parse(acc_json));
+  bac = new BankAccount.fromJson(JSON.decode(acc_json));
   // show owner and balance:
   owner.text = "${bac.owner.name}";
   balance.text = "${bac.balance.toStringAsFixed(2)}";

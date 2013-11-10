@@ -465,3 +465,19 @@ import 'package:web_ui/component_build.dart';
 ^
 build.dart finished [197 ms]
 
+---
+build.dart --machine --full
+Unable to open file: F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/packages/csslib/visitor.dart'package:web_ui/src/compiler.dart': Error: line 11 pos 1: library handler failed
+import 'package:csslib/visitor.dart' show StyleSheet, treeToDebugString;
+^
+'package:web_ui/dwc.dart': Error: line 12 pos 1: library handler failed
+import 'src/compiler.dart';
+^
+'package:web_ui/component_build.dart': Error: line 26 pos 1: library handler failed
+import 'dwc.dart' as dwc;
+^
+'file:///F:/dart_learning_by_projects_git/chapter_8_polymer/first_web_ui/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [306 ms]
+

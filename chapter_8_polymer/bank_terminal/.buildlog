@@ -309,3 +309,50 @@ build.dart --machine --full
 
 build.dart finished [1213 ms]
 
+---
+build.dart --machine --full
+Unhandled exception:
+'package:polymer/builder.dart': Error: line 320 pos 43: type 'Options' is not loaded
+    res = parser.parse(args == null ? new Options().arguments : args);
+                                          ^
+malformed type used.
+#0      parseOptions (package:polymer/builder.dart:320:43)
+#1      parseOptions (package:polymer/builder.dart:321:5)
+#2      _options (package:polymer/builder.dart:259:31)
+#3      build (package:polymer/builder.dart:116:42)
+#4      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/bank_terminal/build.dart:4:8)
+#5      _startIsolate.isolateStartHandler (dart:isolate-patch/isolate_patch.dart:190)
+#6      _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:93)
+build.dart finished [507 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal.html
+Unhandled exception:
+'package:polymer/builder.dart': Error: line 320 pos 43: type 'Options' is not loaded
+    res = parser.parse(args == null ? new Options().arguments : args);
+                                          ^
+malformed type used.
+#0      parseOptions (package:polymer/builder.dart:320:43)
+#1      parseOptions (package:polymer/builder.dart:321:5)
+#2      _options (package:polymer/builder.dart:259:31)
+#3      build (package:polymer/builder.dart:116:42)
+#4      main (file:///F:/dart_learning_by_projects_git/chapter_8_polymer/bank_terminal/build.dart:4:8)
+#5      _startIsolate.isolateStartHandler (dart:isolate-patch/isolate_patch.dart:190)
+#6      _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:93)
+build.dart finished [405 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1133 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1566 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1207 ms]
+

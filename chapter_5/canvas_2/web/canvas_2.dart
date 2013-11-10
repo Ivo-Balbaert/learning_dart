@@ -3,7 +3,7 @@ import 'dart:html';
 CanvasRenderingContext2D context;
 
 void main() {
-  CanvasElement canvas = query('#canvas');
+  CanvasElement canvas = querySelector('#canvas');
   CanvasRenderingContext2D context = canvas.getContext('2d');
 //// 1- drawing quadratic curves:
   context.moveTo(188, 150);

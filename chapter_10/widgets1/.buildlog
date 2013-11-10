@@ -213,3 +213,14 @@ Total time spent on web/widgets1.html                        -- 905 ms
 Total time                                                   -- 1546 ms
 build.dart finished [2038 ms]
 
+---
+build.dart --machine --full
+The built-in library 'dart:json' is not available on the stand-alone VM.
+'package:web_ui/component_build.dart': Error: line 23 pos 1: library handler failed
+import 'dart:json' as json;
+^
+'file:///F:/dart_learning_by_projects_git/chapter_10/widgets1/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [77 ms]
+

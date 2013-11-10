@@ -30,31 +30,38 @@ class PolymerTransformerGroup implements TransformerGroup {
   PolymerTransformerGroup(TransformOptions options)
       : phases = _createDeployPhases(options);
 
-  PolymerTransformerGroup.asPlugin(Map args) : this(_parseArgs(args));
+  PolymerTransformerGroup.asPlugin(BarbackSettings settings)
+      : this(_parseSettings(settings));
 }
 
+TransformOptions _parseSettings(BarbackSettings settings) {
+  var args = settings.configuration;
+  bool release = settings.mode == BarbackMode.RELEASE;
+  bool jsOption = args['js'];
+  bool csp = args['csp'] == true; // defaults to false
+  return new TransformOptions(
+      entryPoints: _readEntrypoints(args['entry_points']),
+      directlyIncludeJS: jsOption == null ? release : jsOption,
+      contentSecurityPolicy: csp);
+}
 
-TransformOptions _parseArgs(Map args) {
-  var entryPoints;
-  if (args.containsKey('entry_points')) {
-    entryPoints = [];
-    var value = args['entry_points'];
-    bool error;
-    if (value is List) {
-      entryPoints = value;
-      error = value.any((e) => e is! String);
-    } else if (value is String) {
-      entryPoints = [value];
-      error = false;
-    } else {
-      error = true;
-    }
-
-    if (error) {
-      print('Invalid value for "entry_points" in the polymer transformer.');
-    }
+_readEntrypoints(value) {
+  if (value == null) return null;
+  var entryPoints = [];
+  bool error;
+  if (value is List) {
+    entryPoints = value;
+    error = value.any((e) => e is! String);
+  } else if (value is String) {
+    entryPoints = [value];
+    error = false;
+  } else {
+    error = true;
   }
-  return new TransformOptions(entryPoints: entryPoints);
+  if (error) {
+    print('Invalid value for "entry_points" in the polymer transformer.');
+  }
+  return entryPoints;
 }
 
 List<List<Transformer>> _createDeployPhases(TransformOptions options) {

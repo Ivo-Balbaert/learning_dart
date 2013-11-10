@@ -13,7 +13,7 @@ main() {
   window.onLoad.listen( (e) => window.alert("I am at your disposal") );
   // key event:
   window.onKeyPress.listen( (e) {
-    if (e.keyCode == KeyCode.ENTER) {
+    if (e.keyCode == ENTER) {
       window.alert("You pressed ENTER");
 
     }
@@ -21,8 +21,8 @@ main() {
       window.alert("You pressed CTRL + ENTER");
     }
  });
-  task = query('#task');
-  list = query('#list');
+  task = querySelector('#task');
+  list = querySelector('#list');
   //task.onChange.listen( (e) => addItem() );
   task.onChange.listen( (e) {
     var newTask = new LIElement();
@@ -37,14 +37,14 @@ main() {
     list.children.add(newTask);
   });
   // find the h2 header element:
-  header = query('.header');
+  header = querySelector('.header');
   // find the buttons:
-  btns = queryAll('button');
+  btns = querySelectorAll('button');
   // attach event handler to 1st and 2nd buttons:
   btns[0].onClick.listen( (e) => changeColorHeader() );
   btns[1].onDoubleClick.listen( (e) => changeTextPara() );
   // another way to get the same list of buttons:
-  var btns2 = queryAll('#btns .backgr');
+  var btns2 = querySelectorAll('#btns .backgr');
   btns2[2].onMouseOver.listen( (e) => changePlaceHolder() );
   btns2[2].onClick.listen((e) => changeBtnsBackColor() );
   // alternative:
@@ -89,7 +89,7 @@ replacePar(Event e) {
 }
 
 changeColorHeader() => header.classes.toggle('header2');
-changeTextPara() => query('#para').text = "You changed my text!";
+changeTextPara() => querySelector('#para').text = "You changed my text!";
 changePlaceHolder() => task.placeholder = 'Come on, type something in!';
 changeBtnsBackColor() => btns.forEach( (b) => b.classes.add('btns_backgr'));
 // alternative:

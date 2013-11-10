@@ -12,8 +12,8 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
-import 'barback_logger.dart';
 import 'errors.dart';
+import 'log.dart';
 import 'phase.dart';
 import 'transform.dart';
 import 'transformer.dart';
@@ -130,13 +130,13 @@ class TransformNode {
 
     return phase.cascade.graph.transformPool
         .withResource(() => transformer.apply(transform))
-        .catchError((error) {
+        .catchError((error, stack) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
       if (_isDirty) return;
 
       if (error is! MissingInputException) {
-        error = new TransformerException(info, error);
+        error = new TransformerException(info, error, stack);
       }
 
       // Catch all transformer errors and pipe them to the results stream.
@@ -218,7 +218,6 @@ class TransformNode {
   void _log(AssetId asset, LogLevel level, String message, Span span) {
     // If the log isn't already associated with an asset, use the primary.
     if (asset == null) asset = primary.id;
-    var info = new TransformInfo(transformer, primary.id);
     var entry = new LogEntry(info, asset, level, message, span);
     _onLogController.add(entry);
   }

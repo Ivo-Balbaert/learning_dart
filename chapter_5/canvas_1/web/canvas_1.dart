@@ -6,11 +6,11 @@ var width, height;
 
 void main() {
   //get a reference to the canvas
-  CanvasElement canvas = query('#canvas');
+  CanvasElement canvas = querySelector('#canvas');
   width = canvas.width;
   height = canvas.height;
   context = canvas.getContext('2d');
-  // lines(); 
+  // lines();
   arcs();
 }
 
@@ -20,7 +20,7 @@ void lines() {
   context.lineTo(450, 50);
   context.lineWidth = 2;
   context.lineCap = 'round'; // other values: 'square' or 'butt'
-  context.stroke(); 
+  context.stroke();
 }
 
 //drawing arcs

@@ -1,15 +1,15 @@
 ---
 build.dart --machine --full
 
-build.dart finished [1063 ms]
-
----
-build.dart --machine --changed=web\clickcounter.html
-
-build.dart finished [1045 ms]
+build.dart finished [1078 ms]
 
 ---
 build.dart --machine --full
 
-build.dart finished [1275 ms]
+build.dart finished [1264 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1306 ms]
 

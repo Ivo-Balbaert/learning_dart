@@ -242,9 +242,13 @@ class PolymerDeclaration extends HtmlElement {
   void publishAttributes(ClassMirror cls, PolymerDeclaration superDecl) {
     // get properties to publish
     if (superDecl != null && superDecl._publish != null) {
+      // Dart note: even though we walk the type hierarchy in
+      // _getPublishedProperties, this will additionally include any names
+      // published via the `attributes` attribute.
       _publish = new Map.from(superDecl._publish);
     }
-    _publish = _getProperties(cls, _publish, (x) => x is PublishedProperty);
+
+    _publish = _getPublishedProperties(cls, _publish);
 
     // merge names from 'attributes' attribute
     var attrs = attributes['attributes'];
@@ -261,10 +265,11 @@ class PolymerDeclaration extends HtmlElement {
         }
 
         var property = new Symbol(attr);
-        var mirror = cls.variables[property];
-        if (mirror == null) {
-          mirror = cls.getters[property];
-          if (mirror != null && !_hasSetter(cls, mirror)) mirror = null;
+        var mirror = cls.declarations[property];
+        if (mirror is MethodMirror) {
+          if (!mirror.isGetter || !_hasSetter(cls, mirror)) mirror = null;
+        } else if (mirror is! VariableMirror) {
+          mirror = null;
         }
         if (mirror == null) {
           window.console.warn('property for attribute $attr of polymer-element '
@@ -432,8 +437,9 @@ class PolymerDeclaration extends HtmlElement {
   // If an element may take 6us to create, getCustomPropertyNames might
   // cost 1.6us more.
   void inferObservers(ClassMirror cls) {
-    for (var method in cls.methods.values) {
-      if (method.isStatic || !method.isRegularMethod) continue;
+    for (var method in cls.declarations.values) {
+      if (method is! MethodMirror || method.isStatic
+          || !method.isRegularMethod) continue;
 
       String name = MirrorSystem.getName(method.simpleName);
       if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
@@ -491,12 +497,15 @@ PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
 final _objectType = reflectClass(Object);
 
-Map _getProperties(ClassMirror cls, Map props, bool matches(metadata)) {
-  for (var field in cls.variables.values) {
-    if (field.isFinal || field.isStatic || field.isPrivate) continue;
+Map _getPublishedProperties(ClassMirror cls, Map props) {
+  if (cls == _objectType) return props;
+  props = _getPublishedProperties(cls.superclass, props);
+  for (var field in cls.declarations.values) {
+    if (field is! VariableMirror ||
+        field.isFinal || field.isStatic || field.isPrivate) continue;
 
     for (var meta in field.metadata) {
-      if (matches(meta.reflectee)) {
+      if (meta.reflectee is PublishedProperty) {
         if (props == null) props = {};
         props[field.simpleName] = field;
         break;
@@ -504,11 +513,12 @@ Map _getProperties(ClassMirror cls, Map props, bool matches(metadata)) {
     }
   }
 
-  for (var getter in cls.getters.values) {
-    if (getter.isStatic || getter.isPrivate) continue;
+  for (var getter in cls.declarations.values) {
+    if (getter is! MethodMirror || !getter.isGetter ||
+        getter.isStatic || getter.isPrivate) continue;
 
     for (var meta in getter.metadata) {
-      if (matches(meta.reflectee)) {
+      if (meta.reflectee is PublishedProperty) {
         if (_hasSetter(cls, getter)) {
           if (props == null) props = {};
           props[getter.simpleName] = getter;
@@ -523,7 +533,8 @@ Map _getProperties(ClassMirror cls, Map props, bool matches(metadata)) {
 
 bool _hasSetter(ClassMirror cls, MethodMirror getter) {
   var setterName = new Symbol('${MirrorSystem.getName(getter.simpleName)}=');
-  return cls.setters.containsKey(setterName);
+  var mirror = cls.declarations[setterName];
+  return mirror is MethodMirror && mirror.isSetter;
 }
 
 

@@ -1,7 +1,7 @@
 library bank_terminal;
 
 import 'dart:html';
-import 'dart:json';
+import 'dart:convert';
 
 part '../model/bank_account.dart';
 part '../model/person.dart';
@@ -33,8 +33,8 @@ constructPage() {
 // prepare html table for account data:
   var el1 = new Element.html(constructTable());
   document.body.children.add(el1);
-  sel = query('#accounts');
-  table = query('#accdata');
+  sel = querySelector('#accounts');
+  table = querySelector('#accdata');
   table.classes.remove('border');
 }
 
@@ -64,7 +64,7 @@ showAccount(Event e) {
     var accountno = account_nos[sel.selectedIndex - 1];
     var key = 'Bankaccount:$accountno';
     String acc_json = window.localStorage[key];
-    bac = new BankAccount.fromJson(parse(acc_json));
+    bac = new BankAccount.fromJson(JSON.decode(acc_json));
     // show data:
     table.classes.add('border');
     constructTrows();

@@ -32,24 +32,66 @@ if (!HTMLElement.prototype.createShadowRoot
 (function(global) {
   'use strict';
 
+  var PROP_ADD_TYPE = 'add';
+  var PROP_UPDATE_TYPE = 'update';
+  var PROP_RECONFIGURE_TYPE = 'reconfigure';
+  var PROP_DELETE_TYPE = 'delete';
+  var ARRAY_SPLICE_TYPE = 'splice';
+
+  // Detect and do basic sanity checking on Object/Array.observe.
   function detectObjectObserve() {
     if (typeof Object.observe !== 'function' ||
         typeof Array.observe !== 'function') {
       return false;
     }
 
-    var gotSplice = false;
-    function callback(records) {
-      if (records[0].type === 'splice' && records[1].type === 'splice')
-        gotSplice = true;
+    var records = [];
+
+    function callback(recs) {
+      records = recs;
     }
 
-    var test = [0];
+    var test = {};
+    Object.observe(test, callback);
+    test.id = 1;
+    test.id = 2;
+    delete test.id;
+    Object.deliverChangeRecords(callback);
+    if (records.length !== 3)
+      return false;
+
+    // TODO(rafaelw): Remove this when new change record type names make it to
+    // chrome release.
+    if (records[0].type == 'new' &&
+        records[1].type == 'updated' &&
+        records[2].type == 'deleted') {
+      PROP_ADD_TYPE = 'new';
+      PROP_UPDATE_TYPE = 'updated';
+      PROP_RECONFIGURE_TYPE = 'reconfigured';
+      PROP_DELETE_TYPE = 'deleted';
+    } else if (records[0].type != 'add' ||
+               records[1].type != 'update' ||
+               records[2].type != 'delete') {
+      console.error('Unexpected change record names for Object.observe. ' +
+                    'Using dirty-checking instead');
+      return false;
+    }
+    Object.unobserve(test, callback);
+
+    test = [0];
     Array.observe(test, callback);
     test[1] = 1;
     test.length = 0;
     Object.deliverChangeRecords(callback);
-    return gotSplice;
+    if (records.length != 2)
+      return false;
+    if (records[0].type != ARRAY_SPLICE_TYPE ||
+        records[1].type != ARRAY_SPLICE_TYPE) {
+      return false;
+    }
+    Array.unobserve(test, callback);
+
+    return true;
   }
 
   var hasObserve = detectObjectObserve();
@@ -750,6 +792,7 @@ if (!HTMLElement.prototype.createShadowRoot
     },
 
     start: function() {
+      this.started = true;
       this.connect();
       this.sync(true);
     },
@@ -835,11 +878,10 @@ if (!HTMLElement.prototype.createShadowRoot
     }
   });
 
-  var knownRecordTypes = {
-    'new': true,
-    'updated': true,
-    'deleted': true
-  };
+  var expectedRecordTypes = {};
+  expectedRecordTypes[PROP_ADD_TYPE] = true;
+  expectedRecordTypes[PROP_UPDATE_TYPE] = true;
+  expectedRecordTypes[PROP_DELETE_TYPE] = true;
 
   function notifyFunction(object, name) {
     if (typeof Object.observe !== 'function')
@@ -871,7 +913,7 @@ if (!HTMLElement.prototype.createShadowRoot
     var observer = new PathObserver(obj, descriptor.path,
         function(newValue, oldValue) {
           if (notify)
-            notify('updated', oldValue);
+            notify(PROP_UPDATE_TYPE, oldValue);
         }
     );
 
@@ -906,7 +948,7 @@ if (!HTMLElement.prototype.createShadowRoot
 
     for (var i = 0; i < changeRecords.length; i++) {
       var record = changeRecords[i];
-      if (!knownRecordTypes[record.type]) {
+      if (!expectedRecordTypes[record.type]) {
         console.error('Unknown changeRecord type: ' + record.type);
         console.error(record);
         continue;
@@ -915,10 +957,10 @@ if (!HTMLElement.prototype.createShadowRoot
       if (!(record.name in oldValues))
         oldValues[record.name] = record.oldValue;
 
-      if (record.type == 'updated')
+      if (record.type == PROP_UPDATE_TYPE)
         continue;
 
-      if (record.type == 'new') {
+      if (record.type == PROP_ADD_TYPE) {
         if (record.name in removed)
           delete removed[record.name];
         else
@@ -927,7 +969,7 @@ if (!HTMLElement.prototype.createShadowRoot
         continue;
       }
 
-      // type = 'deleted'
+      // type = 'delete'
       if (record.name in added) {
         delete added[record.name];
         delete oldValues[record.name];
@@ -1315,12 +1357,12 @@ if (!HTMLElement.prototype.createShadowRoot
     for (var i = 0; i < changeRecords.length; i++) {
       var record = changeRecords[i];
       switch(record.type) {
-        case 'splice':
+        case ARRAY_SPLICE_TYPE:
           mergeSplice(splices, record.index, record.removed.slice(), record.addedCount);
           break;
-        case 'new':
-        case 'updated':
-        case 'deleted':
+        case PROP_ADD_TYPE:
+        case PROP_UPDATE_TYPE:
+        case PROP_DELETE_TYPE:
           if (!isIndex(record.name))
             continue;
           var index = toNumber(record.name);
@@ -1367,6 +1409,16 @@ if (!HTMLElement.prototype.createShadowRoot
   global.PathObserver = PathObserver;
   global.CompoundPathObserver = CompoundPathObserver;
   global.Path = Path;
+
+  // TODO(rafaelw): Only needed for testing until new change record names
+  // make it to release.
+  global.Observer.changeRecordTypes = {
+    add: PROP_ADD_TYPE,
+    update: PROP_UPDATE_TYPE,
+    reconfigure: PROP_RECONFIGURE_TYPE,
+    'delete': PROP_DELETE_TYPE,
+    splice: ARRAY_SPLICE_TYPE
+  };
 })(typeof global !== 'undefined' && global ? global : this);
 
 /*
@@ -1429,6 +1481,7 @@ var ShadowDOMPolyfill = {};
       var f = new Function('', 'return true;');
       hasEval = f();
     } catch (ex) {
+      hasEval = false;
     }
   }
 
@@ -1511,20 +1564,24 @@ var ShadowDOMPolyfill = {};
     return /^on[a-z]+$/.test(name);
   }
 
+  function isIdentifierName(name) {
+    return /^\w[a-zA-Z_0-9]*$/.test(name);
+  }
+
   function getGetter(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('return this.impl.' + name) :
         function() { return this.impl[name]; };
   }
 
   function getSetter(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('v', 'this.impl.' + name + ' = v') :
         function(v) { this.impl[name] = v; };
   }
 
   function getMethod(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('return this.impl.' + name +
                      '.apply(this.impl, arguments)') :
         function() { return this.impl[name].apply(this.impl, arguments); };
@@ -1775,6 +1832,7 @@ var ShadowDOMPolyfill = {};
   scope.wrappers = wrappers;
 
 })(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -1826,7 +1884,7 @@ var ShadowDOMPolyfill = {};
 
     // 1.
     if (isShadowRoot(node))
-      return getInsertionParent(node) || scope.getHostForShadowRoot(node);
+      return getInsertionParent(node) || node.host;
 
     // 2.
     var eventParents = scope.eventParentsTable.get(node);
@@ -1922,7 +1980,7 @@ var ShadowDOMPolyfill = {};
         ancestor = calculateParents(ancestor, context, ancestors);  // 3.4.7.
       }
       if (isShadowRoot(target))  // 3.5.
-        target = scope.getHostForShadowRoot(target);
+        target = target.host;
       else
         target = target.parentNode;  // 3.6.
     }
@@ -1951,10 +2009,8 @@ var ShadowDOMPolyfill = {};
   function enclosedBy(a, b) {
     if (a === b)
       return true;
-    if (a instanceof wrappers.ShadowRoot) {
-      var host = scope.getHostForShadowRoot(a);
-      return enclosedBy(rootOfNode(host), b);
-    }
+    if (a instanceof wrappers.ShadowRoot)
+      return enclosedBy(rootOfNode(a.host), b);
     return false;
   }
 
@@ -2376,7 +2432,7 @@ var ShadowDOMPolyfill = {};
 
   function getTargetToListenAt(wrapper) {
     if (wrapper instanceof wrappers.ShadowRoot)
-      wrapper = scope.getHostForShadowRoot(wrapper);
+      wrapper = wrapper.host;
     return unwrap(wrapper);
   }
 
@@ -2613,11 +2669,13 @@ var ShadowDOMPolyfill = {};
     }
 
     var nodes = [];
-    var firstChild;
-    while (firstChild = node.firstChild) {
-      node.removeChild(firstChild);
-      nodes.push(firstChild);
-      firstChild.parentNode_ = parentNode;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      nodes.push(child);
+    }
+
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      node.removeChild(nodes[i]);
+      nodes[i].parentNode_ = parentNode;
     }
 
     for (var i = 0; i < nodes.length; i++) {
@@ -2767,12 +2825,28 @@ var ShadowDOMPolyfill = {};
     this.previousSibling_ = undefined;
   };
 
+  var OriginalDocumentFragment = window.DocumentFragment;
   var originalAppendChild = OriginalNode.prototype.appendChild;
-  var originalInsertBefore = OriginalNode.prototype.insertBefore;
-  var originalReplaceChild = OriginalNode.prototype.replaceChild;
-  var originalRemoveChild = OriginalNode.prototype.removeChild;
   var originalCompareDocumentPosition =
       OriginalNode.prototype.compareDocumentPosition;
+  var originalInsertBefore = OriginalNode.prototype.insertBefore;
+  var originalRemoveChild = OriginalNode.prototype.removeChild;
+  var originalReplaceChild = OriginalNode.prototype.replaceChild;
+
+  var isIe = /Trident/.test(navigator.userAgent);
+
+  var removeChildOriginalHelper = isIe ?
+      function(parent, child) {
+        try {
+          originalRemoveChild.call(parent, child);
+        } catch (ex) {
+          if (!(parent instanceof OriginalDocumentFragment))
+            throw ex;
+        }
+      } :
+      function(parent, child) {
+        originalRemoveChild.call(parent, child);
+      };
 
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
@@ -2848,8 +2922,20 @@ var ShadowDOMPolyfill = {};
     removeChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
       if (childWrapper.parentNode !== this) {
-        // TODO(arv): DOMException
-        throw new Error('NotFoundError');
+        // IE has invalid DOM trees at times.
+        var found = false;
+        var childNodes = this.childNodes;
+        for (var ieChild = this.firstChild; ieChild;
+             ieChild = ieChild.nextSibling) {
+          if (ieChild === childWrapper) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          // TODO(arv): DOMException
+          throw new Error('NotFoundError');
+        }
       }
 
       var childNode = unwrap(childWrapper);
@@ -2865,7 +2951,7 @@ var ShadowDOMPolyfill = {};
 
         var parentNode = childNode.parentNode;
         if (parentNode)
-          originalRemoveChild.call(parentNode, childNode);
+          removeChildOriginalHelper(parentNode, childNode);
 
         if (thisFirstChild === childWrapper)
           this.firstChild_ = childWrapperNextSibling;
@@ -2881,7 +2967,7 @@ var ShadowDOMPolyfill = {};
         childWrapper.previousSibling_ = childWrapper.nextSibling_ =
             childWrapper.parentNode_ = undefined;
       } else {
-        originalRemoveChild.call(this.impl, childNode);
+        removeChildOriginalHelper(this.impl, childNode);
       }
 
       return childWrapper;
@@ -3592,7 +3678,8 @@ var ShadowDOMPolyfill = {};
     }
   });
 
-  registerWrapper(OriginalHTMLCanvasElement, HTMLCanvasElement);
+  registerWrapper(OriginalHTMLCanvasElement, HTMLCanvasElement,
+                  document.createElement('canvas'));
 
   scope.wrappers.HTMLCanvasElement = HTMLCanvasElement;
 })(this.ShadowDOMPolyfill);
@@ -3638,6 +3725,50 @@ var ShadowDOMPolyfill = {};
 
   scope.wrappers.HTMLContentElement = HTMLContentElement;
 })(this.ShadowDOMPolyfill);
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var rewrap = scope.rewrap;
+
+  var OriginalHTMLImageElement = window.HTMLImageElement;
+
+  function HTMLImageElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLImageElement.prototype = Object.create(HTMLElement.prototype);
+
+  registerWrapper(OriginalHTMLImageElement, HTMLImageElement,
+                  document.createElement('img'));
+
+  function Image(width, height) {
+    if (!(this instanceof Image)) {
+      throw new TypeError(
+          'DOM object constructor cannot be called as a function.');
+    }
+
+    var node = unwrap(document.createElement('img'));
+    HTMLElement.call(this, node);
+    rewrap(node, this);
+
+    if (width !== undefined)
+      node.width = width;
+    if (height !== undefined)
+      node.height = height;
+  }
+
+  Image.prototype = HTMLImageElement.prototype;
+
+  scope.wrappers.HTMLImageElement = HTMLImageElement;
+  scope.wrappers.Image = Image;
+})(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3756,6 +3887,136 @@ var ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var registerWrapper = scope.registerWrapper;
+
+  var OriginalHTMLMediaElement = window.HTMLMediaElement;
+
+  function HTMLMediaElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLMediaElement.prototype = Object.create(HTMLElement.prototype);
+
+  registerWrapper(OriginalHTMLMediaElement, HTMLMediaElement,
+                  document.createElement('audio'));
+
+  scope.wrappers.HTMLMediaElement = HTMLMediaElement;
+})(this.ShadowDOMPolyfill);
+
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var HTMLMediaElement = scope.wrappers.HTMLMediaElement;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var rewrap = scope.rewrap;
+
+  var OriginalHTMLAudioElement = window.HTMLAudioElement;
+
+  function HTMLAudioElement(node) {
+    HTMLMediaElement.call(this, node);
+  }
+  HTMLAudioElement.prototype = Object.create(HTMLMediaElement.prototype);
+
+  registerWrapper(OriginalHTMLAudioElement, HTMLAudioElement,
+                  document.createElement('audio'));
+
+  function Audio(src) {
+    if (!(this instanceof Audio)) {
+      throw new TypeError(
+          'DOM object constructor cannot be called as a function.');
+    }
+
+    var node = unwrap(document.createElement('audio'));
+    HTMLMediaElement.call(this, node);
+    rewrap(node, this);
+
+    node.setAttribute('preload', 'auto');
+    if (src !== undefined)
+      node.setAttribute('src', src);
+  }
+
+  Audio.prototype = HTMLAudioElement.prototype;
+
+  scope.wrappers.HTMLAudioElement = HTMLAudioElement;
+  scope.wrappers.Audio = Audio;
+})(this.ShadowDOMPolyfill);
+
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var rewrap = scope.rewrap;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var OriginalHTMLOptionElement = window.HTMLOptionElement;
+
+  function trimText(s) {
+    return s.replace(/\s+/g, ' ').trim();
+  }
+
+  function HTMLOptionElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLOptionElement.prototype = Object.create(HTMLElement.prototype);
+  mixin(HTMLOptionElement.prototype, {
+    get text() {
+      return trimText(this.textContent);
+    },
+    set text(value) {
+      this.textContent = trimText(String(value));
+    },
+    get form() {
+      return wrap(unwrap(this).form);
+    }
+  });
+
+  registerWrapper(OriginalHTMLOptionElement, HTMLOptionElement,
+                  document.createElement('option'));
+
+  function Option(text, value, defaultSelected, selected) {
+    if (!(this instanceof Option)) {
+      throw new TypeError(
+          'DOM object constructor cannot be called as a function.');
+    }
+
+    var node = unwrap(document.createElement('option'));
+    HTMLElement.call(this, node);
+    rewrap(node, this);
+
+    if (text !== undefined)
+      node.text = text;
+    if (value !== undefined)
+      node.setAttribute('value', value);
+    if (defaultSelected === true)
+      node.setAttribute('selected', '');
+    node.selected = selected === true;
+  }
+
+  Option.prototype = HTMLOptionElement.prototype;
+
+  scope.wrappers.HTMLOptionElement = HTMLOptionElement;
+  scope.wrappers.Option = Option;
+})(this.ShadowDOMPolyfill);
+
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
   var HTMLContentElement = scope.wrappers.HTMLContentElement;
   var HTMLElement = scope.wrappers.HTMLElement;
   var HTMLShadowElement = scope.wrappers.HTMLShadowElement;
@@ -3790,6 +4051,7 @@ var ShadowDOMPolyfill = {};
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
   var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
@@ -3804,7 +4066,7 @@ var ShadowDOMPolyfill = {};
     },
 
     drawImage: function() {
-      arguments[0] = unwrap(arguments[0]);
+      arguments[0] = unwrapIfNeeded(arguments[0]);
       this.impl.drawImage.apply(this.impl, arguments);
     },
 
@@ -3828,7 +4090,7 @@ var ShadowDOMPolyfill = {};
 
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
-  var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
   var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
@@ -3847,12 +4109,12 @@ var ShadowDOMPolyfill = {};
     },
 
     texImage2D: function() {
-      arguments[5] = unwrap(arguments[5]);
+      arguments[5] = unwrapIfNeeded(arguments[5]);
       this.impl.texImage2D.apply(this.impl, arguments);
     },
 
     texSubImage2D: function() {
-      arguments[6] = unwrap(arguments[6]);
+      arguments[6] = unwrapIfNeeded(arguments[6]);
       this.impl.texSubImage2D.apply(this.impl, arguments);
     }
   });
@@ -3934,6 +4196,10 @@ var ShadowDOMPolyfill = {};
       return nextOlderShadowTreeTable.get(this) || null;
     },
 
+    get host() {
+      return shadowHostTable.get(this) || null;
+    },
+
     invalidateShadowRenderer: function() {
       return shadowHostTable.get(this).invalidateShadowRenderer();
     },
@@ -3948,9 +4214,6 @@ var ShadowDOMPolyfill = {};
   });
 
   scope.wrappers.ShadowRoot = ShadowRoot;
-  scope.getHostForShadowRoot = function(node) {
-    return shadowHostTable.get(node);
-  };
 })(this.ShadowDOMPolyfill);
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -3965,7 +4228,6 @@ var ShadowDOMPolyfill = {};
   var Node = scope.wrappers.Node;
   var ShadowRoot = scope.wrappers.ShadowRoot;
   var assert = scope.assert;
-  var getHostForShadowRoot = scope.getHostForShadowRoot;
   var mixin = scope.mixin;
   var muteMutationEvents = scope.muteMutationEvents;
   var oneOf = scope.oneOf;
@@ -4207,7 +4469,7 @@ var ShadowDOMPolyfill = {};
   }
 
   function getRendererForShadowRoot(shadowRoot) {
-    return getRendererForHost(getHostForShadowRoot(shadowRoot));
+    return getRendererForHost(shadowRoot.host);
   }
 
   var spliceDiff = new ArraySplice();
@@ -4636,7 +4898,7 @@ var ShadowDOMPolyfill = {};
     'HTMLLabelElement',
     'HTMLLegendElement',
     'HTMLObjectElement',
-    'HTMLOptionElement',
+    // HTMLOptionElement is handled in HTMLOptionElement.js
     'HTMLOutputElement',
     'HTMLSelectElement',
     'HTMLTextAreaElement',
@@ -4821,12 +5083,19 @@ var ShadowDOMPolyfill = {};
         };
       });
 
-      var nativeConstructor = originalRegister.call(unwrap(this), tagName,
-          {prototype: newPrototype});
+      var p = {prototype: newPrototype};
+      if (object.extends)
+        p.extends = object.extends;
+      var nativeConstructor = originalRegister.call(unwrap(this), tagName, p);
 
       function GeneratedWrapper(node) {
-        if (!node)
-          return document.createElement(tagName);
+        if (!node) {
+          if (object.extends) {
+            return document.createElement(object.extends, tagName);
+          } else {
+            return document.createElement(tagName);
+          }
+        }
         this.impl = node;
       }
       GeneratedWrapper.prototype = prototype;
@@ -5200,15 +5469,14 @@ var ShadowDOMPolyfill = {};
     'a': 'HTMLAnchorElement',
     'applet': 'HTMLAppletElement',
     'area': 'HTMLAreaElement',
-    'audio': 'HTMLAudioElement',
     'br': 'HTMLBRElement',
     'base': 'HTMLBaseElement',
     'body': 'HTMLBodyElement',
     'button': 'HTMLButtonElement',
-    'canvas': 'HTMLCanvasElement',
     // 'command': 'HTMLCommandElement',  // Not fully implemented in Gecko.
     'dl': 'HTMLDListElement',
     'datalist': 'HTMLDataListElement',
+    'data': 'HTMLDataElement',
     'dir': 'HTMLDirectoryElement',
     'div': 'HTMLDivElement',
     'embed': 'HTMLEmbedElement',
@@ -5222,18 +5490,13 @@ var ShadowDOMPolyfill = {};
     'h1': 'HTMLHeadingElement',
     'html': 'HTMLHtmlElement',
     'iframe': 'HTMLIFrameElement',
-
-    // Uses HTMLSpanElement in Firefox.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=843881
-    // 'image',
-
     'input': 'HTMLInputElement',
     'li': 'HTMLLIElement',
     'label': 'HTMLLabelElement',
     'legend': 'HTMLLegendElement',
     'link': 'HTMLLinkElement',
     'map': 'HTMLMapElement',
-    // 'media', Covered by audio and video
+    'marquee': 'HTMLMarqueeElement',
     'menu': 'HTMLMenuElement',
     'menuitem': 'HTMLMenuItemElement',
     'meta': 'HTMLMetaElement',
@@ -5254,6 +5517,7 @@ var ShadowDOMPolyfill = {};
     'source': 'HTMLSourceElement',
     'span': 'HTMLSpanElement',
     'style': 'HTMLStyleElement',
+    'time': 'HTMLTimeElement',
     'caption': 'HTMLTableCaptionElement',
     // WebKit and Moz are wrong:
     // https://bugs.webkit.org/show_bug.cgi?id=111469
@@ -5265,6 +5529,7 @@ var ShadowDOMPolyfill = {};
     'thead': 'HTMLTableSectionElement',
     'tbody': 'HTMLTableSectionElement',
     'textarea': 'HTMLTextAreaElement',
+    'track': 'HTMLTrackElement',
     'title': 'HTMLTitleElement',
     'ul': 'HTMLUListElement',
     'video': 'HTMLVideoElement',
@@ -5375,10 +5640,10 @@ var Platform = {};
 /*
   This is a limited shim for ShadowDOM css styling.
   https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#styles
-
-  The intention here is to support only the styling features which can be
-  relatively simply implemented. The goal is to allow users to avoid the
-  most obvious pitfalls and do so without compromising performance significantly.
+  
+  The intention here is to support only the styling features which can be 
+  relatively simply implemented. The goal is to allow users to avoid the 
+  most obvious pitfalls and do so without compromising performance significantly. 
   For ShadowDOM styling that's not covered here, a set of best practices
   can be provided that should allow users to accomplish more complex styling.
 
@@ -5387,57 +5652,57 @@ var Platform = {};
 
   Shimmed features:
 
-  * @host: ShadowDOM allows styling of the shadowRoot's host element using the
-  @host rule. To shim this feature, the @host styles are reformatted and
+  * @host: ShadowDOM allows styling of the shadowRoot's host element using the 
+  @host rule. To shim this feature, the @host styles are reformatted and 
   prefixed with a given scope name and promoted to a document level stylesheet.
   For example, given a scope name of .foo, a rule like this:
-
+  
     @host {
       * {
         background: red;
       }
     }
-
+  
   becomes:
-
+  
     .foo {
       background: red;
     }
-
-  * encapsultion: Styles defined within ShadowDOM, apply only to
+  
+  * encapsultion: Styles defined within ShadowDOM, apply only to 
   dom inside the ShadowDOM. Polymer uses one of two techniques to imlement
   this feature.
-
-  By default, rules are prefixed with the host element tag name
+  
+  By default, rules are prefixed with the host element tag name 
   as a descendant selector. This ensures styling does not leak out of the 'top'
   of the element's ShadowDOM. For example,
 
   div {
       font-weight: bold;
     }
-
+  
   becomes:
 
   x-foo div {
       font-weight: bold;
     }
-
+  
   becomes:
 
 
-  Alternatively, if Platform.ShadowCSS.strictStyling is set to true then
+  Alternatively, if Platform.ShadowCSS.strictStyling is set to true then 
   selectors are scoped by adding an attribute selector suffix to each
-  simple selector that contains the host element tag name. Each element
-  in the element's ShadowDOM template is also given the scope attribute.
+  simple selector that contains the host element tag name. Each element 
+  in the element's ShadowDOM template is also given the scope attribute. 
   Thus, these rules match only elements that have the scope attribute.
   For example, given a scope name of x-foo, a rule like this:
-
+  
     div {
       font-weight: bold;
     }
-
+  
   becomes:
-
+  
     div[x-foo] {
       font-weight: bold;
     }
@@ -5469,39 +5734,39 @@ var Platform = {};
 
   becomes:
 
-    x-foo [part=special] { ... }
-
+    x-foo [part=special] { ... }    
+  
   Unaddressed ShadowDOM styling features:
-
+  
   * upper/lower bound encapsulation: Styles which are defined outside a
   shadowRoot should not cross the ShadowDOM boundary and should not apply
   inside a shadowRoot.
 
-  This styling behavior is not emulated. Some possible ways to do this that
+  This styling behavior is not emulated. Some possible ways to do this that 
   were rejected due to complexity and/or performance concerns include: (1) reset
   every possible property for every possible selector for a given scope name;
   (2) re-implement css in javascript.
-
+  
   As an alternative, users should make sure to use selectors
   specific to the scope in which they are working.
-
+  
   * ::distributed: This behavior is not emulated. It's often not necessary
   to style the contents of a specific insertion point and instead, descendants
-  of the host element can be styled selectively. Users can also create an
+  of the host element can be styled selectively. Users can also create an 
   extra node around an insertion point and style that node's contents
   via descendent selectors. For example, with a shadowRoot like this:
-
+  
     <style>
       content::-webkit-distributed(div) {
         background: red;
       }
     </style>
     <content></content>
-
+  
   could become:
-
+  
     <style>
-      / *@polyfill .content-container div * /
+      / *@polyfill .content-container div * / 
       content::-webkit-distributed(div) {
         background: red;
       }
@@ -5509,9 +5774,9 @@ var Platform = {};
     <div class="content-container">
       <content></content>
     </div>
-
+  
   Note the use of @polyfill in the comment above a ShadowDOM specific style
-  declaration. This is a directive to the styling shim to use the selector
+  declaration. This is a directive to the styling shim to use the selector 
   in comments in lieu of the next selector when running under polyfill.
 */
 (function(scope) {
@@ -5547,7 +5812,7 @@ var ShadowCSS = {
       root.shimmedStyle = def.shimmedStyle;
     }
     // remove existing style elements
-    for (var i=0, l=def.rootStyles.length, s; (i<l) && (s=def.rootStyles[i]);
+    for (var i=0, l=def.rootStyles.length, s; (i<l) && (s=def.rootStyles[i]); 
         i++) {
       s.parentNode.removeChild(s);
     }
@@ -5591,14 +5856,14 @@ var ShadowCSS = {
   /*
    * Process styles to convert native ShadowDOM rules that will trip
    * up the css parser; we rely on decorating the stylesheet with comments.
-   *
+   * 
    * For example, we convert this rule:
-   *
+   * 
    * (comment start) @polyfill :host menu-item (comment end)
    * shadow::-webkit-distributed(menu-item) {
-   *
+   * 
    * to this:
-   *
+   * 
    * scopeName menu-item {
    *
   **/
@@ -5617,14 +5882,14 @@ var ShadowCSS = {
   },
   /*
    * Process styles to add rules which will only apply under the polyfill
-   *
+   * 
    * For example, we convert this rule:
-   *
-   * (comment start) @polyfill-rule :host menu-item {
+   * 
+   * (comment start) @polyfill-rule :host menu-item { 
    * ... } (comment end)
-   *
+   * 
    * to this:
-   *
+   * 
    * scopeName menu-item {...}
    *
   **/
@@ -5643,15 +5908,15 @@ var ShadowCSS = {
   },
   /*
    * Process styles to add rules which will only apply under the polyfill
-   * and do not process via CSSOM. (CSSOM is destructive to rules on rare
+   * and do not process via CSSOM. (CSSOM is destructive to rules on rare 
    * occasions, e.g. -webkit-calc on Safari.)
    * For example, we convert this rule:
-   *
-   * (comment start) @polyfill-unscoped-rule menu-item {
+   * 
+   * (comment start) @polyfill-unscoped-rule menu-item { 
    * ... } (comment end)
-   *
+   * 
    * to this:
-   *
+   * 
    * menu-item {...}
    *
   **/
@@ -5690,7 +5955,7 @@ var ShadowCSS = {
       return self.scopeHostCss(p1, name, typeExtension);
     });
     cssText = rulesToCss(this.findAtHostRules(cssToRules(cssText),
-      new RegExp('^' + name + selectorReSuffix, 'm')));
+        this.makeScopeMatcher(name, typeExtension)));
     return cssText;
   },
   scopeHostCss: function(cssText, name, typeExtension) {
@@ -5717,10 +5982,10 @@ var ShadowCSS = {
     return r.join(', ');
   },
   // consider styles that do not include component name in the selector to be
-  // unscoped and in need of promotion;
+  // unscoped and in need of promotion; 
   // for convenience, also consider keyframe rules this way.
   findAtHostRules: function(cssRules, matcher) {
-    return Array.prototype.filter.call(cssRules,
+    return Array.prototype.filter.call(cssRules, 
       this.isHostRule.bind(this, matcher));
   },
   isHostRule: function(matcher, cssRule) {
@@ -5729,11 +5994,11 @@ var ShadowCSS = {
       (cssRule.type == CSSRule.WEBKIT_KEYFRAMES_RULE);
   },
   /* Ensure styles are scoped. Pseudo-scoping takes a rule like:
-   *
-   *  .foo {... }
-   *
+   * 
+   *  .foo {... } 
+   *  
    *  and converts this to
-   *
+   *  
    *  scopeName .foo { ... }
   */
   shimScoping: function(styles, name, typeExtension) {
@@ -5764,15 +6029,28 @@ var ShadowCSS = {
    * to
    *
    * scopeName.foo > .bar, .foo scopeName > .bar { }
-   * TODO(sorvell): file bug since native impl does not do the former yet.
-   * http://jsbin.com/OganOCI/2/edit
+   * 
+   * and
+   *
+   * :host(.foo:host) .bar { ... }
+   * 
+   * to
+   * 
+   * scopeName.foo .bar { ... }
   */
   convertColonHost: function(cssText) {
     // p1 = :host, p2 = contents of (), p3 rest of rule
     return cssText.replace(cssColonHostRe, function(m, p1, p2, p3) {
-      return p2 ? polyfillHostNoCombinator + p2 + p3 + ', '
-          + p2 + ' ' + p1 + p3 :
-          p1 + p3;
+      p1 = polyfillHostNoCombinator;
+      if (p2) {
+        if (p2.match(polyfillHost)) {
+          return p1 + p2.replace(polyfillHost, '') + p3;
+        } else {
+          return p1 + p2 + p3 + ', ' + p2 + ' ' + p1 + p3;
+        }
+      } else {
+        return p1 + p3;
+      }
     });
   },
   /*
@@ -5786,7 +6064,7 @@ var ShadowCSS = {
     var cssText = '';
     Array.prototype.forEach.call(cssRules, function(rule) {
       if (rule.selectorText && (rule.style && rule.style.cssText)) {
-        cssText += this.scopeSelector(rule.selectorText, name, typeExtension,
+        cssText += this.scopeSelector(rule.selectorText, name, typeExtension, 
           this.strictStyling) + ' {\n\t';
         cssText += this.propertiesFromRule(rule) + '\n}\n\n';
       } else if (rule.media) {
@@ -5812,9 +6090,12 @@ var ShadowCSS = {
     return r.join(', ');
   },
   selectorNeedsScoping: function(selector, name, typeExtension) {
-    var matchScope = typeExtension ? name : '\\[is=' + name + '\\]';
-    var re = new RegExp('^(' + matchScope + ')' + selectorReSuffix, 'm');
+    var re = this.makeScopeMatcher(name, typeExtension);
     return !selector.match(re);
+  },
+  makeScopeMatcher: function(name, typeExtension) {
+    var matchScope = typeExtension ? '\\[is=[\'"]?' + name + '[\'"]?\\]' : name;
+    return new RegExp('^(' + matchScope + ')' + selectorReSuffix, 'm');
   },
   // scope via name and [is=name]
   applySimpleSelectorScope: function(selector, name, typeExtension) {
@@ -5854,7 +6135,7 @@ var ShadowCSS = {
     // TODO(sorvell): Chrome cssom incorrectly removes quotes from the content
     // property. (https://code.google.com/p/chromium/issues/detail?id=247231)
     if (rule.style.content && !rule.style.content.match(/['"]+/)) {
-      properties = 'content: \'' + rule.style.content + '\';\n' +
+      properties = 'content: \'' + rule.style.content + '\';\n' + 
         rule.style.cssText.replace(/content:[^;]*;/g, '');
     }
     return properties;
@@ -5940,5 +6221,4 @@ if (window.ShadowDOMPolyfill) {
 scope.ShadowCSS = ShadowCSS;
 
 })(window.Platform);
-
 }

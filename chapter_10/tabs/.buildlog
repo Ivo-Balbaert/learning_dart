@@ -695,3 +695,10 @@ Total time spent on web/tabs.html                            -- 967 ms
 Total time                                                   -- 1633 ms
 build.dart finished [2217 ms]
 
+---
+build.dart --machine --full
+Unable to open file: F:/dart_learning_by_projects_git/chapter_10/tabs/packages/web_ui/component_build.dart'file:///F:/dart_learning_by_projects_git/chapter_10/tabs/build.dart': Error: line 2 pos 1: library handler failed
+import 'package:web_ui/component_build.dart';
+^
+build.dart finished [82 ms]
+

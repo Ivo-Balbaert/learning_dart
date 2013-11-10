@@ -1,7 +1,7 @@
 library bank_terminal;
 
 import 'dart:html';
-import 'dart:json';
+import 'dart:convert';
 
 part '../model/bank_account.dart';
 part '../model/person.dart';
@@ -18,14 +18,14 @@ void main() {
 }
 
 bind_elements() {
-  owner = query('#owner');
-  balance = query('#balance');
-  number = query('#number');
-  btn_other = query('#btn_other');
-  amount = query('#amount');
-  btn_deposit = query('#btn_deposit');
-  btn_interest = query('#btn_interest');
-  error = query('#error');
+  owner = querySelector('#owner');
+  balance = querySelector('#balance');
+  number = querySelector('#number');
+  btn_other = querySelector('#btn_other');
+  amount = querySelector('#amount');
+  btn_deposit = querySelector('#btn_deposit');
+  btn_interest = querySelector('#btn_interest');
+  error = querySelector('#error');
 }
 
 attach_event_handlers() {
@@ -48,7 +48,7 @@ readData(Event e) {
   error.innerHtml = "";
   // read data from local storage:
   String acc_json = window.localStorage[key];
-  bac = new BankAccount.fromJson(parse(acc_json));
+  bac = new BankAccount.fromJson(JSON.decode(acc_json));
   // show owner and balance:
   owner.innerHtml = "<b>${bac.owner.name}</b>";
   balance.innerHtml = "<b>${bac.balance.toStringAsFixed(2)}</b>";

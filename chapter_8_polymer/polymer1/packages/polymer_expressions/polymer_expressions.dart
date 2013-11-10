@@ -67,28 +67,36 @@ class PolymerExpressions extends BindingDelegate {
       : globals = (globals == null) ?
           new Map<String, Object>.from(DEFAULT_GLOBALS) : globals;
 
-  _Binding getBinding(model, String path, name, node) {
+  prepareBinding(String path, name, node) {
     if (path == null) return null;
     var expr = new Parser(path).parse();
-    if (model is! Scope) {
-      model = new Scope(model: model, variables: globals);
+
+    // For template bind/repeat to an empty path, just pass through the model.
+    // We don't want to unwrap the Scope.
+    // TODO(jmesserly): a custom element extending <template> could notice this
+    // behavior. An alternative is to associate the Scope with the node via an
+    // Expando, which is what the JavaScript PolymerExpressions does.
+    if (isSemanticTemplate(node) && (name == 'bind' || name == 'repeat') &&
+        expr is EmptyExpression) {
+      return null;
     }
-    if (node is Element && name == "class") {
-      return new _Binding(expr, model, _classAttributeConverter);
-    }
-    if (node is Element && name == "style") {
-      return new _Binding(expr, model, _styleAttributeConverter);
-    }
-    return new _Binding(expr, model);
+
+    return (model, node) {
+      if (model is! Scope) {
+        model = new Scope(model: model, variables: globals);
+      }
+      if (node is Element && name == "class") {
+        return new _Binding(expr, model, _classAttributeConverter);
+      }
+      if (node is Element && name == "style") {
+        return new _Binding(expr, model, _styleAttributeConverter);
+      }
+      return new _Binding(expr, model);
+    };
   }
 
-  getInstanceModel(Element template, model) {
-    if (model is! Scope) {
-      var _scope = new Scope(model: model, variables: globals);
-      return _scope;
-    }
-    return model;
-  }
+  prepareInstanceModel(Element template) => (model) =>
+      model is Scope ? model : new Scope(model: model, variables: globals);
 }
 
 class _Binding extends ChangeNotifier {

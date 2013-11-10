@@ -10,8 +10,8 @@ import 'dart:collection';
 import 'asset.dart';
 import 'asset_forwarder.dart';
 import 'asset_node.dart';
-import 'barback_logger.dart';
 import 'errors.dart';
+import 'log.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
 import 'transform_node.dart';
@@ -115,8 +115,8 @@ class PhaseInput {
   }
 
   /// Set this input's transformers to [transformers].
-  void updateTransformers(Iterable<Transformer> newTransformers) {
-    newTransformers = newTransformers.toSet();
+  void updateTransformers(Iterable<Transformer> newTransformersIterable) {
+    var newTransformers = newTransformersIterable.toSet();
     var oldTransformers = _transformers.toSet();
     for (var removedTransformer in
          oldTransformers.difference(newTransformers)) {
