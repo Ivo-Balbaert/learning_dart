@@ -1,8 +1,11 @@
 .DS_Store
 .buildlog
+build
 packages
 pubspec.lock
+out
 *.js
 *.js.deps
 *.js.map
+*.precompiled.js
 *~

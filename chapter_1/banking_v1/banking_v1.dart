@@ -14,8 +14,8 @@ class BankAccount {
   BankAccount(this.owner, this.number, this.balance);
   // methods:
   deposit(double amount) => balance += amount;
-//  deposit(double amount) {
-//    balance += amount;
-//  }
+//deposit(double amount) {
+//  balance += amount;
+//}
   withdraw(double amount) => balance -= amount;
 }
