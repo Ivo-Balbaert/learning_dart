@@ -7,5 +7,4 @@ out
 *.js
 *.js.deps
 *.js.map
-*.precompiled.js
 *~
