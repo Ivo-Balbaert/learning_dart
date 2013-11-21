@@ -44,7 +44,7 @@ void main() {
   print(b1); // false
   print(b2); // true
 
-// equality of strings
+  // equality of strings
   var s = "strings are immutable";
   var t = "strings are immutable";
   print(s == t); // true, they contain the same characters
@@ -52,13 +52,12 @@ void main() {
 
   var b3 = (7 is num); // () are not necessary
   print(b3); // true
-  var b4 = (7 is! double);
+  //var b4 = (7 is! double);
+  var b4 = (7 is int);
   print(b4); // true, it's an int
-  assert(b4 == true);
   assert(b4);
 
-//  var b5 = (n as String) is String;
-//  print(b5); // true
-
+//var b5 = (n as String) is String;
+//print(b5); // true
 
 }

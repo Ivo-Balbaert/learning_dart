@@ -13,10 +13,10 @@ void main() {
 String calculateRabbits(int years) {
   calc(years) => (2 * pow(E, log(GROWTH_FACTOR) * years)).round().toInt();
 
-// long notation:
-//  calc(years) {
-//    return (2 * pow(E, log(GROWTH_FACTOR) * years)).round().toInt();
-//  }
+//long notation:
+//calc(years) {
+//  return (2 * pow(E, log(GROWTH_FACTOR) * years)).round().toInt();
+//}
 
   var out = "After $years years:\t ${calc(years)} animals";
   return out;

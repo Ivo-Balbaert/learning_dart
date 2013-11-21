@@ -1,5 +1,5 @@
 void main() {
- // if else if:
+  // if else if:
   var n = 25;
   if (n < 10) {
     print('1 digit number: $n');
@@ -8,12 +8,13 @@ void main() {
   } else {
     print('3 or more digit number: $n');
   }
-// ternary operator:
+
+  // ternary operator:
   num rabbitCount = 16758;
   (rabbitCount > 20000) ? print('enough for this year!') : print('breed on!');
   // breed on!
 
-// type - test:
+  // type - test:
   var ba1, ba2;
   ba1 = new BankAccount("Jeff", "5768-346-89", 758.0);
   if (ba1 is BankAccount) ba1.deposit(42.0);
@@ -25,7 +26,8 @@ void main() {
   } else {
     print('ba2 is not a BankAccount'); // ba2 is not a BankAccount
   }
-// switch-case:
+
+  // switch-case:
   switch(ba1.owner) {
     case 'Jeff':
         print('Jeff is the bank account owner'); // this is printed
@@ -36,7 +38,8 @@ void main() {
     default:
       print('The bank account owner is not Jeff, nor Mary');
   }
- // switch with integer:
+
+  // switch with integer:
   int x = 7;
   switch (x) {
     case 7:
@@ -46,7 +49,8 @@ void main() {
       print("Miss");
       break;
   } //Prints Hit
-// for-loop:
+
+  // for-loop:
   var langs = ["Java","Python","Ruby", "Dart"];
   for (int i = 0; i < langs.length; i++) {
     print('${langs[i]}');
@@ -58,7 +62,8 @@ void main() {
     s = '$s$n ';
   }
   print(s);  // 0 1 2 3 4 5 6 7
-// while-loop:
+
+  // while-loop:
   while (rabbitCount <= 20000) {
     print('keep breeding');
     rabbitCount += 4;

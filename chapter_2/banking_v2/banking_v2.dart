@@ -29,10 +29,10 @@ class BankAccount {
   double balance;
   DateTime dateCreated, dateModified;
   // constructor:
-//  BankAccount(this.owner, this.number, this.balance)  {
-//    dateCreated = new DateTime.now();
-//  }
-//  // version with initializer list:
+//BankAccount(this.owner, this.number, this.balance)  {
+//  dateCreated = new DateTime.now();
+//}
+  // version with initializer list:
   BankAccount(this.owner, this.number, this.balance): dateCreated = new DateTime.now();
   // methods:
     deposit(double amount) {

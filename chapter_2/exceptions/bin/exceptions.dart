@@ -3,12 +3,14 @@ import 'dart:math';
 void main() {
   var input = "47B9"; // value read from input, should be an integer
   // int inp = int.parse(input); // --> FormatException!
+
   // first attempt:
   try {
     int inp = int.parse(input);
   } on FormatException {
     print ('ERROR: You must input an integer!');
   }
+
   // general exception handler:
   try {
     int inp = int.parse(input);
@@ -21,6 +23,7 @@ void main() {
   } finally {
     print('OK, I have cleaned up the mess');
   }
+
   // throwing an exception:
   var radius = 8;
   var area = PI * pow(radius, 2);
