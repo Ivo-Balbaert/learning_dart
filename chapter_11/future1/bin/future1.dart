@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:async';
+//import 'dart:async';
 
 main() {
   var file = new File('bigfile.txt');

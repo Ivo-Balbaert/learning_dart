@@ -10,4 +10,5 @@ main() {
       request.response.close();
     });
   });
+  // use http://localhost:8080/ in a browser
 }
