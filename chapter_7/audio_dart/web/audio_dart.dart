@@ -1,7 +1,7 @@
 import 'dart:html';
 
 void main() {
-  AudioElement aud = query('#snd1');
+  AudioElement aud = querySelector('#snd1');
   aud.play();
 }
 

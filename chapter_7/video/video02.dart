@@ -1,7 +1,7 @@
 import 'dart:html';
 
 void main() {
-  VideoElement video = query('#video');
+  VideoElement video = querySelector('#video');
   video.loop = true;
 }
 
