@@ -1,11 +1,8 @@
-library bank_terminal;
 import 'dart:html';
-
-part '../model/bank_account.dart';
-part '../model/person.dart';
+//import 'package:bank_terminal_s1/bank_terminal.dart';
 
 void main() {
-  ButtonElement btn_create = query('#btn_create');
+  ButtonElement btn_create = querySelector('#btn_create');
   btn_create.onClick.listen(create_account);
 }
 

@@ -1,10 +1,5 @@
-library bank_terminal;
-
 import 'dart:html';
-import 'dart:convert';
-
-part '../model/bank_account.dart';
-part '../model/person.dart';
+import 'package:bank_terminal_s4/bank_terminal.dart';
 
 LabelElement owner, balance, error;
 InputElement number, amount;
@@ -17,11 +12,11 @@ void main() {
 }
 
 bind_elements() {
-  owner = query('#owner');
-  balance = query('#balance');
-  number = query('#number');
-  btn_other = query('#btn_other');
-  error = query('#error');
+  owner = querySelector('#owner');
+  balance = querySelector('#balance');
+  number = querySelector('#number');
+  btn_other = querySelector('#btn_other');
+  error = querySelector('#error');
 }
 
 attach_event_handlers() {
@@ -42,7 +37,7 @@ readData(Event e) {
   error.innerHtml = "";
   // read data from local storage:
   String acc_json = window.localStorage[key];
-  bac = new BankAccount.fromJson(JSON.decode(acc_json));
+  bac = new BankAccount.fromJsonString(acc_json);
   // show owner and balance:
   owner.innerHtml = "<b>${bac.owner.name}</b>";
   balance.innerHtml = "<b>${bac.balance.toStringAsFixed(2)}</b>";

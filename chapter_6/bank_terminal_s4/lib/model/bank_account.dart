@@ -43,7 +43,9 @@ class BankAccount {
     this.balance = json["balance"];
     this.pin_code = json["pin_code"];
     this.date_modified = DateTime.parse(json["modified_date"]);
-   }
+  }
+  BankAccount.fromJsonString(String jsonString): this.fromJson(JSON.decode(jsonString));
+  
   // methods:
   deposit(double amount) {
     balance += amount;

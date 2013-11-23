@@ -1,4 +1,4 @@
-name: bank_terminal_s4
+name: bank_terminal_s5
 description: A sample web application
 dependencies:
   browser: any

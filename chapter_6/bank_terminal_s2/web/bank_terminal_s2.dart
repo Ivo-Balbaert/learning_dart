@@ -1,9 +1,5 @@
-library bank_terminal;
-
 import 'dart:html';
-
-part '../model/bank_account.dart';
-part '../model/person.dart';
+import 'package:bank_terminal_s2/bank_terminal.dart';
 
 InputElement name, address, email, birth_date, gender;
 InputElement number, balance, pin_code;
@@ -12,16 +8,16 @@ ButtonElement btn_create;
 
 void main() {
   // bind variables to DOM elements:
-  name = query('#name');
-  address = query('#address');
-  email = query('#email');
-  birth_date = query('#birth_date');
-  gender = query('#gender');
-  number = query('#number');
-  balance = query('#balance');
-  pin_code = query('#pin_code');
-  btn_create = query('#btn_create');
-  lbl_error = query('#error');
+  name = querySelector('#name');
+  address = querySelector('#address');
+  email = querySelector('#email');
+  birth_date = querySelector('#birth_date');
+  gender = querySelector('#gender');
+  number = querySelector('#number');
+  balance = querySelector('#balance');
+  pin_code = querySelector('#pin_code');
+  btn_create = querySelector('#btn_create');
+  lbl_error = querySelector('#error');
   lbl_error.text = "";
   lbl_error.style..color = "red";
   // attach event handlers:

@@ -1,10 +1,5 @@
-library bank_terminal;
-
 import 'dart:html';
-import 'dart:convert';
-
-part '../model/bank_account.dart';
-part '../model/person.dart';
+import 'package:bank_terminal_s6/bank_terminal.dart';
 
 List account_nos;
 String select, data;
@@ -64,7 +59,7 @@ showAccount(Event e) {
     var accountno = account_nos[sel.selectedIndex - 1];
     var key = 'Bankaccount:$accountno';
     String acc_json = window.localStorage[key];
-    bac = new BankAccount.fromJson(JSON.decode(acc_json));
+    bac = new BankAccount.fromJsonString(acc_json);
     // show data:
     table.classes.add('border');
     constructTrows();
@@ -73,7 +68,7 @@ showAccount(Event e) {
 
 constructTrows() {
   var sb = new StringBuffer();
-   sb.write('<p><tr><b><td>Owner:</td></b>   <td>${bac.owner.name}</td></tr><br/>');
+  sb.write('<p><tr><b><td>Owner:</td></b>   <td>${bac.owner.name}</td></tr><br/>');
   sb.write('<tr><b><td>Address:</td></b>     <td>${bac.owner.address}</td></tr><br/>');
   sb.write('<tr><b><td>Email:</td></b>       <td>${bac.owner.email}</td></tr><br/>');
   sb.write('<tr><b><td>Gender:</td></b>      <td>${bac.owner.gender}</td></tr><br/>');
