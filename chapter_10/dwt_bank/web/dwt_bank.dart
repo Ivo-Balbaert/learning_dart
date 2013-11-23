@@ -1,13 +1,8 @@
-library bank_terminal;
-
 import 'dart:html';
 import 'package:dart_web_toolkit/ui.dart' as ui;
 import 'package:dart_web_toolkit/i18n.dart' as i18n;
 import 'package:dart_web_toolkit/event.dart' as event;
-import 'dart:json';
-
-part '../model/bank_account.dart';
-part '../model/person.dart';
+import 'package:dwt_bank/dwt_bank.dart';
 
 ui.TextBox number;
 ui.Label owner, balance;
@@ -68,7 +63,7 @@ readData() {
   }
   // read data from local storage:
   String acc_json = window.localStorage[key];
-  bac = new BankAccount.fromJson(parse(acc_json));
+  bac = new BankAccount.fromJsonString(acc_json);
   // show owner and balance:
   owner.text = "${bac.owner.name}";
   balance.text = "${bac.balance.toStringAsFixed(2)}";

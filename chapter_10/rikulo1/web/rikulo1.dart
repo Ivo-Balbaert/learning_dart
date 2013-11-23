@@ -1,10 +1,5 @@
 import 'dart:html';
-import 'package:rikulo_ui/effect.dart';
 import 'package:rikulo_ui/event.dart';
-import 'package:rikulo_ui/gesture.dart';
-import 'package:rikulo_ui/layout.dart';
-import 'package:rikulo_ui/message.dart';
-import 'package:rikulo_ui/model.dart';
 import 'package:rikulo_ui/view.dart';
 
 void main() {
@@ -23,7 +18,7 @@ void main() {
       (event.target as Button).text = "Thanks!!";
        event.target.requestLayout();  // redraw screen
   });
-   root.addChild(hello);        // attach to root view
+  root.addChild(hello);        // attach to root view
 }
 
 

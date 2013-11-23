@@ -1,17 +1,7 @@
-library bank_terminal;
-
 import 'dart:html';
-import 'dart:convert';
-import 'package:rikulo_ui/effect.dart';
 import 'package:rikulo_ui/event.dart';
-import 'package:rikulo_ui/gesture.dart';
-import 'package:rikulo_ui/layout.dart';
-import 'package:rikulo_ui/message.dart';
-import 'package:rikulo_ui/model.dart';
 import 'package:rikulo_ui/view.dart';
-
-part '../model/bank_account.dart';
-part '../model/person.dart';
+import 'package:rikulo_bank/dwt_bank.dart';
 
 BankAccount bac;
 TextBox number, amount;
@@ -70,7 +60,7 @@ readData() {
   }
   // read data from local storage:
   String acc_json = window.localStorage[key];
-  bac = new BankAccount.fromJson(JSON.decode(acc_json));
+  bac = new BankAccount.fromJsonString(acc_json);
   // show owner and balance:
   owner.text = "${bac.owner.name}";
   balance.text = "${bac.balance.toStringAsFixed(2)}";

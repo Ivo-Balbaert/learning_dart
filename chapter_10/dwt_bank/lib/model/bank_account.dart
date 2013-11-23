@@ -43,7 +43,9 @@ class BankAccount {
     this.balance = json["balance"];
     this.pin_code = json["pin_code"];
     this.date_modified = DateTime.parse(json["modified_date"]);
-   }
+  }
+  BankAccount.fromJsonString(String jsonString): this.fromJson(JSON.decode(jsonString));
+  
   // methods:
   deposit(double amount) {
     balance += amount;
@@ -70,8 +72,7 @@ class BankAccount {
     acc["pin_code"] = pin_code;
     acc["creation_date"] = date_created.toString();
     acc["modified_date"] = date_modified.toString();
-    var accs = JSON.encode(acc); // use only once for the root object (here a bank account)
-    return accs;
+    return JSON.encode(acc); // use only once for the root object (here a bank account)
   }
 }
 

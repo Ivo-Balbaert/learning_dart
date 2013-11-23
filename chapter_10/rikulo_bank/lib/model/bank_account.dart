@@ -34,7 +34,7 @@ class BankAccount {
     this.pin_code = pin_code;
     date_modified = date_created;
   }
-  BankAccount.sameOwner(BankAccount acc): owner = acc.owner;
+  BankAccount.sameOwner(BankAccount acc): owner = acc.owner, date_created = new DateTime.now();
   BankAccount.sameOwnerInit(BankAccount acc): this(acc.owner, "000-0000000-00", 0.0, 0);
 
   BankAccount.fromJson(Map json):  date_created = DateTime.parse(json["creation_date"]) {
@@ -43,7 +43,9 @@ class BankAccount {
     this.balance = json["balance"];
     this.pin_code = json["pin_code"];
     this.date_modified = DateTime.parse(json["modified_date"]);
-   }
+  }
+  BankAccount.fromJsonString(String jsonString): this.fromJson(JSON.decode(jsonString));
+  
   // methods:
   deposit(double amount) {
     balance += amount;
@@ -70,7 +72,7 @@ class BankAccount {
     acc["pin_code"] = pin_code;
     acc["creation_date"] = date_created.toString();
     acc["modified_date"] = date_modified.toString();
-    var accs = stringify(acc); // use only once for the root object (here a bank account)
+    var accs = JSON.encode(acc); // use only once for the root object (here a bank account)
     return accs;
   }
 }
