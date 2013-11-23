@@ -46,8 +46,9 @@ class BankAccount {
   BankAccount(this.owner, this.number, this.balance): dateCreated = new DateTime.now();
   BankAccount.sameOwner(BankAccount acc): owner = acc.owner;
   BankAccount.sameOwner2(BankAccount acc): this(acc.owner, "000-0000000-00", 0.0);
+  
   // methods:
-    deposit(double amount) {
+  deposit(double amount) {
     balance += amount;
     dateModified = new DateTime.now();
   }

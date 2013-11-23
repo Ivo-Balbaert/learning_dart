@@ -1,9 +1,10 @@
 void main() {
-// empty list
+  // empty list
   var empty = [];
   var empty2 = new List(); // equivalent
   assert(empty.isEmpty && empty2.isEmpty && empty.length == 0);
-// defining lists:
+  
+  // defining lists:
   var langs = ["Java","Python","Ruby", "Dart"];
   var readOnlyList = const ["Java","Python","Ruby", "Dart"];
   // List langs = ["Java","Python","Ruby", "Dart"];
@@ -21,9 +22,11 @@ void main() {
   print(langs2); // [C, C#, D]
   langs2[2] = "JavaScript";
   print(langs2); // [C, C#, JavaScript]
-  // langs2[4] = "F#";  // RangeError !
-//  var langs3 = new List.fixedLength(4, "Dart");
-//  print(langs3);
+  
+//langs2[4] = "F#";  // RangeError !
+//var langs3 = new List.fixedLength(4, "Dart");
+//print(langs3);
+  
   // splitting a String into a List:
   var number = "075-0623456-72";
   var parts = number.split('-');

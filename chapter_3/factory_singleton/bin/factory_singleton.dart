@@ -9,9 +9,10 @@ class SearchEngine {
     }
     return theOne;
   }
-// private, named constructor
+  
+  // private, named constructor
   SearchEngine._internal(this.name);
-// static method:
+  // static method:
   static nameSearchEngine () => theOne.name;
 }
 

@@ -1,4 +1,5 @@
 library libb;
-import 'liba.dart';
+
+//import 'liba.dart';
 export 'liba.dart' show abc;
 

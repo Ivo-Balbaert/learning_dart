@@ -1,11 +1,11 @@
 import 'dart:html';
 
 void main() {
-// binding to the user interface:
-  TextAreaElement textArea = query('#text');
-  TextAreaElement wordsArea = query('#words');
-  var wordsBtn = query('#frequency');
-  var clearBtn = query('#clear');
+  // binding to the user interface:
+  TextAreaElement textArea = querySelector('#text');
+  TextAreaElement wordsArea = querySelector('#words');
+  var wordsBtn = querySelector('#frequency');
+  var clearBtn = querySelector('#clear');
 
   wordsBtn.onClick.listen((MouseEvent e) {
     wordsArea.value = 'Word: frequency \n';

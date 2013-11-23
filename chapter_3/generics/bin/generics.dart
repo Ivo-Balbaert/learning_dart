@@ -1,8 +1,9 @@
 void main() {
-// if you want to see line 25 (langs2.add(42);) in runtime mode,
-// uncomment and uncheck Run in checked mode
-// lists:
+//if you want to see line 25 (langs2.add(42);) in runtime mode,
+//uncomment and uncheck Run in checked mode
+//lists:
   var date = new DateTime.now();
+  
   // untyped List:
   var lst1 = [7, "lucky number", 56.2, date];
   print('$lst1'); // [7, lucky number, 56.2, 2013-02-22 10:08:20.074]
@@ -15,6 +16,7 @@ void main() {
   print('$lst2'); // [7, lucky number, 56.2, 2013-02-22 10:08:20.074]
   print('${lst2 is List}');  // true
   // assert(lst2 is List<String>); // TypeErrorImplementation
+  
   // typed list:
   var langs = <String>["Python","Ruby", "Dart"];
   var langs2 = new List<String>();
@@ -30,12 +32,13 @@ void main() {
     if (s is String) print('$s is a String');
     else             print ('$s is not a String!');
   }
-  // output:
+//output:
 //  Python is a String
 //  Ruby is a String
 //  Dart is a String
 //  42 is not a String!
-// maps:
+  
+  // maps:
   var map = new Map<int, String>();
   map[1] = 'Dart';
   map[2] = 'JavaScript';
@@ -43,13 +46,12 @@ void main() {
   map[4] = 'C#';
   print('$map'); // {1: Dart, 2: JavaScript, 3: Java, 4: C#}
   // map['five'] = 'Perl'; // String is not assignable to int
-// reified generics:
+  
+  // reified generics:
   print('Generics');
   print(new List<String>() is List<Object>);   // true every string is an object
   print(new List<Object>() is List<String>);   // false not all objects are strings
   print(new List<String>() is List<int>); // false
   print(new List<String>() is List); // true
   print(new List() is List<String>); // true
-
-
 }
