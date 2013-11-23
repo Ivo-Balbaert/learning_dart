@@ -10,6 +10,8 @@ class BankAccountForm extends PolymerElement {
   var accounts = toObservable(["052-0692562-12", "235-4523915-98", "456-0692322-12",
                            "789-2194366-45"]);
   double amount = 0.0;
+  
+  BankAccountForm.created() : super.created();
 //
 //  created() {
 //    super.created();

@@ -1,7 +1,7 @@
 library bank_terminal;
 
 import 'dart:html';
-import 'dart:json';
+import 'dart:convert';
 import 'package:web_ui/web_ui.dart';
 
 part 'model/bank_account.dart';
