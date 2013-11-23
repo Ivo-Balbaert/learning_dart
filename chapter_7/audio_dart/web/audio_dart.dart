@@ -1,8 +1,8 @@
 import 'dart:html';
 
 void main() {
-  AudioElement aud = querySelector('#snd1');
-  aud.play();
+  AudioElement collisionSound = querySelector('#collision-sound');
+  collisionSound.play();
 }
 
 
