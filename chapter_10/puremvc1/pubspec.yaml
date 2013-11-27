@@ -1,5 +1,0 @@
-name: puremvc1
-description: A sample web application
-dependencies:
-  browser: any
-  puremvc: '>=2.0.4 <3.0.0'
