@@ -1,5 +1,0 @@
-name: bee1
-description: A sample web application
-dependencies:
-  bee: any
-  browser: any
