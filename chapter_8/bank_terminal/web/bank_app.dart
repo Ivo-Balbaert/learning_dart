@@ -1,6 +1,5 @@
 import 'package:polymer/polymer.dart';
 import 'package:bank_terminal/bank_terminal.dart';
-import 'bank_account.dart';
 
 @CustomTag('bank-app')
 class BankApp extends PolymerElement {
