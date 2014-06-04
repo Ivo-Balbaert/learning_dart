@@ -21,7 +21,7 @@ class Person {
   }
 
   DateTime get date_birth =>  _date_birth;
-  set date_birth(value) {
+  set date_birth(DateTime value) {
     DateTime now = new DateTime.now();
     if (value.isBefore(now)) _date_birth = value;
   }
